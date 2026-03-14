@@ -298,6 +298,36 @@ input::placeholder{color:var(--t4)}
 .supa-indicator{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .supa-indicator.on{background:var(--green)}
 .supa-indicator.off{background:var(--t4)}
+/* KNIFE TYPE SELECTOR */
+.kf-type-sel{display:flex;gap:6px;margin-bottom:14px}
+.kf-type-btn{flex:1;padding:7px 4px;font-size:12px;font-weight:600;border-radius:8px;border:1.5px solid var(--b1);background:var(--bg);color:var(--t3);cursor:pointer;font-family:var(--font);transition:all var(--tr);text-align:center}
+.kf-type-btn.on.wts{background:rgba(0,122,255,.1);color:var(--blue);border-color:var(--blue)}
+.kf-type-btn.on.wtt{background:rgba(52,199,89,.12);color:var(--greent);border-color:var(--green)}
+.kf-type-btn.on.wtstt{background:rgba(255,149,0,.1);color:var(--oranget);border-color:var(--oranget)}
+.ki-type-tag{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:middle}
+.ki-type-tag.wts{background:rgba(0,122,255,.1);color:var(--blue)}
+.ki-type-tag.wtt{background:rgba(52,199,89,.12);color:var(--greent)}
+.ki-type-tag.wtstt{background:rgba(255,149,0,.1);color:var(--oranget)}
+/* PRICE RESEARCH */
+.pr-btn{font-size:11px;font-weight:600;color:var(--blue);background:rgba(0,122,255,.08);border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:var(--font);transition:background var(--tr);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.pr-btn:hover{background:rgba(0,122,255,.15)}
+.pr-panel{background:var(--bg);border:.5px solid var(--b1);border-radius:var(--rs);overflow:hidden;margin-top:10px}
+.pr-panel-hdr{padding:8px 12px;font-size:11px;font-weight:600;color:var(--t3);background:var(--card);border-bottom:.5px solid var(--b1);display:flex;justify-content:space-between;align-items:center}
+.pr-row{padding:9px 12px;border-bottom:.5px solid var(--b2);display:flex;gap:10px;align-items:center}
+.pr-row:last-child{border-bottom:none}
+.pr-row-text{flex:1;min-width:0}
+.pr-row-title{font-size:12px;color:var(--blue);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none;display:block}
+.pr-row-title:hover{text-decoration:underline}
+.pr-row-meta{font-size:11px;color:var(--t4);margin-top:1px}
+.pr-price{font-size:12px;font-weight:700;color:var(--greent);white-space:nowrap;background:var(--greenbg);padding:2px 8px;border-radius:20px;flex-shrink:0}
+/* BUNDLE */
+.bundle-box{background:var(--bg);border:.5px solid var(--b1);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px}
+.bundle-box-top{display:flex;align-items:center;gap:10px}
+/* TITLE PREVIEW */
+.title-prev{font-size:12px;color:var(--t2);background:var(--bg);border:.5px solid var(--b1);border-radius:6px;padding:8px 10px;margin-top:6px;line-height:1.5;word-break:break-word;font-family:var(--mono)}
+.title-prev .t-text{color:var(--t1)}
+.title-prev .t-over{color:var(--redt)!important;font-weight:700}
+.title-prev .t-count{font-size:10.5px;font-weight:600;color:var(--t3)}
 </style>
 
 <datalist id="dl-brands"></datalist>
@@ -348,10 +378,10 @@ async function saveSettings(){
 }
 
 // ─── STATE ────────────────────────────────────────────────────
-const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[]});
-const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[]});
-const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],modal:null,authStatus:"guest",authEmail:"",showMigrate:false};
+const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[]});
+const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[]});
+const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:""});
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -459,10 +489,66 @@ async function migrateToSupabase(){
 function skipMigrate(){S.showMigrate=false;_sbLoad().then(render);}
 
 // ─── POST BUILDER ─────────────────────────────────────────────
+// Auto-detect post type from knife types
+function autoPostType(knives){
+  if(!knives||!knives.length)return "[WTS]";
+  const types=knives.map(k=>k.knifeType||"WTS");
+  if(types.every(t=>t==="WTS"))return "[WTS]";
+  if(types.every(t=>t==="WTT"))return "[WTT]";
+  return "[WTS/WTT]";
+}
+// Build title string, truncating to maxLen chars for Reddit
+function buildTitleStr(knives,postType,maxLen){
+  maxLen=maxLen||300;
+  const prefix=(postType||"[WTS]")+" ";
+  const names=knives.map(k=>k.brand+" "+k.model);
+  let joined=names.join(" | ");
+  if((prefix+joined).length<=maxLen)return prefix+joined;
+  // Drop knives from the right until it fits
+  const parts=[...names];
+  const dropped=[];
+  while(parts.length>1&&(prefix+parts.join(" | ")).length>maxLen){
+    dropped.push(parts.pop());
+  }
+  let title=prefix+parts.join(" | ");
+  if(dropped.length){
+    const suffix=` & ${dropped.length} more`;
+    if((title+suffix).length<=maxLen)title+=suffix;
+  }
+  if(title.length>maxLen)title=title.slice(0,maxLen);
+  return title;
+}
+// Price research via Reddit public JSON (free, no auth)
+async function doFetchPriceResearch(){
+  const f=S.kf;
+  const q=[f.brand,f.model,f.steel].filter(Boolean).join(" ").trim();
+  if(!q){S.priceResearch={status:"idle",results:[],query:""};render();return;}
+  S.priceResearch={status:"loading",results:[],query:q};render();
+  try{
+    const url="https://www.reddit.com/r/Knife_Swap/search.json?q="+encodeURIComponent(q)+"&sort=new&restrict_sr=on&limit=10&type=link";
+    const res=await fetch(url,{headers:{"Accept":"application/json"}});
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    const posts=(data.data?.children||[]).map(c=>{
+      const d=c.data;
+      const prices=[];
+      const m=d.title.match(/\$\s*(\d+)/g);
+      if(m)prices.push(...m);
+      return{title:d.title,url:"https://reddit.com"+d.permalink,author:d.author,date:new Date(d.created_utc*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),prices};
+    });
+    S.priceResearch={status:posts.length?"done":"empty",results:posts,query:q};
+  }catch(e){
+    S.priceResearch={status:"fallback",results:[],query:q};
+    // Fallback: open reddit search in new tab
+    window.open("https://www.reddit.com/r/Knife_Swap/search/?q="+encodeURIComponent(q)+"&sort=new&restrict_sr=1","_blank","noopener");
+  }
+  render();
+}
+function clearPriceResearch(){S.priceResearch={status:"idle",results:[],query:""};render();}
+
 function buildPost(post,v){
   v=v!==undefined?v:(post.variant||0);
   const ts=new Date().toISOString().slice(0,10).replace(/-/g,"/");
-  // Resolve "Other" labels
   const payList=post.payment.map(p=>p==="Other"&&post.paymentOther?post.paymentOther:p);
   const pay=payList.join(" | ");
   const noShipList=post.noShip.map(s=>s==="Other"&&post.noShipOther?post.noShipOther:s);
@@ -473,21 +559,34 @@ function buildPost(post,v){
   const type=post.postType||"[WTS]";
   const un=SETTINGS.username?SETTINGS.username+" | ":"";
   const title=post.knives.map(k=>k.brand+" "+k.model+(k.sold?" ~~[SOLD]~~":"")).join(" | ");
+  const bundle=post.bundleEnabled&&post.bundlePrice?`**Bundle price: $${post.bundlePrice} for all**\n\n`:"";
+  // Per-knife price label helper
+  const priceLabel=(k)=>{
+    const kt=k.knifeType||"WTS";
+    const sv=k.price?`SV: $${k.price}${k.obo?" OBO":""}`:null;
+    const tv=k.tradeValue?`TV: $${k.tradeValue}`:null;
+    if(kt==="WTT")return tv||"TV: TBD";
+    if(kt==="WTS/WTT")return[sv,tv].filter(Boolean).join(" | ")||"$TBD";
+    return sv||"$TBD";
+  };
   if(v===0){
     const blocks=post.knives.map((k,i)=>{
       const iss=k.issues.filter(x=>x!=="None").join(", ")||"None";
       const ac=k.accessories.filter(x=>x!=="None").join(", ")||"None";
-      const hdr=k.sold?`~~**${i+1}. ${k.brand} ${k.model} [SOLD]** - $${k.price}${k.obo?" OBO":""}~~`:`**${i+1}. ${k.brand} ${k.model}** - $${k.price}${k.obo?" OBO":""}`;
+      const pl=priceLabel(k);
+      const hdr=k.sold?`~~**${i+1}. ${k.brand} ${k.model} [SOLD]** - ${pl}~~`:`**${i+1}. ${k.brand} ${k.model}** - ${pl}`;
       const kphotos=(k.photos||[]).length?`\n- **Photos:** ${(k.photos||[]).join(" | ")}`:"";
       return`${hdr}\n- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}\n- **Carried:** ${k.carried} | **Used to cut:** ${k.usedCut} | **Sharpened:** ${k.sharpened}\n- **Owners:** ${k.owners} | **Centering:** ${k.centering} | **Lockup:** ${k.lockup}${k.lockupNotes?" ("+k.lockupNotes+")":""}\n- **Issues:** ${iss} | **Accessories:** ${ac}${k.notes?"\n- **Notes:** "+k.notes:""}${kphotos}`;
     }).join("\n\n");
-    return`### ${type} ${title}${rp}\n\n**Photos/Timestamp:** ${photoStr}\n\n---\n\n${blocks}\n\n---\n\n**Payment:** ${pay}\n**Shipping included**${noship}${post.notes?"\n**Notes:** "+post.notes:""}\n\n*${un}${ts}*`;
+    return`### ${type} ${title}${rp}\n\n**Photos/Timestamp:** ${photoStr}\n\n---\n\n${bundle}${blocks}\n\n---\n\n**Payment:** ${pay}\n**Shipping included**${noship}${post.notes?"\n**Notes:** "+post.notes:""}\n\n*${un}${ts}*`;
   }
   if(v===1){
-    const lines=post.knives.map((k,i)=>`${i+1}. ${k.brand} ${k.model}${k.sold?" [SOLD]":""} - $${k.price}${k.obo?" OBO":""}\n   ${k.steel||"N/A"} · ${k.bladeCondition} · ${k.centering} · Issues: ${k.issues.filter(x=>x!=="None").join("/")||"None"}${(k.photos||[]).length?"\n   Photos: "+(k.photos||[]).join(" | "):""}`).join("\n");
-    return`${type} ${title} | ${ts}${rp}\n\nPhotos/Timestamp: ${photoStr}\n\n${lines}\n\nPayment: ${pay} | Shipping included${noship}${post.notes?"\nNotes: "+post.notes:""}${un?"\n"+un:""}`;
+    const lines=post.knives.map((k,i)=>`${i+1}. ${k.brand} ${k.model}${k.sold?" [SOLD]":""} - ${priceLabel(k)}\n   ${k.steel||"N/A"} · ${k.bladeCondition} · ${k.centering} · Issues: ${k.issues.filter(x=>x!=="None").join("/")||"None"}${(k.photos||[]).length?"\n   Photos: "+(k.photos||[]).join(" | "):""}`).join("\n");
+    const bundleLine=post.bundleEnabled&&post.bundlePrice?`\nBundle price: $${post.bundlePrice} for all`:"";
+    return`${type} ${title} | ${ts}${rp}\n\nPhotos/Timestamp: ${photoStr}\n\n${lines}${bundleLine}\n\nPayment: ${pay} | Shipping included${noship}${post.notes?"\nNotes: "+post.notes:""}${un?"\n"+un:""}`;
   }
-  return`${type} ${title} | ${ts}${rp}\n${photoStr}\n\n${post.knives.map(k=>`${k.brand} ${k.model}${k.sold?" [SOLD]":""} $${k.price}${k.obo?" OBO":""} - ${k.steel||"N/A"}, ${k.bladeCondition}`).join("\n")}\n\n${pay} | Shipping included${noship}${post.notes?"\n"+post.notes:""}${un?"\n"+un:""}`;
+  const bundleLine2=post.bundleEnabled&&post.bundlePrice?`\nBundle: $${post.bundlePrice} for all`:"";
+  return`${type} ${title} | ${ts}${rp}\n${photoStr}\n\n${post.knives.map(k=>`${k.brand} ${k.model}${k.sold?" [SOLD]":""} - ${priceLabel(k)} - ${k.steel||"N/A"}, ${k.bladeCondition}`).join("\n")}${bundleLine2}\n\n${pay} | Shipping included${noship}${post.notes?"\n"+post.notes:""}${un?"\n"+un:""}`;
 }
 
 // ─── UPLOAD ───────────────────────────────────────────────────
@@ -565,31 +664,36 @@ function openKF(idx,mode){
   }
   // Pre-populate kfUploads from existing photos so they show in the form
   S.kfUploads=(S.kf.photos||[]).map(url=>({uid:gid(),name:url.split("/").pop(),url,uploading:false,error:null}));
+  S.priceResearch={status:"idle",results:[],query:""};
   render();setTimeout(()=>document.getElementById("kf-brand")?.focus(),60);
 }
-function closeKF(){S.kfOpen=false;S.kfIdx=-1;S.err="";S.kfUploads=[];render();}
+function closeKF(){S.kfOpen=false;S.kfIdx=-1;S.err="";S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};render();}
 function syncKF(){
   const g=id=>document.getElementById(id);const f=S.kf;
-  ["brand","model","steel","price","lockupNotes","notes"].forEach(k=>{const e=g("kf-"+k);if(e)f[k]=e.value});
+  ["brand","model","steel","price","tradeValue","lockupNotes","notes"].forEach(k=>{const e=g("kf-"+k);if(e)f[k]=e.value});
   ["bladeCondition","owners","centering","lockup"].forEach(k=>{const e=g("kf-"+k);if(e)f[k]=e.value});
 }
 function saveKF(){
   syncKF();const f=S.kf;
-  if(!f.brand.trim()||!f.model.trim()||!f.price){S.err="Brand, model, and price required.";render();return;}
+  if(!f.brand.trim()||!f.model.trim()){S.err="Brand and model required.";render();return;}
+  const kt=f.knifeType||"WTS";
+  if(kt!=="WTT"&&!f.price){S.err="Sale price required for WTS listings.";render();return;}
+  if(kt!=="WTS"&&!f.tradeValue){S.err="Trade value required for WTT listings.";render();return;}
   S.err="";
   f.photos=S.kfUploads.filter(x=>x.url).map(x=>x.url);
   if(S.kfMode==="locker"){
     if(!f.id)f.id=gid();
     if(S.kfIdx>=0)S.inventory[S.kfIdx]=JSON.parse(JSON.stringify(f));
     else S.inventory.push(JSON.parse(JSON.stringify(f)));
-    S.kfOpen=false;S.kfIdx=-1;S.kfUploads=[];saveInv();render();
+    S.kfOpen=false;S.kfIdx=-1;S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};saveInv();render();
   }else{
     if(S.kfIdx>=0)S.draft.knives[S.kfIdx]=JSON.parse(JSON.stringify(f));
     else S.draft.knives.push(JSON.parse(JSON.stringify(f)));
-    S.kfOpen=false;S.kfIdx=-1;S.kfUploads=[];render();
+    S.draft.postType=autoPostType(S.draft.knives);
+    S.kfOpen=false;S.kfIdx=-1;S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};render();
   }
 }
-function removeKnife(i){S.draft.knives.splice(i,1);render();}
+function removeKnife(i){S.draft.knives.splice(i,1);S.draft.postType=autoPostType(S.draft.knives);render();}
 function setPrevPrice(i,v){syncDraft();S.draft.knives[i].prevPrice=v;render();}
 function applyDropPrice(i,p){syncDraft();S.draft.knives[i].price=String(p);render();}
 function addFromLocker(invIdx){
@@ -597,6 +701,7 @@ function addFromLocker(invIdx){
   const copy={...JSON.parse(JSON.stringify(k)),inventoryId:k.id};
   delete copy.status;delete copy.addedAt;delete copy.soldAt;
   S.draft.knives.push(copy);
+  S.draft.postType=autoPostType(S.draft.knives);
   S.inventory[invIdx].status="listed";
   S.lockerPicker=false;saveInv();render();
 }
@@ -625,6 +730,7 @@ function executeMove(toPostId){
 function syncDraft(){
   const g=id=>document.getElementById(id);
   ["notes","paymentOther","noShipOther"].forEach(k=>{const e=g("d-"+k);if(e)S.draft[k]=e.value});
+  const bp=g("d-bundlePrice");if(bp)S.draft.bundlePrice=bp.value;
   // Also grab manual photo URL if set
   const mu=g("d-manualUrl");if(mu&&mu.value.trim()){if(!S.draft.photos.includes(mu.value.trim()))S.draft.photos.push(mu.value.trim());}
 }
@@ -677,7 +783,7 @@ function startSamePriceRepost(pid){
 }
 function openRedditPost(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
-  const title=(p.postType||"[WTS]")+" "+p.knives.map(k=>k.brand+" "+k.model).join(" | ");
+  const title=buildTitleStr(p.knives,p.postType,300);
   const url="https://www.reddit.com/r/Knife_Swap/submit?selftext=true&title="+encodeURIComponent(title)+"&text="+encodeURIComponent(p.postText||"");
   window.open(url,"_blank","noopener");
 }
@@ -809,11 +915,35 @@ function mainHdr(){
 function kfFormHtml(){
   const s=S;const f=s.kf;const isLock=s.kfMode==="locker";
   const advHtml=s.adv?`<div class="adv-box"><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Owners</label><select id="kf-owners">${["1","2","3+"].map(v=>`<option${f.owners===v?" selected":""}>${v}</option>`).join("")}</select></div><div class="field"><label>Centering</label><select id="kf-centering">${["Perfect","Favoring show side","Favoring clip side","Off-center"].map(v=>`<option${f.centering===v?" selected":""}>${v}</option>`).join("")}</select></div></div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Lockup</label><select id="kf-lockup">${["Solid","Slight play","Other (describe)"].map(v=>`<option${f.lockup===v?" selected":""}>${v}</option>`).join("")}</select></div>${f.lockup==="Other (describe)"?`<div class="field"><label>Describe</label><input type="text" id="kf-lockupNotes" value="${esc(f.lockupNotes)}" placeholder="Describe..."/></div>`:`<div></div>`}</div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Issues</label><div class="chips" style="margin-top:4px">${ISSUES.map(v=>`<button class="chip sm mul${f.issues.includes(v)?" on":""}" onclick="syncKF();S.kf.issues=tmx(S.kf.issues,'${v}','None');render()">${v}</button>`).join("")}</div></div><div class="field"><label>Accessories</label><div class="chips" style="margin-top:4px">${ACC.map(v=>`<button class="chip sm mul${f.accessories.includes(v)?" on":""}" onclick="syncKF();S.kf.accessories=tmx(S.kf.accessories,'${v}','None');render()">${v}</button>`).join("")}</div></div></div><div class="field"><label>Notes</label><input type="text" id="kf-notes" value="${esc(f.notes)}" placeholder="Upgraded hardware, extra scales..."/></div></div>`:"";
+  const kt=f.knifeType||"WTS";
   const badge=isLock?`<span class="kf-badge lk">The Roll</span>`:`<span class="kf-badge dr">${s.kfIdx>=0?"Knife #"+(s.kfIdx+1):"New"}</span>`;
-  return`<div class="kf" style="margin-top:10px"><div class="kf-hdr"><div class="kf-title">${s.kfIdx>=0?(isLock?"Edit Knife":"Edit Knife"):(isLock?"Add to The Roll":"Add a Knife")}</div>${badge}</div>
+  // Price research panel
+  const pr=s.priceResearch;
+  let prPanel="";
+  if(pr.status==="loading"){
+    prPanel=`<div class="pr-panel"><div class="pr-panel-hdr"><span>Searching r/Knife_Swap for "${esc(pr.query)}"...</span></div><div style="padding:16px 12px;font-size:12px;color:var(--t3);text-align:center">Loading...</div></div>`;
+  }else if(pr.status==="done"||pr.status==="empty"){
+    const rows=pr.results.map(r=>{
+      const prices=r.prices.length?`<span class="pr-price">${r.prices[0]}</span>`:"";
+      return`<div class="pr-row"><div class="pr-row-text"><a class="pr-row-title" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><div class="pr-row-meta">${esc(r.author)} · ${esc(r.date)}</div></div>${prices}</div>`;
+    }).join("")||`<div style="padding:14px 12px;font-size:12px;color:var(--t3);text-align:center">No recent posts found for this knife.</div>`;
+    prPanel=`<div class="pr-panel"><div class="pr-panel-hdr"><span>Recent sales for "${esc(pr.query)}"</span><button onclick="clearPriceResearch()" style="background:none;border:none;cursor:pointer;color:var(--t4);font-size:13px;padding:0">&#x2715;</button></div>${rows}</div>`;
+  }else if(pr.status==="fallback"){
+    prPanel=`<div class="pr-panel"><div style="padding:10px 12px;font-size:12px;color:var(--t3)">Couldn't load results inline - opened Reddit search in a new tab.</div></div>`;
+  }
+  return`<div class="kf" style="margin-top:10px"><div class="kf-hdr"><div class="kf-title">${s.kfIdx>=0?"Edit Knife":(isLock?"Add to The Roll":"Add a Knife")}</div>${badge}</div>
     <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Brand</label><input type="text" id="kf-brand" list="dl-brands" value="${esc(f.brand)}" placeholder="e.g. Spyderco" oninput="updateModelList()"/></div><div class="field"><label>Model</label><input type="text" id="kf-model" list="dl-models" value="${esc(f.model)}" placeholder="e.g. Para 3 LW"/></div></div>
     <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390"/></div><div class="field"><label>Condition</label><select id="kf-bladeCondition">${BLADE_COND.map(v=>`<option${f.bladeCondition===v?" selected":""}>${v}</option>`).join("")}</select></div></div>
-    <div class="fr2" style="margin-bottom:13px"><div class="field"><label>Asking price ($)</label><input type="number" id="kf-price" value="${esc(f.price)}" placeholder="175" min="0"/></div><div class="field" style="display:flex;align-items:flex-end;padding-bottom:10px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO</label></div></div>
+    <div class="kf-type-sel"><button class="kf-type-btn${kt==="WTS"?" on wts":""}" onclick="syncKF();S.kf.knifeType='WTS';render()">WTS - For Sale</button><button class="kf-type-btn${kt==="WTT"?" on wtt":""}" onclick="syncKF();S.kf.knifeType='WTT';render()">WTT - For Trade</button><button class="kf-type-btn${kt==="WTS/WTT"?" on wtstt":""}" onclick="syncKF();S.kf.knifeType='WTS/WTT';render()">WTS/WTT - Both</button></div>
+    <div class="fr2" style="margin-bottom:13px">
+      ${kt!=="WTT"?`<div class="field"><label>Sale Price / SV ($)</label><input type="number" id="kf-price" value="${esc(f.price)}" placeholder="175" min="0"/></div>`:`<div></div>`}
+      ${kt!=="WTS"?`<div class="field"><label>Trade Value / TV ($)</label><input type="number" id="kf-tradeValue" value="${esc(f.tradeValue||"")}" placeholder="175" min="0"/></div>`:`<div class="field" style="display:flex;align-items:flex-end;padding-bottom:10px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO</label></div>`}
+    </div>
+    ${kt==="WTS"?"":`<div style="margin-bottom:11px;margin-top:-6px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO on prices</label></div>`}
+    <div class="field" style="margin-bottom:11px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><label style="margin:0">Price Research</label><button class="pr-btn" onclick="syncKF();doFetchPriceResearch()" type="button">🔍 Search r/Knife_Swap${pr.status==="loading"?"...":""}</button></div>
+      ${prPanel}
+    </div>
     <div class="fr3"><div class="field"><label>Carried?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.carried===v?" on":""}" onclick="syncKF();S.kf.carried='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Used to cut?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.usedCut===v?" on":""}" onclick="syncKF();S.kf.usedCut='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Sharpened?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.sharpened===v?" on":""}" onclick="syncKF();S.kf.sharpened='${v}';render()">${v}</button>`).join("")}</div></div></div>
     <button class="adv-btn" onclick="syncKF();S.adv=!S.adv;render()">${s.adv?"Hide":"Show"} advanced</button>${advHtml}
     <div class="field" style="margin-top:12px">
@@ -821,12 +951,7 @@ function kfFormHtml(){
       <input type="file" id="kf-photo-input" accept="image/*" multiple style="display:none" onchange="handleKnifeFileInput(event)"/>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload()" type="button">+ Add Photos</button>
-        ${s.kfUploads.map(u=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 8px;background:var(--bg);border:.5px solid var(--b2);border-radius:6px;max-width:200px">
-          ${u.uploading?`<span style="color:var(--t4)">uploading...</span>`
-          :u.error?`<span style="color:var(--redt);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(u.error)}">${esc(u.error)}</span>`
-          :`<a href="${esc(u.url)}" target="_blank" style="color:var(--blue);text-decoration:none;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.name)}</a>`}
-          <button onclick="removeKnifeUpload('${u.uid}')" style="background:none;border:none;color:var(--t4);cursor:pointer;padding:0;font-size:12px;line-height:1;margin-left:2px">&times;</button>
-        </div>`).join("")}
+        ${s.kfUploads.map(u=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 8px;background:var(--bg);border:.5px solid var(--b2);border-radius:6px;max-width:200px">${u.uploading?`<span style="color:var(--t4)">uploading...</span>`:u.error?`<span style="color:var(--redt);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.error)}</span>`:`<a href="${esc(u.url)}" target="_blank" style="color:var(--blue);text-decoration:none;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.name)}</a>`}<button onclick="removeKnifeUpload('${u.uid}')" style="background:none;border:none;color:var(--t4);cursor:pointer;padding:0;font-size:12px;line-height:1;margin-left:2px">&times;</button></div>`).join("")}
       </div>
     </div>
     ${s.err?`<div class="err">${esc(s.err)}</div>`:""}
@@ -932,15 +1057,24 @@ function renderSold(){
 function renderCompose(){
   const s=S;const d=s.draft;
   const availInLocker=s.inventory.filter(k=>k.status==="available");
-  const knivesList=d.knives.length?d.knives.map((k,i)=>`<div class="ki"><span class="ki-num">${i+1}</span><div class="ki-info"><div class="ki-name">${esc(k.brand)} ${esc(k.model)}${k.inventoryId?`<span class="ki-fromlock">The Roll</span>`:""}</div><div class="ki-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}</div></div><span class="ki-price">$${esc(k.price)}${k.obo?" OBO":""}</span><button class="btn btn-sec btn-xs" onclick="openKF(${i},'draft')">Edit</button><button class="btn btn-rd btn-xs" onclick="removeKnife(${i})">Remove</button></div>`).join(""):`<div style="text-align:center;padding:20px 16px;color:var(--t4);font-size:13px;border:1px dashed rgba(0,0,0,.13);border-radius:var(--rs)">No knives added yet</div>`;
+  const knivesList=d.knives.length?d.knives.map((k,i)=>{
+    const kt=k.knifeType||"WTS";
+    const ktClass=kt==="WTS/WTT"?"wtstt":kt.toLowerCase();
+    const typeTag=`<span class="ki-type-tag ${ktClass}">${kt}</span>`;
+    const priceStr=kt==="WTS"?`SV: $${esc(k.price||"?")}${k.obo?" OBO":""}`:kt==="WTT"?`TV: $${esc(k.tradeValue||"?")}`:(`SV: $${esc(k.price||"?")}${k.obo?" OBO":""} | TV: $${esc(k.tradeValue||"?")}`);
+    return`<div class="ki"><span class="ki-num">${i+1}</span><div class="ki-info"><div class="ki-name">${esc(k.brand)} ${esc(k.model)}${typeTag}${k.inventoryId?`<span class="ki-fromlock">The Roll</span>`:""}</div><div class="ki-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}</div></div><span class="ki-price">${priceStr}</span><button class="btn btn-sec btn-xs" onclick="openKF(${i},'draft')">Edit</button><button class="btn btn-rd btn-xs" onclick="removeKnife(${i})">Remove</button></div>`;
+  }).join(""):`<div style="text-align:center;padding:20px 16px;color:var(--t4);font-size:13px;border:1px dashed rgba(0,0,0,.13);border-radius:var(--rs)">No knives added yet</div>`;
   const lockerPickerHtml=s.lockerPicker&&availInLocker.length?`<div class="lk-picker" style="margin-top:6px">${availInLocker.map((k,i)=>{const ri=s.inventory.indexOf(k);return`<div class="lk-pick-row" onclick="addFromLocker(${ri})"><div><div class="lk-pick-name">${esc(k.brand)} ${esc(k.model)}</div><div class="lk-pick-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)} · $${esc(k.price)}</div></div><button class="btn btn-gn btn-xs" style="pointer-events:none">Add</button></div>`}).join("")}<div style="padding:8px 14px;font-size:11px;color:var(--t4);border-top:.5px solid var(--b2);cursor:pointer" onclick="S.lockerPicker=false;render()">Close picker</div></div>`:s.lockerPicker&&!availInLocker.length?`<div style="padding:12px 14px;background:var(--bg);border-radius:var(--rs);font-size:12.5px;color:var(--t3);margin-top:6px">No available knives in The Roll. <span style="color:var(--blue);cursor:pointer" onclick="S.view='roll';render()">Add some first.</span></div>`:"";
   const addBtns=!s.kfOpen?`<div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-sec" style="flex:1;justify-content:center;border-radius:var(--rs)" onclick="openKF(-1,'draft')">+ New Knife</button>${s.inventory.length?`<button class="btn btn-pu" style="border-radius:var(--rs)" onclick="S.lockerPicker=!S.lockerPicker;render()">From The Roll${s.lockerPicker?" &#9650;":" &#9660;"}</button>`:""}</div>${lockerPickerHtml}`:"";
   const kfHtml=s.kfOpen&&s.kfMode==="draft"?kfFormHtml():"";
   // Upload section
   const upFiles=s.uploadFiles;
   const upRows=upFiles.map(f=>`<div class="up-row"><span class="up-name">${esc(f.name)}</span>${f.uploading?`<span class="up-spin"></span><span style="font-size:11px;color:var(--t3)">Uploading...</span>`:f.error?`<span class="up-err">${esc(f.error)}</span>`:f.url?`<span class="up-url">${esc(f.url)}</span><button class="btn btn-sec btn-xs" onclick="copyText('${esc(f.url)}')">Copy</button>`:""}${!f.uploading?`<button class="btn btn-rd btn-xs" onclick="removeUpload('${f.uid}')">&#x2715;</button>`:""}</div>`).join("");
+  const titleStr=buildTitleStr(d.knives,d.postType,300);
+  const titleOver=titleStr.length>280;
   const detHtml=d.knives.length>0&&!s.kfOpen?`<div class="det"><div class="det-hdr">Photos &amp; Post Details</div>
     <div style="margin-bottom:16px"><div class="field"><label>Post Type</label><div class="seg" style="margin-top:5px">${["[WTS]","[WTT]","[WTS/WTT]"].map(t=>`<button class="seg-item${d.postType===t?" on":""}" onclick="S.draft.postType='${t}';render()">${t}</button>`).join("")}</div></div></div>
+    <div style="margin-bottom:16px"><div class="field"><label>Reddit Title Preview</label><div class="title-prev"><div class="t-text">${esc(titleStr)}</div><div style="display:flex;justify-content:flex-end;margin-top:4px"><span class="t-count${titleOver?" t-over":""}">${titleStr.length}/300${titleOver?" - near limit":""}</span></div></div><div class="field-hint">${d.knives.length>1?"Knife names truncated to fit if needed. ":""}Auto-generated from your knives.</div></div></div>
     <div class="field" style="margin-bottom:14px">
       <label>Photos &amp; Timestamp</label>
       <div class="ts-req">📸 Include one photo showing <strong>all knives</strong> in this post with a handwritten note: your Reddit username + full date (e.g. <em>u/yourname - March 14, 2026</em>)</div>
@@ -985,7 +1119,8 @@ function renderCompose(){
         }).join("")}
       </div>`:""}
     </div>
-    <div class="field" style="margin-bottom:12px"><label>Additional notes</label><input type="text" id="d-notes" value="${esc(d.notes)}" placeholder="Bundle discount, open to trades..."/></div>
+    <div class="field" style="margin-bottom:12px"><label>Additional notes</label><input type="text" id="d-notes" value="${esc(d.notes)}" placeholder="Open to offers, prefer local pickup, etc."/></div>
+    ${d.knives.length>1?`<div class="bundle-box" style="margin-bottom:14px"><div class="bundle-box-top"><label class="cblk"><input type="checkbox" ${d.bundleEnabled?"checked":""} onchange="syncDraft();S.draft.bundleEnabled=this.checked;render()"/> Bundle pricing</label><span style="font-size:11px;color:var(--t3)">Offer one price for the entire lot</span></div>${d.bundleEnabled?`<div class="field" style="margin-top:8px"><label>Bundle price ($)</label><input type="number" id="d-bundlePrice" min="0" value="${esc(d.bundlePrice||"")}" placeholder="e.g. 350" oninput="syncDraft()"/></div>`:""}</div>`:""}
     <label class="cblk"><input type="checkbox" ${d.rulesConfirmed?"checked":""} onchange="S.draft.rulesConfirmed=this.checked;render()"/> I have read all r/Knife_Swap rules</label>
     ${s.err&&d.knives.length>0?`<div class="err">${esc(s.err)}</div>`:""}
     <div class="gen-row"><button class="btn-gen" onclick="syncDraft();submitPost()">Generate Post</button><button class="btn btn-sec" onclick="cancelCompose()">Cancel</button></div>
@@ -1047,6 +1182,7 @@ window.updateModelList=updateModelList;window.saveSettings=saveSettings;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
 window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.removeKnifeUpload=removeKnifeUpload;
 window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
+window.autoPostType=autoPostType;window.buildTitleStr=buildTitleStr;window.doFetchPriceResearch=doFetchPriceResearch;window.clearPriceResearch=clearPriceResearch;
 render();
 (async()=>{
   await loadSettings();
