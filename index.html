@@ -773,9 +773,9 @@ function renderAuthModal(){
   } else {
     const sbLive=!!_sb;
     body=`<div class="auth-modal-body">
-      <div style="text-align:center;padding:4px 0 14px">
-        <div style="font-size:28px;margin-bottom:8px">&#9729;</div>
-        <div style="font-size:15px;font-weight:600;color:var(--t1);margin-bottom:4px">Sign in to sync</div>
+      <div style="font-size:12px;line-height:1.6;color:var(--redt);background:rgba(255,59,48,.07);border-radius:8px;padding:10px 12px;margin-bottom:14px;border:.5px solid rgba(255,59,48,.2)">⚠️ <strong>Right now your data only exists in this browser.</strong> Clearing your cache, history, or site data will permanently delete everything - posts, inventory, all of it - with no way to recover it.</div>
+      <div style="text-align:center;padding:0 0 14px">
+        <div style="font-size:15px;font-weight:600;color:var(--t1);margin-bottom:4px">Back up your data</div>
         <p style="font-size:13px;color:var(--t3);line-height:1.5">Enter your email and we'll send a one-click magic link. No password required - your data syncs across all your devices.</p>
       </div>
       ${sbLive?`<div class="auth-field">
@@ -784,8 +784,8 @@ function renderAuthModal(){
       </div>
       ${S.err?`<div class="err" style="margin-bottom:10px">${esc(S.err)}</div>`:""}
       <button class="btn btn-pri" style="width:100%" onclick="S.err='';sendMagicLink(document.getElementById('auth-email-input').value)">Send Magic Link</button>
-      <p style="font-size:11px;color:var(--t4);text-align:center;margin-top:12px;line-height:1.5">No account needed to use the app - sign in only to enable cross-device sync.</p>`
-      :`<div style="text-align:center;padding:8px 0 4px;font-size:13px;color:var(--t3)">Cloud sync is not enabled in this version.<br>Your data saves locally on this device.</div>`}
+      <p style="font-size:11px;color:var(--t4);text-align:center;margin-top:12px;line-height:1.5">No account needed to use the app - sign in only to back up your data.</p>`
+      :`<div style="text-align:center;padding:8px 0 4px;font-size:13px;color:var(--t3)">Cloud sync is not available.<br>Your data saves locally in this browser only.</div>`}
     </div>`;
   }
   return`<div class="modal-overlay" onclick="S.modal=null;S.err='';render()">
@@ -795,16 +795,14 @@ function renderAuthModal(){
   </div>
 </div>`;
 }
-function mainHdr(right){
-  const ak=S.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold).length,0);
-  const sk=S.posts.reduce((n,p)=>n+p.knives.filter(k=>k.sold).length,0);
+function mainHdr(){
   const authBtn=S.authStatus==="signed_in"
     ?`<button class="auth-btn signed" onclick="S.modal='auth';render()" title="${esc(S.authEmail)}"><div class="auth-avatar">${S.authEmail[0].toUpperCase()}</div><span class="auth-label">${esc(S.authEmail)}</span></button>`
     :`<button class="auth-btn" onclick="S.modal='auth';render()">&#9729; Sign In</button>`;
   return`<div class="hdr">
     <div class="hdr-logo" onclick="S.view='list';render()"><div class="hdr-ico"><span class="hdr-ico-lbl">KS</span></div><div><div class="hdr-title">Knife_Swap</div><div class="hdr-sub">Post Generator &amp; Tracker</div></div></div>
     <div class="hdr-tabs"><div class="tab-seg"><button class="tab-item${S.view==='list'?' on':''}" onclick="S.view='list';render()">Listings</button><button class="tab-item${S.view==='roll'?' on':''}" onclick="S.view='roll';render()">The Roll</button><button class="tab-item${S.view==='sold'?' on':''}" onclick="S.view='sold';render()">Sold</button></div></div>
-    <div class="hdr-r">${ak>0?`<span class="hdr-badge am">${ak} active</span>`:""}${sk>0?`<span class="hdr-badge gn">${sk} sold</span>`:""}<button class="hdr-ico-btn" title="r/Knife_Swap Rules" onclick="S.modal='rules';render()">&#128214;</button><button class="hdr-ico-btn" title="Settings" onclick="S.view='settings';render()">&#9881;</button>${authBtn}${right}</div>
+    <div class="hdr-r"><button class="hdr-ico-btn" title="r/Knife_Swap Rules" onclick="S.modal='rules';render()">&#128214;</button><button class="hdr-ico-btn" title="Settings" onclick="S.view='settings';render()">&#9881;</button>${authBtn}</div>
   </div>`;
 }
 function kfFormHtml(){
@@ -841,9 +839,9 @@ function renderList(){
   const ak=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold).length,0);
   const sk=s.posts.reduce((n,p)=>n+p.knives.filter(k=>k.sold).length,0);
   const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold).reduce((a,k)=>a+parseFloat(k.price||0),0),0);
-  const hdr=mainHdr(`<button class="btn-hdr" onclick="startCompose()">+ New Listing</button>`);
+  const hdr=mainHdr();
   if(!s.posts.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">&#9868;</div><div class="empty-h">No listings yet</div><div class="empty-p">Create your first r/Knife_Swap post. Add a single knife or bundle several into one listing.</div><button class="btn btn-pri" onclick="startCompose()">+ Create First Listing</button></div></div>`;
-  const stats=`<div class="stats"><div class="stat"><div class="stat-n blue">${ak}</div><div class="stat-l">Active</div></div><div class="stat"><div class="stat-n green">${sk}</div><div class="stat-l">Sold</div></div>${val>0?`<div class="stat"><div class="stat-n orange">$${Math.round(val)}</div><div class="stat-l">Listed</div></div>`:""}<div class="stat"><div class="stat-n">${s.posts.length}</div><div class="stat-l">Posts</div></div><div class="stat"><div class="stat-n purple">${s.inventory.length}</div><div class="stat-l">The Roll</div></div></div>`;
+  const stats=`<div class="stats"><div class="stat"><div class="stat-n blue">${ak}</div><div class="stat-l">Active</div></div><div class="stat"><div class="stat-n green">${sk}</div><div class="stat-l">Sold</div></div>${val>0?`<div class="stat"><div class="stat-n orange">$${Math.round(val)}</div><div class="stat-l">Listed</div></div>`:""}<div class="stat"><div class="stat-n">${s.posts.length}</div><div class="stat-l">Posts</div></div><div class="stat"><div class="stat-n purple">${s.inventory.length}</div><div class="stat-l">The Roll</div></div><div class="stat" style="margin-left:auto"><button class="btn btn-pri btn-sm" onclick="startCompose()">+ New Listing</button></div></div>`;
   const moving=s.movingKnife;
   const cards=s.posts.map(p=>{
     const open=s.expanded===p.id;
@@ -887,14 +885,14 @@ function renderList(){
 // ─── RENDER: THE ROLL ─────────────────────────────────────────
 function renderRoll(){
   const inv=S.inventory;
-  const hdr=mainHdr(`<button class="btn-hdr" onclick="openKF(-1,'locker')">+ Add Knife</button>`);
+  const hdr=mainHdr();
   const av=inv.filter(k=>k.status==="available").length;
   const li=inv.filter(k=>k.status==="listed").length;
   const so=inv.filter(k=>k.status==="sold").length;
   if(!inv.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">🔪</div><div class="empty-h">The Roll is empty</div><div class="empty-p">Add knives to The Roll to track your collection and quickly pull them into listings.</div><button class="btn btn-pri" onclick="openKF(-1,'locker')">+ Add First Knife</button></div></div>${S.kfOpen?kfFormHtml():""}`;
   const fil=S.lockerFilter;
   const filtered=fil==="all"?inv:inv.filter(k=>k.status===fil);
-  const stats=`<div class="stats"><div class="stat"><div class="stat-n">${inv.length}</div><div class="stat-l">Total</div></div><div class="stat"><div class="stat-n green">${av}</div><div class="stat-l">Available</div></div><div class="stat"><div class="stat-n orange">${li}</div><div class="stat-l">In Listing</div></div><div class="stat"><div class="stat-n" style="color:var(--t3)">${so}</div><div class="stat-l">Sold</div></div></div>`;
+  const stats=`<div class="stats"><div class="stat"><div class="stat-n">${inv.length}</div><div class="stat-l">Total</div></div><div class="stat"><div class="stat-n green">${av}</div><div class="stat-l">Available</div></div><div class="stat"><div class="stat-n orange">${li}</div><div class="stat-l">In Listing</div></div><div class="stat"><div class="stat-n" style="color:var(--t3)">${so}</div><div class="stat-l">Sold</div></div><div class="stat" style="margin-left:auto"><button class="btn btn-pri btn-sm" onclick="openKF(-1,'locker')">+ Add Knife</button></div></div>`;
   const filterBar=`<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center"><div class="seg">${[["All","all"],["Available","available"],["In Listing","listed"],["Sold","sold"]].map(([l,v])=>`<button class="seg-item${fil===v?" on":""}" onclick="S.lockerFilter='${v}';render()">${l}</button>`).join("")}</div></div>`;
   const cards=filtered.length?`<div class="lk-grid">${filtered.map((k,i)=>{
     const realIdx=inv.indexOf(k);
@@ -908,7 +906,7 @@ function renderRoll(){
 
 // ─── RENDER: SOLD ─────────────────────────────────────────────
 function renderSold(){
-  const hdr=mainHdr("");
+  const hdr=mainHdr();
   // Gather sold knives from posts
   const fromPosts=[];
   S.posts.forEach(p=>{
@@ -1013,16 +1011,17 @@ function renderSettings(){
   <div class="settings-section-lbl">Cloud Sync</div>
   <div class="sgroup">
     <div class="srow">
-      <div><div class="srow-lbl">Sync Status</div><div class="srow-sub">${S.authStatus==="signed_in"?`Signed in as ${esc(S.authEmail)}`:"Not signed in - data saves locally on this device"}</div></div>
+      <div><div class="srow-lbl">Sync Status</div><div class="srow-sub">${S.authStatus==="signed_in"?`Signed in as ${esc(S.authEmail)} - data backed up to cloud`:"Not signed in"}</div></div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
         <div class="supa-indicator ${S.authStatus==="signed_in"?"on":"off"}"></div>
         <span style="font-size:12px;color:var(--t3);white-space:nowrap">${S.authStatus==="signed_in"?"Syncing":"Local only"}</span>
       </div>
     </div>
+    ${S.authStatus!=="signed_in"?`<div class="srow"><div style="font-size:12px;line-height:1.6;color:var(--redt);background:rgba(255,59,48,.07);border-radius:8px;padding:10px 12px;border:.5px solid rgba(255,59,48,.2)">⚠️ <strong>Your data is only saved in this browser.</strong> If you clear your browser cache, browsing history, or site data - or switch to a different browser or device - all your posts and inventory will be <strong>permanently lost</strong> and cannot be recovered. Sign in to back up your data to the cloud.</div></div>`:""}
     <div class="srow">
       ${S.authStatus==="signed_in"
         ?`<button class="btn btn-sec btn-sm" onclick="signOut()">Sign Out</button>`
-        :`<button class="btn btn-pri btn-sm" onclick="S.modal='auth';render()">&#9729; Sign In</button>`
+        :`<button class="btn btn-pri btn-sm" onclick="S.modal='auth';render()">&#9729; Sign In to Back Up Data</button>`
       }
     </div>
   </div>
@@ -1031,7 +1030,6 @@ function renderSettings(){
     <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.1 - ${BRANDS.length} brands, ${STEELS.length} steels</div></div>
     <div class="srow"><div><div class="srow-lbl">Photo Hosting</div><div class="srow-sub" style="max-width:340px;line-height:1.5">Photos upload directly to <strong>Catbox.moe</strong> - free, permanent hosting. Files cannot be deleted without a Catbox account. <a href="https://catbox.moe" target="_blank" style="color:var(--blue);text-decoration:none">Create a free Catbox account</a> to manage your files.</div></div></div>
     <div class="srow"><div><div class="srow-lbl">Catbox Userhash</div><div class="srow-sub" style="max-width:260px;line-height:1.5">Link uploads to your Catbox account so you can delete them later. Find your userhash on the <a href="https://catbox.moe/user/manage.php" target="_blank" style="color:var(--blue);text-decoration:none">Catbox account page</a>.</div></div><div class="srow-ctrl"><input type="text" style="max-width:190px;font-size:13px;padding:7px 10px" value="${esc(sv.catboxHash||"")}" placeholder="(optional)" onchange="SETTINGS.catboxHash=this.value.trim();saveSettings()"/></div></div>
-    <div class="srow"><div><div class="srow-lbl">What is Verification?</div><div class="srow-sub" style="max-width:340px;line-height:1.5">r/Knife_Swap requires a verification photo: picture of your knives with a handwritten note showing your Reddit username and today's date. Post it separately on r/Knife_Swap, then paste that post URL in your listings.</div></div></div>
   </div>
 </div></div>`;
 }
