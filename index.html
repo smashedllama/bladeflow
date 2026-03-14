@@ -328,7 +328,7 @@ const NO_SHIP=["California","New York","New Jersey","Illinois","Massachusetts","
 const ISSUES=["Light scratches","Deep scratches","Snail trails","Blade stain","Handle marks","Tip damage","None"];
 const ACC=["Original box","Certificate/papers","Carrying pouch","Pocket clip","Adjustment tool","Spare scales","Lanyard","Polishing cloth","None"];
 const BLADE_COND=["New in box","Factory edge, uncarried","Factory edge, carried","Lightly used","Field sharpened","Reprofiled","Dull","Needs sharpening"];
-const TMPL=["Detailed MD","Compact","Minimal"];
+const TMPL=["Detailed","Compact","Minimal"];
 
 // ─── HELPERS ──────────────────────────────────────────────────
 function gid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
@@ -468,7 +468,7 @@ function buildPost(post,v){
   const noShipList=post.noShip.map(s=>s==="Other"&&post.noShipOther?post.noShipOther:s);
   const noship=noShipList.length?"\nWill NOT ship to: "+noShipList.join(", "):"";
   const allPhotos=(post.photos?.length?post.photos:[]).filter(Boolean);
-  const photoStr=allPhotos.length?allPhotos.join(" | "):"[timestamp/photo link]";
+  const photoStr=allPhotos.length?allPhotos.join(" | "):"[ paste your timestamp photo link here ]";
   const rp=post.repost?" *(Price Drop/Repost)*":"";
   const type=post.postType||"[WTS]";
   const un=SETTINGS.username?SETTINGS.username+" | ":"";
@@ -841,7 +841,7 @@ function renderList(){
   const sk=s.posts.reduce((n,p)=>n+p.knives.filter(k=>k.sold).length,0);
   const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold).reduce((a,k)=>a+parseFloat(k.price||0),0),0);
   const hdr=mainHdr();
-  if(!s.posts.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">&#9868;</div><div class="empty-h">No listings yet</div><div class="empty-p">Create your first r/Knife_Swap post. Add a single knife or bundle several into one listing.</div><button class="btn btn-pri" onclick="startCompose()">+ Create First Listing</button></div></div>`;
+  if(!s.posts.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">📋</div><div class="empty-h">No listings yet</div><div class="empty-p">Create your first r/Knife_Swap post. Add a single knife or bundle several into one listing.</div><button class="btn btn-pri" onclick="startCompose()">+ Create First Listing</button></div></div>`;
   const stats=`<div class="stats"><div class="stat"><div class="stat-n blue">${ak}</div><div class="stat-l">Active</div></div><div class="stat"><div class="stat-n green">${sk}</div><div class="stat-l">Sold</div></div>${val>0?`<div class="stat"><div class="stat-n orange">$${Math.round(val)}</div><div class="stat-l">Listed</div></div>`:""}<div class="stat"><div class="stat-n">${s.posts.length}</div><div class="stat-l">Posts</div></div><div class="stat"><div class="stat-n purple">${s.inventory.length}</div><div class="stat-l">The Roll</div></div><div class="stat" style="margin-left:auto"><button class="btn btn-pri btn-sm" onclick="startCompose()">+ New Listing</button></div></div>`;
   const moving=s.movingKnife;
   const cards=s.posts.map(p=>{
@@ -923,7 +923,7 @@ function renderSold(){
   const all=[...fromPosts,...fromRoll].sort((a,b)=>(b.soldAt||"").localeCompare(a.soldAt||""));
   const totalVal=all.reduce((n,k)=>n+parseFloat(k.price||0),0);
   const stats=`<div class="stats"><div class="stat"><div class="stat-n green">${all.length}</div><div class="stat-l">Sold</div></div>${totalVal>0?`<div class="stat"><div class="stat-n orange">$${Math.round(totalVal)}</div><div class="stat-l">Total</div></div>`:""}<div class="stat"><div class="stat-n">${fromPosts.length}</div><div class="stat-l">From Posts</div></div><div class="stat"><div class="stat-n purple">${fromRoll.length}</div><div class="stat-l">From The Roll</div></div></div>`;
-  if(!all.length)return hdr+`<div class="main">${stats}<div class="empty"><div class="empty-ico">✓</div><div class="empty-h">No sold knives yet</div><div class="empty-p">When you mark a knife as sold in a listing or in The Roll, it will show up here.</div></div></div>`;
+  if(!all.length)return hdr+`<div class="main">${stats}<div class="empty"><div class="empty-ico">🏷️</div><div class="empty-h">No sold knives yet</div><div class="empty-p">When you mark a knife as sold in a listing or in The Roll, it will show up here.</div></div></div>`;
   const rows=all.map(k=>`<div class="krow"><div class="krow-info"><div class="krow-name">${esc(k.brand)} ${esc(k.model)}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${k.source==="post"?` · ${esc(k.postType||"[WTS]")} post`:" · The Roll"}</div></div><span class="krow-price">$${esc(k.price)}${k.obo?" OBO":""}</span><span class="sold-chip">Sold</span>${k.soldAt?`<span style="font-size:11px;color:var(--t3);white-space:nowrap">${fmtD(k.soldAt)}</span>`:""}</div>`).join("");
   return hdr+`<div class="main">${stats}<div class="card" style="padding:0;overflow:hidden"><div class="krows-hdr" style="padding:12px 16px;border-bottom:.5px solid var(--b2)">Sold History</div>${rows}</div></div>`;
 }
@@ -943,7 +943,7 @@ function renderCompose(){
     <div style="margin-bottom:16px"><div class="field"><label>Post Type</label><div class="seg" style="margin-top:5px">${["[WTS]","[WTT]","[WTS/WTT]"].map(t=>`<button class="seg-item${d.postType===t?" on":""}" onclick="S.draft.postType='${t}';render()">${t}</button>`).join("")}</div></div></div>
     <div class="field" style="margin-bottom:14px">
       <label>Photos &amp; Timestamp</label>
-      <div class="ts-req">📸 Include one photo showing <strong>all knives</strong> in this post with a handwritten note: your Reddit username + full date (e.g. <em>u/yourname - March 14 2026</em>)</div>
+      <div class="ts-req">📸 Include one photo showing <strong>all knives</strong> in this post with a handwritten note: your Reddit username + full date (e.g. <em>u/yourname - March 14, 2026</em>)</div>
       <div class="up-zone" onclick="triggerUpload()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave()">
         <div class="up-lbl">Drop photos here or click to upload</div>
         <div class="up-sub">Uploads to Catbox.moe - free hosting${SETTINGS.catboxHash?" (linked to your account)":""}</div>
