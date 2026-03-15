@@ -121,7 +121,7 @@ input::placeholder{color:var(--t4)}
 .pc-chev{font-size:9px;color:var(--t4);flex-shrink:0;transition:transform .2s;margin-left:2px}
 .pc-chev.open{transform:rotate(180deg)}
 .pc-body{border-top:.5px solid rgba(0,0,0,.07);padding:16px}
-.post-box{background:var(--bg);border:.5px solid var(--b1);border-radius:var(--rs);padding:13px 15px;font-family:var(--mono);font-size:11px;color:var(--t2);line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:280px;overflow-y:auto;margin-bottom:12px}
+.post-box{background:#FAFAFA;border:.5px solid var(--b1);border-radius:var(--rs);padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--t1);line-height:1.75;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow-y:auto;margin-bottom:12px;box-shadow:inset 0 1px 3px rgba(0,0,0,.04)}
 .pc-meta{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap}
 .pmeta{font-size:11px;font-weight:500;color:var(--t4)}
 .pmeta.ok{color:var(--greent)}
@@ -548,19 +548,16 @@ function clearPriceResearch(){S.priceResearch={status:"idle",results:[],query:""
 
 function buildPost(post,v){
   v=v!==undefined?v:(post.variant||0);
-  const ts=new Date().toISOString().slice(0,10).replace(/-/g,"/");
+  const ts=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
   const payList=post.payment.map(p=>p==="Other"&&post.paymentOther?post.paymentOther:p);
   const pay=payList.join(" | ");
   const noShipList=post.noShip.map(s=>s==="Other"&&post.noShipOther?post.noShipOther:s);
-  const noship=noShipList.length?"\nWill NOT ship to: "+noShipList.join(", "):"";
   const allPhotos=(post.photos?.length?post.photos:[]).filter(Boolean);
-  const photoStr=allPhotos.length?allPhotos.join(" | "):"[ paste your timestamp photo link here ]";
-  const rp=post.repost?" *(Price Drop/Repost)*":"";
+  const rp=post.repost?" *(Price Drop / Repost)*":"";
   const type=post.postType||"[WTS]";
-  const un=SETTINGS.username?SETTINGS.username+" | ":"";
+  const un=SETTINGS.username||"";
   const title=post.knives.map(k=>k.brand+" "+k.model+(k.sold?" ~~[SOLD]~~":"")).join(" | ");
-  const bundle=post.bundleEnabled&&post.bundlePrice?`**Bundle price: $${post.bundlePrice} for all**\n\n`:"";
-  // Per-knife price label helper
+  const bundle=post.bundleEnabled&&post.bundlePrice;
   const priceLabel=(k)=>{
     const kt=k.knifeType||"WTS";
     const sv=k.price?`SV: $${k.price}${k.obo?" OBO":""}`:null;
@@ -569,24 +566,64 @@ function buildPost(post,v){
     if(kt==="WTS/WTT")return[sv,tv].filter(Boolean).join(" | ")||"$TBD";
     return sv||"$TBD";
   };
+
   if(v===0){
+    // DETAILED - full info, each field on its own line
+    const photoBlock=allPhotos.length?allPhotos.join("\n"):"[ paste your timestamp photo link here ]";
     const blocks=post.knives.map((k,i)=>{
       const iss=k.issues.filter(x=>x!=="None").join(", ")||"None";
       const ac=k.accessories.filter(x=>x!=="None").join(", ")||"None";
       const pl=priceLabel(k);
-      const hdr=k.sold?`~~**${i+1}. ${k.brand} ${k.model} [SOLD]** - ${pl}~~`:`**${i+1}. ${k.brand} ${k.model}** - ${pl}`;
-      const kphotos=(k.photos||[]).length?`\n- **Photos:** ${(k.photos||[]).join(" | ")}`:"";
-      return`${hdr}\n- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}\n- **Carried:** ${k.carried} | **Used to cut:** ${k.usedCut} | **Sharpened:** ${k.sharpened}\n- **Owners:** ${k.owners} | **Centering:** ${k.centering} | **Lockup:** ${k.lockup}${k.lockupNotes?" ("+k.lockupNotes+")":""}\n- **Issues:** ${iss} | **Accessories:** ${ac}${k.notes?"\n- **Notes:** "+k.notes:""}${kphotos}`;
-    }).join("\n\n");
-    return`### ${type} ${title}${rp}\n\n**Photos/Timestamp:** ${photoStr}\n\n---\n\n${bundle}${blocks}\n\n---\n\n**Payment:** ${pay}\n**Shipping included**${noship}${post.notes?"\n**Notes:** "+post.notes:""}\n\n*${un}${ts}*`;
+      const kphotos=(k.photos||[]).filter(Boolean);
+      const hdr=k.sold
+        ?`~~**${i+1}. ${k.brand} ${k.model} [SOLD]**~~ | ~~${pl}~~`
+        :`**${i+1}. ${k.brand} ${k.model}** | **${pl}**`;
+      const lines=[
+        `- **Steel:** ${k.steel||"N/A"}`,
+        `- **Condition:** ${k.bladeCondition}`,
+        `- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Used to cut:** ${k.usedCut} | **Sharpened:** ${k.sharpened}`,
+        `- **Centering:** ${k.centering} | **Lockup:** ${k.lockup}${k.lockupNotes?" - "+k.lockupNotes:""}`,
+        `- **Issues:** ${iss}`,
+        `- **Accessories:** ${ac}`,
+      ];
+      if(k.notes)lines.push(`- **Notes:** ${k.notes}`);
+      if(kphotos.length)lines.push(`- **Photos:** ${kphotos.join(" | ")}`);
+      return`${hdr}\n${lines.join("\n")}`;
+    }).join("\n\n---\n\n");
+    const bundleBlock=bundle?`\n\n---\n\n**Bundle: $${post.bundlePrice} takes all ${post.knives.length > 1 ? post.knives.length+" knives" : ""}**`:"";
+    const noshipLine=noShipList.length?`\n**Will NOT ship to:** ${noShipList.join(", ")}`:"";
+    const notesLine=post.notes?`\n**Notes:** ${post.notes}`:"";
+    const sig=un?`*${un} - ${ts}*`:`*${ts}*`;
+    return`${type} ${title}${rp}\n\n**Timestamp + Photos:**\n${photoBlock}\n\n---\n\n${blocks}${bundleBlock}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** Included (CONUS)${noshipLine}${notesLine}\n\n${sig}`;
   }
+
   if(v===1){
-    const lines=post.knives.map((k,i)=>`${i+1}. ${k.brand} ${k.model}${k.sold?" [SOLD]":""} - ${priceLabel(k)}\n   ${k.steel||"N/A"} · ${k.bladeCondition} · ${k.centering} · Issues: ${k.issues.filter(x=>x!=="None").join("/")||"None"}${(k.photos||[]).length?"\n   Photos: "+(k.photos||[]).join(" | "):""}`).join("\n");
-    const bundleLine=post.bundleEnabled&&post.bundlePrice?`\nBundle price: $${post.bundlePrice} for all`:"";
-    return`${type} ${title} | ${ts}${rp}\n\nPhotos/Timestamp: ${photoStr}\n\n${lines}${bundleLine}\n\nPayment: ${pay} | Shipping included${noship}${post.notes?"\nNotes: "+post.notes:""}${un?"\n"+un:""}`;
+    // COMPACT - one block per knife, key details only
+    const photoLine=allPhotos.length?allPhotos.join("\n"):"[ paste your timestamp photo link here ]";
+    const lines=post.knives.map((k,i)=>{
+      const iss=k.issues.filter(x=>x!=="None").join(", ")||"None";
+      const ac=k.accessories.filter(x=>x!=="None").join(", ")||"None";
+      const kphotos=(k.photos||[]).filter(Boolean);
+      let block=`**${i+1}. ${k.brand} ${k.model}**${k.sold?" [SOLD]":""} | ${priceLabel(k)}`;
+      block+=`\n${k.steel||"N/A"} · ${k.bladeCondition} · ${k.owners} owner · Centering: ${k.centering}`;
+      if(iss!=="None")block+=` · Issues: ${iss}`;
+      if(ac!=="None")block+=` · Accessories: ${ac}`;
+      if(k.notes)block+=`\n${k.notes}`;
+      if(kphotos.length)block+=`\nPhotos: ${kphotos.join(" | ")}`;
+      return block;
+    }).join("\n\n");
+    const bundleLine=bundle?`\n\nBundle: $${post.bundlePrice} for all`:"";
+    const noshipLine=noShipList.length?` | No ship: ${noShipList.join(", ")}`:"";
+    const sig=un?`${un} - ${ts}`:ts;
+    return`${type} ${title} | ${ts}${rp}\n\nTimestamp: ${photoLine}\n\n${lines}${bundleLine}\n\nPayment: ${pay} | Shipping included${noshipLine}${post.notes?"\nNotes: "+post.notes:""}\n${sig}`;
   }
-  const bundleLine2=post.bundleEnabled&&post.bundlePrice?`\nBundle: $${post.bundlePrice} for all`:"";
-  return`${type} ${title} | ${ts}${rp}\n${photoStr}\n\n${post.knives.map(k=>`${k.brand} ${k.model}${k.sold?" [SOLD]":""} - ${priceLabel(k)} - ${k.steel||"N/A"}, ${k.bladeCondition}`).join("\n")}${bundleLine2}\n\n${pay} | Shipping included${noship}${post.notes?"\n"+post.notes:""}${un?"\n"+un:""}`;
+
+  // MINIMAL (v=2) - one line per knife
+  const photoLine=allPhotos.length?allPhotos[0]:"[ paste your timestamp photo link here ]";
+  const bundleLine=bundle?`\nBundle: $${post.bundlePrice} for all`:"";
+  const noshipLine=noShipList.length?` | No ship: ${noShipList.join(", ")}`:"";
+  const sig=un?`${un} - ${ts}`:ts;
+  return`${type} ${title}${rp}\n${photoLine}\n\n${post.knives.map(k=>`${k.brand} ${k.model}${k.sold?" [SOLD]":""} | ${priceLabel(k)} | ${k.steel||"N/A"}, ${k.bladeCondition}`).join("\n")}${bundleLine}\n\nPayment: ${pay} | Shipping included${noshipLine}${post.notes?"\n"+post.notes:""}\n${sig}`;
 }
 
 // ─── UPLOAD ───────────────────────────────────────────────────
