@@ -344,6 +344,32 @@ textarea{resize:vertical;line-height:1.55}
 .title-prev .t-over{color:var(--redt)!important;font-weight:700}
 .title-prev .t-count{font-size:10.5px;font-weight:600;color:var(--t3)}
 
+/* ─── UNDO TOAST ──────────────────────────────────────────── */
+.undo-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#F2F2F7;padding:9px 14px 9px 16px;border-radius:980px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,.38),0 0 0 .5px rgba(255,255,255,.1);z-index:300;animation:sfIn .22s ease;white-space:nowrap;pointer-events:auto}
+.undo-toast-btn{background:rgba(255,255,255,.22);border:none;border-radius:980px;padding:4px 13px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background .15s}
+.undo-toast-btn:hover{background:rgba(255,255,255,.32)}
+/* ─── DAYS BADGE ──────────────────────────────────────────── */
+.days-badge{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.01em;display:inline-flex}
+.days-badge.fresh{background:var(--greenbg);color:var(--greent)}
+.days-badge.mid{background:var(--orangebg);color:var(--oranget)}
+.days-badge.old{background:var(--redbg);color:var(--redt)}
+/* ─── PRICE HISTORY ───────────────────────────────────────── */
+.ph-line{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:5px}
+.ph-old{font-size:10px;color:var(--t4);text-decoration:line-through;font-weight:500}
+/* ─── PHOTO THUMB ─────────────────────────────────────────── */
+.up-thumb{width:34px;height:34px;object-fit:cover;border-radius:5px;flex-shrink:0;border:.5px solid var(--b1)}
+.up-reorder{background:none;border:.5px solid var(--b1);border-radius:5px;padding:1px 5px;cursor:pointer;color:var(--t3);font-size:12px;line-height:1.4;flex-shrink:0;transition:background var(--tr)}
+.up-reorder:hover{background:var(--bluebg);color:var(--blue);border-color:var(--blue)}
+/* ─── COMP CHIP ───────────────────────────────────────────── */
+.comp-chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;background:var(--purplebg);color:var(--purplet);display:inline-flex;align-items:center;gap:4px}
+/* ─── SPARKLINE ───────────────────────────────────────────── */
+.sparkline{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;color:var(--t3)}
+.sparkline.down{color:var(--greent)}.sparkline.up{color:var(--redt)}
+/* ─── SELL STATS ──────────────────────────────────────────── */
+.sell-stat{flex:1;background:var(--card);border-radius:var(--rs);padding:10px 12px;border:.5px solid var(--b1);text-align:center}
+.sell-stat-n{font-size:18px;font-weight:800;letter-spacing:-.03em;line-height:1;margin-bottom:2px}
+.sell-stat-l{font-size:9.5px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+
 /* ─── DARK MODE ──────────────────────────────────────────── */
 @media(prefers-color-scheme:dark){
   :root{
@@ -569,10 +595,10 @@ async function saveSettings(){
 }
 
 // ─── STATE ────────────────────────────────────────────────────
-const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false});
-const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false});
+const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[]});
+const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[]});
 const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",tradeInterests:SETTINGS.tradeInterests||""});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set()};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -593,6 +619,22 @@ async function saveInv(){
 }
 function up(fn){fn(S);save();render();}
 function upInv(fn){fn(S);saveInv();render();}
+
+// ─── UNDO ─────────────────────────────────────────────────────
+function pushUndo(msg){
+  S.undoStack=[{posts:JSON.parse(JSON.stringify(S.posts)),inventory:JSON.parse(JSON.stringify(S.inventory))},...S.undoStack].slice(0,20);
+  S.undoToast=msg||"Action done";
+  clearTimeout(S._undoTid);
+  S._undoTid=setTimeout(()=>{S.undoToast=null;render();},6000);
+  render();
+}
+function undoLast(){
+  if(!S.undoStack.length)return;
+  const snap=S.undoStack.shift();
+  S.posts=snap.posts;S.inventory=snap.inventory;
+  S.undoToast=null;clearTimeout(S._undoTid);
+  save();saveInv();render();
+}
 // Audit every "listed" inventory item against active posts.
 // Runs at load time so stale statuses from old bugs are self-healing.
 function reconcileInventory(){
@@ -1007,6 +1049,15 @@ function saveKF(){
   f.photos=S.kfUploads.filter(x=>x.url).map(x=>x.url);
   if(S.kfMode==="locker"){
     if(!f.id)f.id=gid();
+    // Track price history when editing Roll knife with price change
+    if(S.kfIdx>=0){
+      const orig=S.inventory[S.kfIdx];
+      if(orig&&orig.price&&f.price&&orig.price!==f.price){
+        const ph=f.priceHistory||[];
+        ph.push({price:orig.price,date:new Date().toISOString()});
+        f.priceHistory=ph;
+      }
+    }
     if(S.kfIdx>=0)S.inventory[S.kfIdx]=JSON.parse(JSON.stringify(f));
     else S.inventory.push(JSON.parse(JSON.stringify(f)));
     S.kfOpen=false;S.kfIdx=-1;S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};saveInv();render();
@@ -1021,6 +1072,7 @@ function removeKnife(i){
   const k=S.draft.knives[i];
   const name=k?(k.brand+" "+k.model).trim():"this knife";
   if(!confirm("Remove "+name+" from this listing?"))return;
+  pushUndo("Knife removed from listing");
   if(k&&k.inventoryId){
     const inv=S.inventory.find(x=>x.id===k.inventoryId);
     if(inv){
@@ -1041,7 +1093,7 @@ function addFromLocker(invIdx){
   S.inventory[invIdx].status="listed";
   S.lockerPicker=false;saveInv();render();
 }
-function removeFromInventory(idx){if(!confirm("Remove this knife from The Roll?"))return;const gone=S.inventory[idx];if(gone)_sbDeleteInv(gone.id);upInv(s=>{s.inventory.splice(idx,1)});}
+function removeFromInventory(idx){if(!confirm("Remove this knife from The Roll?"))return;pushUndo("Knife removed from Roll");const gone=S.inventory[idx];if(gone)_sbDeleteInv(gone.id);upInv(s=>{s.inventory.splice(idx,1)});}
 function markInvSold(idx){upInv(s=>{const k=s.inventory[idx];k.status=k.status==="sold"?"available":"sold";k.soldAt=k.status==="sold"?new Date().toISOString():null;});}
 
 // ─── MOVE BETWEEN POSTS ───────────────────────────────────────
@@ -1096,6 +1148,7 @@ function markSold(pid,ki){
 }
 function confirmSoldFlow(){
   const sf=S.soldFlow;if(!sf)return;
+  pushUndo("Knife marked sold");
   const raw=(document.getElementById("sold-to-input")?.value||"").trim();
   const buyer=raw.replace(/^@/,"").replace(/^\/?u\//i,"");
   up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldAt=new Date().toISOString();k.soldTo=buyer||null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="sold";}p.postText=buildPost(p);});
@@ -1127,6 +1180,7 @@ async function copyConfirmComment(pid,ki){
 function cycleTmpl(pid){up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;p.variant=((p.variant||0)+1)%3;p.postText=buildPost(p)});}
 function deletePost(pid){
   if(!confirm("Delete this listing?"))return;
+  pushUndo("Listing deleted");
   const p=S.posts.find(x=>x.id===pid);
   if(p){
     p.knives.forEach(k=>{
@@ -1193,7 +1247,8 @@ function render(){
     S.view==="roll"?renderRoll():
     S.view==="sold"?renderSold():
     renderList();
-  document.getElementById("root").innerHTML=view+(S.modal?renderModal(S.modal):"");
+  const toastHtml=S.undoToast?`<div class="undo-toast">↩ ${esc(S.undoToast)} <button class="undo-toast-btn" onclick="undoLast()">Undo</button></div>`:"";
+  document.getElementById("root").innerHTML=view+(S.modal?renderModal(S.modal):"")+toastHtml;
   updateModelList();
 }
 function renderModal(type){
@@ -1309,7 +1364,7 @@ function kfFormHtml(){
             ?`<span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--greenbg);color:var(--greent);flex-shrink:0;white-space:nowrap">Active</span>`
             :"";
       // Price chips — clickable to apply to price field
-      const priceChips=r.prices.slice(0,4).map(p=>`<span class="pr-price" onclick="applyPriceFromResearch('${esc(p)}')" style="cursor:pointer;user-select:none" title="Tap to use ${esc(p)}">${esc(p)}</span>`).join(" ");
+      const priceChips=r.prices.slice(0,4).map(p=>`<span style="display:inline-flex;align-items:center;gap:2px"><span class="pr-price" onclick="applyPriceFromResearch('${esc(p)}')" style="cursor:pointer;user-select:none" title="Click to use ${esc(p)}">${esc(p)}</span><button onclick="saveRefComp('${esc(p)}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--t4);padding:0;line-height:1" title="Save as reference comp">💾</button></span>`).join(" ");
       const meta=`${esc(r.author)} · ${esc(r.date)}${r.flair?" · "+esc(r.flair):""}`;
       return`<div class="pr-row"><div class="pr-row-text"><a class="pr-row-title" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><div class="pr-row-meta">${meta}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${chip}${priceChips}</div></div>`;
     }).join("")||`<div style="padding:14px 12px;font-size:12px;color:var(--t3);text-align:center">No recent posts found for this knife.</div>`;
@@ -1332,6 +1387,7 @@ function kfFormHtml(){
     <div class="field" style="margin-bottom:11px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><label style="margin:0">Price Research</label><button class="pr-btn" onclick="syncKF();doFetchPriceResearch()" type="button">🔍 Search r/Knife_Swap${pr.status==="loading"?"...":""}</button></div>
       ${prPanel}
+      ${(f.comps||[]).length?`<div style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:11px;font-weight:600;color:var(--t3)">💾 Saved comps:</span>${(f.comps||[]).map((c,ci)=>`<span class="comp-chip" onclick="applyPriceFromResearch('$${esc(c.price)}')" style="cursor:pointer" title="Click to use">\$${esc(c.price)}<button onclick="event.stopPropagation();S.kf.comps=(S.kf.comps||[]).filter((_,i)=>i!==${ci});render()" style="background:none;border:none;cursor:pointer;padding:0;color:inherit;font-size:12px;opacity:.7;margin-left:2px">×</button></span>`).join("")}</div>`:""}
     </div>
     <div class="fr3"><div class="field"><label>Carried?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.carried===v?" on":""}" onclick="syncKF();S.kf.carried='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Used to cut?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.usedCut===v?" on":""}" onclick="syncKF();S.kf.usedCut='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Sharpened?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.sharpened===v?" on":""}" onclick="syncKF();S.kf.sharpened='${v}';render()">${v}</button>`).join("")}</div></div></div>
     <button class="adv-btn" onclick="syncKF();S.adv=!S.adv;render()">${s.adv?"Hide":"Show"} advanced</button>${advHtml}
@@ -1339,7 +1395,7 @@ function kfFormHtml(){
       <label>Knife Photos &amp; Videos <span style="font-weight:400;color:var(--t4);font-size:11px">(optional - stored with this knife)</span></label>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload()" type="button">+ Add Photos</button>
-        ${s.kfUploads.map(u=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 8px;background:var(--bg);border:.5px solid var(--b2);border-radius:6px;max-width:200px">${u.uploading?`<span style="color:var(--t4)">uploading...</span>`:u.error?`<span style="color:var(--redt);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.error)}</span>`:`<a href="${esc(u.url)}" target="_blank" style="color:var(--blue);text-decoration:none;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.name)}</a>`}<button onclick="removeKnifeUpload('${u.uid}')" style="background:none;border:none;color:var(--t4);cursor:pointer;padding:0;font-size:12px;line-height:1;margin-left:2px">&times;</button></div>`).join("")}
+        ${s.kfUploads.map((u,ui)=>{const isImg=u.url&&/\.(jpg|jpeg|png|gif|webp|avif)(\?|$)/i.test(u.url);return`<div style="display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 8px;background:var(--bg);border:.5px solid var(--b2);border-radius:6px;max-width:220px">${isImg?`<img class="up-thumb" style="width:26px;height:26px" src="${esc(u.url)}" alt="" loading="lazy"/>`:""}${u.uploading?`<span style="color:var(--t4)">uploading...</span>`:u.error?`<span style="color:var(--redt);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.error)}</span>`:`<a href="${esc(u.url)}" target="_blank" style="color:var(--blue);text-decoration:none;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.name)}</a>`}${u.url&&!u.uploading?`<button class="up-reorder" onclick="reorderKnifeUpload(${ui},-1)" ${ui===0?"disabled":""}>↑</button><button class="up-reorder" onclick="reorderKnifeUpload(${ui},1)" ${ui===s.kfUploads.length-1?"disabled":""}>↓</button>`:""}${!u.uploading?`<button onclick="removeKnifeUpload('${u.uid}')" style="background:none;border:none;color:var(--t4);cursor:pointer;padding:0;font-size:12px;line-height:1">&times;</button>`:""}</div>`;}).join("")}
       </div>
     </div>
     ${s.err?`<div class="err">${esc(s.err)}</div>`:""}
@@ -1368,6 +1424,8 @@ function renderList(){
     let body="";
     if(open){
       const hasPhotos=(p.photos?.length||0)>0;
+      const charLen=p.postText?.length||0;
+      const charColor=charLen>38000?"var(--redt)":charLen>30000?"var(--oranget)":"";
       const krows=p.knives.map((k,i)=>{
         const isMoving=moving&&moving.postId===p.id&&moving.ki===i;
         const picker=isMoving?`<div class="move-picker"><div style="padding:8px 13px;font-size:11px;font-weight:600;color:var(--t3);border-bottom:.5px solid var(--b2)">Move to which post?</div>${s.posts.filter(op=>op.id!==p.id).map(op=>`<div class="move-pick-row" onclick="executeMove('${op.id}')"><span style="flex:1">${esc(op.knives.map(x=>x.brand+" "+x.model).join(", ").slice(0,50))}</span><span class="pmeta">${fmtD(op.createdAt)}</span></div>`).join("")}<div class="move-pick-row" onclick="cancelMove()" style="color:var(--redt)">Cancel</div></div>`:"";
@@ -1395,7 +1453,7 @@ function renderList(){
       </div>`:""
       ;
       const isPrev=s.mdPreview.has(p.id);
-      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta">${p.postText?.length||0} chars</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No photos"}</span><span class="pmeta"> · ${TMPL[p.variant||0]}</span></div>${isPrev?`<div class="post-box" style="white-space:normal;font-family:var(--font);font-size:12.5px;line-height:1.75;overflow-y:auto;max-height:320px">${renderMd(p.postText||"")}</div>`:`<div class="post-box">${esc(p.postText||"")}</div>`}<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><button class="btn btn-pri btn-sm" onclick="copyPost('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""}>${s.copied===p.id?"Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openRedditPost('${p.id}')">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[((p.variant||0)+1)%3]}</button><button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')" title="Toggle rendered markdown preview">${isPrev?"&lt;/&gt; Raw":"👁 Preview"}</button><button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')" style="margin-left:auto">Delete</button></div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">${checkPostRules(p.id).map(c=>`<span style="font-size:10.5px;font-weight:500;padding:2px 9px;border-radius:20px;background:${c.ok?"var(--greenbg)":"var(--redbg)"};color:${c.ok?"var(--greent)":"var(--redt)"}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}</div>`;
+      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?" ⚠️":charLen>30000?" ⚡":""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No photos"}</span><span class="pmeta"> · ${TMPL[p.variant||0]}</span></div>${isPrev?`<div class="post-box" style="white-space:normal;font-family:var(--font);font-size:12.5px;line-height:1.75;overflow-y:auto;max-height:320px">${renderMd(p.postText||"")}</div>`:`<div class="post-box">${esc(p.postText||"")}</div>`}<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><button class="btn btn-pri btn-sm" onclick="copyPost('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""}>${s.copied===p.id?"Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openRedditPost('${p.id}')">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[((p.variant||0)+1)%3]}</button><button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')" title="Toggle rendered markdown preview">${isPrev?"&lt;/&gt; Raw":"👁 Preview"}</button><button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')" style="margin-left:auto">Delete</button></div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">${checkPostRules(p.id).map(c=>`<span style="font-size:10.5px;font-weight:500;padding:2px 9px;border-radius:20px;background:${c.ok?"var(--greenbg)":"var(--redbg)"};color:${c.ok?"var(--greent)":"var(--redt)"}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}</div>`;
     }
     const da=daysAgo(p.createdAt);
     const ageBadge=!allSold?(da>=7?`<span class="repost-day-badge rdy">Repost ready</span>`:`<span class="repost-day-badge wait">${da}d old</span>`):"";
@@ -1426,7 +1484,17 @@ function renderRoll(){
     const statusDot=k.status==="sold"?"🔴":k.pending?"🟡":"🟢";
     const sb=k.status==="available"&&!k.pending?`<span class="lk-badge av">🟢 Available</span>`:k.pending&&k.status!=="sold"?`<span class="lk-badge pe">🟡 Pending</span>`:k.status==="listed"?`<span class="lk-badge li">In Listing</span>`:`<span class="lk-badge so">🔴 Sold</span>`;
     const lkPc=(k.photos||[]).length;
-    return`<div class="lk-card"><div class="lk-brand">${esc(k.brand)}</div><div class="lk-model">${statusDot} ${esc(k.model)}${lkPc?` <span style="font-size:10px;color:var(--blue)">📷${lkPc}</span>`:""}</div><div class="lk-steel">${esc(k.steel||"Steel N/A")} · ${esc(k.bladeCondition)}</div><div class="lk-price">$${esc(k.price)}${k.obo?" OBO":""}</div>${sb}<div class="lk-acts">${k.status!=="sold"?`<button class="btn btn-sm${k.pending?" btn-sec":""}" style="${k.pending?"background:var(--orangebg);color:var(--oranget)":""}" onclick="markInvPending(${realIdx})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button>`:""}${k.status!=="sold"?`<button class="btn btn-sm btn-gn" onclick="markInvSold(${realIdx})">🔴 Sold</button>`:`<button class="btn btn-sm btn-sec" onclick="markInvSold(${realIdx})">Relist</button>`}<button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">Remove</button></div></div>`;
+    // Days in Roll badge
+    const dInRoll=k.addedAt?Math.floor((Date.now()-new Date(k.addedAt))/(864e5)):null;
+    const dayClass=dInRoll===null?"":dInRoll<14?"fresh":dInRoll<45?"mid":"old";
+    const dayBadge=dInRoll!==null&&k.status!=="sold"?`<span class="days-badge ${dayClass}">${dInRoll}d</span>`:"";
+    // Price history sparkline (text-based)
+    const ph=(k.priceHistory||[]);
+    const phHtml=ph.length?`<div class="ph-line">${ph.slice(-3).map((h,i,arr)=>`<span class="ph-old">$${esc(h.price)}</span>${i<arr.length-1?`<span style="font-size:9px;color:var(--t4)">›</span>`:""}`).join("")}<span style="font-size:9px;color:var(--t4)">›</span><span style="font-size:10.5px;font-weight:700;color:var(--greent)">$${esc(k.price)}</span></div>`:"";
+    // Reference comps
+    const comps=(k.comps||[]);
+    const compsHtml=comps.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">${comps.slice(0,3).map((c,ci)=>`<span class="comp-chip" title="Comp price">$${esc(c.price)}<button onclick="removeRefComp('${esc(k.id)}',${ci})" style="background:none;border:none;cursor:pointer;padding:0;color:inherit;font-size:11px;opacity:.6;margin-left:2px" title="Remove">×</button></span>`).join("")}</div>`:"";
+    return`<div class="lk-card"><div class="lk-brand">${esc(k.brand)}</div><div class="lk-model">${statusDot} ${esc(k.model)} ${dayBadge}${lkPc?` <span style="font-size:10px;color:var(--blue)">📷${lkPc}</span>`:""}</div><div class="lk-steel">${esc(k.steel||"Steel N/A")} · ${esc(k.bladeCondition)}</div><div class="lk-price">$${esc(k.price)}${k.obo?" OBO":""}</div>${phHtml}${compsHtml}${sb}<div class="lk-acts">${k.status!=="sold"?`<button class="btn btn-sm${k.pending?" btn-sec":""}" style="${k.pending?"background:var(--orangebg);color:var(--oranget)":""}" onclick="markInvPending(${realIdx})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button>`:""}${k.status!=="sold"?`<button class="btn btn-sm btn-gn" onclick="markInvSold(${realIdx})">🔴 Sold</button>`:`<button class="btn btn-sm btn-sec" onclick="markInvSold(${realIdx})">Relist</button>`}<button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">Remove</button></div></div>`;
   }).join("")}</div>`:`<div style="text-align:center;padding:40px 0;color:var(--t4);font-size:13px">No ${fil} knives</div>`;
   const form=S.kfOpen&&S.kfMode==="locker"?kfFormHtml():"";
   return hdr+`<div class="main">${stats}${filterBar}${form}${cards}</div>`;
@@ -1445,7 +1513,14 @@ function renderSold(){
   S.inventory.forEach(k=>{if(k.status==="sold")fromRoll.push({...k,source:"roll"});});
   const all=[...fromPosts,...fromRoll].sort((a,b)=>(b.soldAt||"").localeCompare(a.soldAt||""));
   const totalVal=all.reduce((n,k)=>n+parseFloat(k.price||0),0);
-  const stats=`<div class="stats"><div class="stat"><div class="stat-n green">${all.length}</div><div class="stat-l">Sold</div></div>${totalVal>0?`<div class="stat"><div class="stat-n orange">$${Math.round(totalVal)}</div><div class="stat-l">Total Value</div></div>`:""}<div class="stat"><div class="stat-n">${completedPosts.length}</div><div class="stat-l">Completed Posts</div></div><div class="stat"><div class="stat-n purple">${fromRoll.length}</div><div class="stat-l">From The Roll</div></div></div>`;
+  // Sell-through stats
+  const soldWithDates=fromPosts.filter(k=>k.soldAt&&k.postDate);
+  const avgDays=soldWithDates.length?Math.round(soldWithDates.reduce((n,k)=>n+Math.max(0,Math.floor((new Date(k.soldAt)-new Date(k.postDate))/(864e5))),0)/soldWithDates.length):null;
+  const pricesNum=all.map(k=>parseFloat(k.price||0)).filter(Boolean);
+  const avgPrice=pricesNum.length?Math.round(pricesNum.reduce((a,b)=>a+b,0)/pricesNum.length):null;
+  const sellRate=S.inventory.length?Math.round((fromPosts.length/Math.max(S.inventory.length,1))*100):null;
+  const sellStatsHtml=all.length>=2?`<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">${avgDays!==null?`<div class="sell-stat"><div class="sell-stat-n blue">${avgDays}d</div><div class="sell-stat-l">Avg days to sell</div></div>`:""}${avgPrice?`<div class="sell-stat"><div class="sell-stat-n orange">$${avgPrice}</div><div class="sell-stat-l">Avg sale price</div></div>`:""}${sellRate!==null?`<div class="sell-stat"><div class="sell-stat-n green">${sellRate}%</div><div class="sell-stat-l">Sell-through rate</div></div>`:""}${totalVal>0?`<div class="sell-stat"><div class="sell-stat-n purple">$${Math.round(totalVal)}</div><div class="sell-stat-l">Total revenue</div></div>`:""}</div>`:"";
+  const stats=`<div class="stats"><div class="stat"><div class="stat-n green">${all.length}</div><div class="stat-l">Sold</div></div><div class="stat"><div class="stat-n">${completedPosts.length}</div><div class="stat-l">Completed Posts</div></div><div class="stat"><div class="stat-n purple">${fromRoll.length}</div><div class="stat-l">From The Roll</div></div><div class="stat" style="margin-left:auto;display:flex;align-items:center"><button class="btn btn-sec btn-sm" onclick="exportSoldCSV()" title="Export sold history to CSV">↓ CSV</button></div></div>${sellStatsHtml}`;
   if(!all.length&&!completedPosts.length)return hdr+`<div class="main">${stats}<div class="empty"><div class="empty-ico">🏷️</div><div class="empty-h">No sold knives yet</div><div class="empty-p">When you mark a knife as sold in a listing or in The Roll, it will show up here.</div></div></div>`;
   // Completed listings section
   const completedSection=completedPosts.length?`<div style="margin-bottom:20px">
@@ -1490,7 +1565,12 @@ function renderCompose(){
   const kfHtml=s.kfOpen&&s.kfMode==="draft"?kfFormHtml():"";
   // Upload section
   const upFiles=s.uploadFiles;
-  const upRows=upFiles.map(f=>`<div class="up-row"><span class="up-name">${esc(f.name)}</span>${f.uploading?`<span class="up-spin"></span><span style="font-size:11px;color:var(--t3)">Uploading...</span>`:f.error?`<span class="up-err">${esc(f.error)}</span>`:f.url?`<span class="up-url">${esc(f.url)}</span><button class="btn btn-sec btn-xs" onclick="copyText('${esc(f.url)}')">Copy</button>`:""}${!f.uploading?`<button class="btn btn-rd btn-xs" onclick="removeUpload('${f.uid}')">&#x2715;</button>`:""}</div>`).join("");
+  const upRows=upFiles.map((f,fi)=>{
+    const isImg=f.url&&/\.(jpg|jpeg|png|gif|webp|avif)(\?|$)/i.test(f.url);
+    const thumb=isImg?`<img class="up-thumb" src="${esc(f.url)}" alt="" loading="lazy"/>`:"";
+    const reorder=f.url&&!f.uploading?`<button class="up-reorder" onclick="reorderUpload(${fi},-1)" title="Move up" ${fi===0?"disabled style='opacity:.3'":""}>↑</button><button class="up-reorder" onclick="reorderUpload(${fi},1)" title="Move down" ${fi===upFiles.length-1?"disabled style='opacity:.3'":""}>↓</button>`:"";
+    return`<div class="up-row">${thumb}<span class="up-name">${esc(f.name)}</span>${f.uploading?`<span class="up-spin"></span><span style="font-size:11px;color:var(--t3)">Uploading...</span>`:f.error?`<span class="up-err">${esc(f.error)}</span>`:f.url?`<span class="up-url">${esc(f.url)}</span><button class="btn btn-sec btn-xs" onclick="copyText('${esc(f.url)}')">Copy</button>`:""}${reorder}${!f.uploading?`<button class="btn btn-rd btn-xs" onclick="removeUpload('${f.uid}')">&#x2715;</button>`:""}</div>`;
+  }).join("");
   const titleStr=buildTitleStr(d.knives,d.postType,300);
   const titleOver=titleStr.length>280;
   const detHtml=d.knives.length>0&&!s.kfOpen?`<div class="det"><div class="det-hdr">Photos &amp; Post Details</div>
@@ -1503,6 +1583,7 @@ function renderCompose(){
         <div class="up-lbl">Drop photos or videos here or click to upload</div>
         <div class="up-sub">Uploads to Catbox.moe - free hosting${SETTINGS.catboxHash?" (linked to your account)":""}</div>
       </div>
+      ${upFiles.filter(f=>f.url).length>=2&&SETTINGS.catboxHash?`<button class="btn btn-pu btn-sm" onclick="createCatboxAlbum()" style="margin-top:8px" type="button">📁 Create Catbox Album</button><span style="font-size:11px;color:var(--t3);margin-left:6px">Groups all photos into one album link</span>`:""}
       <div style="font-size:11px;color:var(--t4);line-height:1.5;margin-top:6px;padding:0 2px">⚠️ Catbox uploads are <strong>permanent</strong> - files cannot be deleted without a Catbox account. <a href="https://catbox.moe" target="_blank" style="color:var(--blue);text-decoration:none">Create a free account</a> and add your userhash in Settings to manage your files.</div>
       ${upRows?`<div class="up-files">${upRows}</div>`:""}
       <div style="margin-top:8px;display:flex;align-items:center;gap:6px"><div style="flex:1;height:.5px;background:rgba(0,0,0,.1)"></div><span style="font-size:11px;color:var(--t4);white-space:nowrap">or paste URL manually</span><div style="flex:1;height:.5px;background:rgba(0,0,0,.1)"></div></div>
@@ -1616,6 +1697,7 @@ function renderSettings(){
 
 // ─── INIT ────────────────────────────────────────────────────
 window.S=S;window.SETTINGS=SETTINGS;window.tm=tm;window.tmx=tmx;
+window.undoLast=undoLast;window.pushUndo=pushUndo;
 window.startCompose=startCompose;window.cancelCompose=cancelCompose;
 window.openKF=openKF;window.closeKF=closeKF;window.syncKF=syncKF;window.saveKF=saveKF;
 window.removeKnife=removeKnife;window.setPrevPrice=setPrevPrice;window.applyDropPrice=applyDropPrice;window.addFromLocker=addFromLocker;window.removeFromInventory=removeFromInventory;window.markInvSold=markInvSold;
@@ -1647,6 +1729,10 @@ document.addEventListener("keydown",e=>{
     if(S.view==="compose"&&!S.kfOpen){e.preventDefault();syncDraft();submitPost();return;}
     return;
   }
+  // Cmd/Ctrl+Z — undo last action
+  if((e.metaKey||e.ctrlKey)&&e.key==="z"&&!inInput){
+    e.preventDefault();undoLast();return;
+  }
   // Cmd/Ctrl+N — new listing / new knife (only when not typing)
   if((e.metaKey||e.ctrlKey)&&e.key==="n"&&!inInput){
     e.preventDefault();
@@ -1670,6 +1756,73 @@ function exportRollCSV(){
 }
 window.exportRollCSV=exportRollCSV;
 
+// ─── EXPORT SOLD HISTORY ──────────────────────────────────
+function exportSoldCSV(){
+  const rows=[];
+  const h=["Brand","Model","Steel","Condition","Sale Price ($)","Buyer","Sold Date","Days to Sell","Post Type","Source"];
+  S.posts.forEach(p=>{p.knives.forEach(k=>{if(k.sold){let dts="";if(p.createdAt&&k.soldAt)dts=Math.max(0,Math.floor((new Date(k.soldAt)-new Date(p.createdAt))/864e5));rows.push([k.brand||"",k.model||"",k.steel||"",k.bladeCondition||"",k.price||"",k.soldTo||"",k.soldAt?new Date(k.soldAt).toLocaleDateString():"",dts,p.postType||"","Listing"]);}});});
+  S.inventory.forEach(k=>{if(k.status==="sold")rows.push([k.brand||"",k.model||"",k.steel||"",k.bladeCondition||"",k.price||"","",k.soldAt?new Date(k.soldAt).toLocaleDateString():"","","","Roll"]);});
+  if(!rows.length){alert("No sold knives to export.");return;}
+  const csv=[h,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href="data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv);
+  a.download="sold_history_"+new Date().toISOString().slice(0,10)+".csv";
+  a.click();
+}
+window.exportSoldCSV=exportSoldCSV;
+
+// ─── PHOTO REORDER ────────────────────────────────────────
+function reorderUpload(idx,dir){
+  const arr=S.uploadFiles;const n=idx+dir;
+  if(n<0||n>=arr.length)return;
+  [arr[idx],arr[n]]=[arr[n],arr[idx]];
+  S.draft.photos=arr.filter(x=>x.url).map(x=>x.url);render();
+}
+function reorderKnifeUpload(idx,dir){
+  const arr=S.kfUploads;const n=idx+dir;
+  if(n<0||n>=arr.length)return;
+  [arr[idx],arr[n]]=[arr[n],arr[idx]];
+  S.kf.photos=arr.filter(x=>x.url).map(x=>x.url);render();
+}
+window.reorderUpload=reorderUpload;window.reorderKnifeUpload=reorderKnifeUpload;
+
+// ─── AUTO CATBOX ALBUM ────────────────────────────────────
+async function createCatboxAlbum(){
+  if(!SETTINGS.catboxHash){alert("Catbox userhash required — add it in Settings to create albums.");return;}
+  const ready=S.uploadFiles.filter(f=>f.url&&!f.url.includes("catbox.moe/a/"));
+  if(!ready.length){alert("Upload at least one file first.");return;}
+  const files=ready.map(f=>f.url.split("/").pop()).join(" ");
+  try{
+    const fd=new FormData();
+    fd.append("reqtype","createalbum");fd.append("userhash",SETTINGS.catboxHash);
+    fd.append("title","KnifeSwap Listing");fd.append("desc","Photos for r/Knife_Swap listing");
+    fd.append("files",files);
+    const res=await fetch("https://catbox.moe/user/api.php",{method:"POST",body:fd});
+    if(!res.ok)throw new Error("Server error "+res.status);
+    const albumUrl=(await res.text()).trim();
+    if(!albumUrl.startsWith("http"))throw new Error("Unexpected response");
+    // Prepend album URL to photos list
+    const uid=gid();
+    S.uploadFiles=[{uid,name:"📁 Album",url:albumUrl,uploading:false,error:null},...S.uploadFiles.filter(f=>!f.url?.includes("catbox.moe/a/"))];
+    S.draft.photos=S.uploadFiles.filter(x=>x.url).map(x=>x.url);
+    render();
+  }catch(e){S.err="Album creation failed: "+e.message;render();}
+}
+window.createCatboxAlbum=createCatboxAlbum;
+
+// ─── REFERENCE COMPS ──────────────────────────────────────
+function saveRefComp(price){
+  const num=price.replace(/[^0-9.]/g,"");if(!num)return;
+  S.kf.comps=[...(S.kf.comps||[]),{price:num,date:new Date().toISOString()}];
+  render();
+}
+function removeRefComp(invId,idx){
+  const k=S.inventory.find(x=>x.id===invId);if(!k)return;
+  k.comps=(k.comps||[]).filter((_,i)=>i!==idx);
+  saveInv();render();
+}
+window.saveRefComp=saveRefComp;window.removeRefComp=removeRefComp;
+
 // ─── MARKDOWN PREVIEW ─────────────────────────────────────
 function renderMd(md){
   return md
@@ -1692,12 +1845,14 @@ function checkPostRules(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return[];
   const txt=p.postText||"";
   const activeKnives=p.knives.filter(k=>!k.sold);
+  const charLen=txt.length;
   return[
     {ok:txt.includes("http"),msg:"Timestamp photo link in post"},
     {ok:activeKnives.filter(k=>k.knifeType!=="WTT").every(k=>k.price&&k.price.length>0),msg:"All WTS knives have a price"},
     {ok:p.payment&&p.payment.length>0,msg:"Payment method specified"},
     {ok:(p.postType||"").startsWith("["),msg:"Post type in title (e.g. [WTS])"},
     {ok:txt.toLowerCase().includes("conus")||txt.toLowerCase().includes("ship"),msg:"Shipping info mentioned"},
+    {ok:charLen<40000,msg:`Post length OK (${charLen.toLocaleString()}/40,000 chars)`},
   ];
 }
 window.checkPostRules=checkPostRules;
