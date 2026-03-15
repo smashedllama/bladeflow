@@ -48,7 +48,7 @@ body,html{background:var(--bg)}
 .hdr-ico-btn .ico{font-size:14px;line-height:1}
 
 /* BUTTONS */
-.btn{border:none;border-radius:980px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all var(--tr);display:inline-flex;align-items:center;gap:5px;line-height:1;white-space:nowrap}
+.btn{border:none;border-radius:980px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all var(--tr);display:inline-flex;align-items:center;gap:5px;line-height:1;white-space:nowrap;background:rgba(0,0,0,.07);color:var(--t1)}
 .btn-pri{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(0,113,227,.25)}
 .btn-pri:hover{background:#0062C4}
 .btn-pri:active{transform:scale(.97)}
@@ -121,12 +121,12 @@ textarea{resize:vertical;line-height:1.55}
 .pc-stat.act{color:var(--orange)}.pc-stat.done{color:var(--green)}
 .pc-chev{font-size:9px;color:var(--t4);flex-shrink:0;transition:transform .2s;margin-left:2px}
 .pc-chev.open{transform:rotate(180deg)}
-.pc-body{border-top:.5px solid rgba(0,0,0,.07);padding:16px}
+.pc-body{border-top:.5px solid var(--b1);padding:16px}
 .post-box{background:var(--bg);border:.5px solid var(--b1);border-radius:var(--rs);padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--t1);line-height:1.75;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow-y:auto;margin-bottom:12px;box-shadow:inset 0 1px 3px rgba(0,0,0,.04)}
 .pc-meta{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap}
 .pmeta{font-size:11px;font-weight:500;color:var(--t4)}
 .pmeta.ok{color:var(--greent)}
-.krows-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:8px;padding-top:14px;border-top:.5px solid rgba(0,0,0,.07)}
+.krows-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:8px;padding-top:14px;border-top:.5px solid var(--b1)}
 .krow{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:var(--rs);background:var(--bg);border:.5px solid var(--b1);margin-bottom:7px}
 .krow.sold{background:var(--greenbg);border-color:rgba(52,199,89,.2)}
 .krow.pending-row{background:var(--orangebg);border-color:rgba(255,149,0,.25)}
@@ -431,6 +431,27 @@ textarea{resize:vertical;line-height:1.55}
   .auth-field input{background:#3A3A3C;border-color:rgba(255,255,255,.1)}
   .auth-field input:focus{background:#3A3A3C}
   .auth-sync-banner{background:rgba(10,132,255,.15);border-color:rgba(10,132,255,.35)}
+  /* Base btn: override browser default white background */
+  .btn{background:rgba(255,255,255,.1);color:var(--t1)}
+  .btn:hover{background:rgba(255,255,255,.16)}
+  /* Re-assert colored variants (same specificity as .btn, must come after) */
+  .btn-pri{background:var(--blue);color:#fff}
+  .btn-pri:hover{background:#0062C4}
+  .btn-gen{background:var(--blue);color:#fff}
+  .btn-gn{background:var(--greenbg);color:var(--greent)}
+  .btn-gn:hover{background:rgba(48,209,88,.28)}
+  .btn-rd{background:var(--redbg);color:var(--redt)}
+  .btn-rd:hover{background:rgba(255,69,58,.28)}
+  .btn-pu{background:var(--purplebg);color:var(--purplet)}
+  .btn-pu:hover{background:rgba(191,90,242,.28)}
+  .btn-sec{background:rgba(255,255,255,.1);color:var(--t1)}
+  .btn-sec:hover{background:rgba(255,255,255,.16)}
+  /* yn toggle: make active state clearly distinguishable */
+  .yn-row{background:rgba(255,255,255,.07)}
+  .yn.on{background:rgba(255,255,255,.18);color:var(--t1);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  /* Invisible separators fix */
+  .pc-body{border-top-color:var(--b1)}
+  .krows-hdr{border-top-color:var(--b1)}
 }
 
 /* ─── MOBILE ─────────────────────────────────────────────── */
@@ -742,13 +763,9 @@ async function doFetchPriceResearch(){
       const isSold=tl.includes("[sold]")||tl.includes("(sold)")||/\bsold\b/.test(flair.toLowerCase());
       // Detect post type
       const isWTT=flair.includes("WTT")||(tl.includes("[wtt]")&&!tl.includes("[wts]"));
-      // Search BOTH title and selftext — prices live in the post body on r/Knife_Swap
-      const searchText=d.title+" "+(d.selftext||"");
-      const withDollar=searchText.match(/\$\s*(\d[\d,]*(?:\.\d{1,2})?)/g)||[];
-      // Also catch "SV: 175" / "SV:175" / "SV 175" (no $ sign)
-      const labeled=(searchText.match(/\b(?:SV|TV|PO|PRICE)\s*:?\s*\$?(\d{2,5})\b/gi)||[]).map(m=>{const n=m.match(/(\d{2,5})/);return n?"$"+n[1]:null;}).filter(Boolean);
-      const rawPrices=[...withDollar,...labeled];
-      const prices=[...new Set(rawPrices.map(p=>p.replace(/[\s,]/g,"")))].slice(0,6);
+      // Extract prices from sections near the searched knife name only
+      const fullText=d.title+" "+(d.selftext||"");
+      const prices=extractKnifePrices(fullText,q);
       return{title:d.title,url:"https://reddit.com"+d.permalink,author:d.author,
         date:new Date(d.created_utc*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),
         prices,isSold,isWTT,flair};
@@ -762,13 +779,25 @@ async function doFetchPriceResearch(){
   render();
 }
 function applyPriceFromResearch(raw){
-  // Strip $ and apply to current knife price field
   const num=raw.replace(/[^0-9.]/g,"");
   if(!num)return;
   S.kf.price=num;
   const el=document.getElementById("kf-price");
   if(el)el.value=num;
   render();
+}
+function extractKnifePrices(text,q){
+  // Split post into sections by r/Knife_Swap separator patterns
+  const sections=text.split(/\n[-─*_]{3,}\n|\n(?=__[A-Z])|\n{2,}(?=[A-Z\*\#])/);
+  const terms=q.toLowerCase().split(/\s+/).filter(t=>t.length>2);
+  // Find sections that mention the searched knife
+  const relevant=sections.filter(s=>terms.some(t=>s.toLowerCase().includes(t)));
+  // Fall back to full text if nothing matched
+  const src=relevant.length?relevant.join('\n'):text;
+  const withDollar=src.match(/\$\s*(\d[\d,]*(?:\.\d{1,2})?)/g)||[];
+  const labeled=(src.match(/\b(?:SV|TV|PO|PRICE)\s*:?\s*\$?(\d{2,5})\b/gi)||[])
+    .map(m=>{const n=m.match(/(\d{2,5})/);return n?"$"+n[1]:null;}).filter(Boolean);
+  return[...new Set([...withDollar,...labeled].map(p=>p.replace(/[\s,]/g,"")))].slice(0,4);
 }
 function clearPriceResearch(){S.priceResearch={status:"idle",results:[],query:""};render();}
 
