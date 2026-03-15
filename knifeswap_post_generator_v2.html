@@ -256,6 +256,7 @@ textarea{resize:vertical;line-height:1.55}
 .repost-track-wait{font-size:12px;color:var(--t3);line-height:1.5}
 .repost-day-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-left:2px}
 .repost-day-badge.rdy{background:var(--greenbg);color:var(--greent)}
+.pr-flair-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-left:2px;background:var(--orangebg);color:var(--oranget)}
 .repost-day-badge.wait{background:var(--bg);color:var(--t4);border:.5px solid var(--b1)}
 /* TIMESTAMP REQUIREMENT */
 .ts-req{background:var(--orangebg);border:.5px solid rgba(255,149,0,.3);border-radius:var(--rs);padding:10px 13px;font-size:12px;color:var(--oranget);line-height:1.5;margin-bottom:10px}
@@ -347,6 +348,7 @@ textarea{resize:vertical;line-height:1.55}
 
 /* ─── UNDO TOAST ──────────────────────────────────────────── */
 .undo-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1C1C1E;color:#F2F2F7;padding:9px 14px 9px 16px;border-radius:980px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,.38),0 0 0 .5px rgba(255,255,255,.1);z-index:300;animation:sfIn .22s ease;white-space:nowrap;pointer-events:auto}
+.flair-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--oranget);color:#fff;padding:9px 18px;border-radius:980px;font-size:13px;font-weight:600;box-shadow:0 4px 24px rgba(0,0,0,.28);z-index:301;animation:sfIn .22s ease;white-space:nowrap;pointer-events:none}
 .undo-toast-btn{background:rgba(255,255,255,.22);border:none;border-radius:980px;padding:4px 13px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background .15s}
 .undo-toast-btn:hover{background:rgba(255,255,255,.32)}
 /* ─── DAYS BADGE ──────────────────────────────────────────── */
@@ -599,7 +601,7 @@ async function saveSettings(){
 const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[]});
 const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[]});
 const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",tradeInterests:SETTINGS.tradeInterests||""});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -1256,8 +1258,17 @@ function startSamePriceRepost(pid){
 function openRedditPost(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
   const title=buildTitleStr(p.knives,p.postType,300);
-  const url="https://www.reddit.com/r/Knife_Swap/submit?selftext=true&title="+encodeURIComponent(title)+"&text="+encodeURIComponent(p.postText||"");
+  let url="https://www.reddit.com/r/Knife_Swap/submit?selftext=true&title="+encodeURIComponent(title)+"&text="+encodeURIComponent(p.postText||"");
+  // For price-drop reposts, hint Reddit to pre-fill the flair
+  if(p.repost)url+="&flair_text="+encodeURIComponent("Price Reduced");
   window.open(url,"_blank","noopener");
+  // Remind user to select flair if it's a price drop repost
+  if(p.repost){
+    S.flairToast="Select 'Price Reduced' flair on Reddit before posting";
+    clearTimeout(S._flairTid);
+    S._flairTid=setTimeout(()=>{S.flairToast=null;render();},8000);
+    render();
+  }
 }
 async function copyPost(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
@@ -1284,7 +1295,8 @@ function render(){
     S.view==="sold"?renderSold():
     renderList();
   const toastHtml=S.undoToast?`<div class="undo-toast">↩ ${esc(S.undoToast)} <button class="undo-toast-btn" onclick="undoLast()">Undo</button></div>`:"";
-  document.getElementById("root").innerHTML=view+(S.modal?renderModal(S.modal):"")+toastHtml;
+  const flairToastHtml=S.flairToast?`<div class="flair-toast">📉 ${esc(S.flairToast)}</div>`:"";
+  document.getElementById("root").innerHTML=view+(S.modal?renderModal(S.modal):"")+toastHtml+flairToastHtml;
   updateModelList();
 }
 function renderModal(type){
@@ -1512,7 +1524,8 @@ function renderList(){
     }
     const da=daysAgo(p.createdAt);
     const ageBadge=!allSold?(da>=7?`<span class="repost-day-badge rdy">Repost ready</span>`:`<span class="repost-day-badge wait">${da}d old</span>`):"";
-    const html=`<div class="pc"><div class="pc-hdr" onclick="S.expanded=S.expanded==='${p.id}'?null:'${p.id}';S.movingKnife=null;render()"><span class="pc-badge ${bt}">${esc(p.postType)}</span><span class="pc-names">${esc(names)}</span><span class="pc-date">${fmtD(p.createdAt)}</span>${ageBadge}<span class="pc-stat${allSold?" done":" act"}">${stat}</span><span class="pc-chev${open?" open":""}">&#9660;</span></div>${body}</div>`;
+    const prFlairBadge=p.repost?`<span class="pr-flair-badge">📉 Price Reduced</span>`:"";
+    const html=`<div class="pc"><div class="pc-hdr" onclick="S.expanded=S.expanded==='${p.id}'?null:'${p.id}';S.movingKnife=null;render()"><span class="pc-badge ${bt}">${esc(p.postType)}</span>${prFlairBadge}<span class="pc-names">${esc(names)}</span><span class="pc-date">${fmtD(p.createdAt)}</span>${ageBadge}<span class="pc-stat${allSold?" done":" act"}">${stat}</span><span class="pc-chev${open?" open":""}">&#9660;</span></div>${body}</div>`;
     return{allSold,html};
   });
   const activeCards=allCards.filter(c=>!c.allSold).map(c=>c.html).join("");
