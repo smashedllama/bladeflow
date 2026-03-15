@@ -601,7 +601,7 @@ async function saveSettings(){
 const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[]});
 const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[]});
 const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",tradeInterests:SETTINGS.tradeInterests||""});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added"};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -796,8 +796,19 @@ function buildTitleStr(knives,postType,maxLen){
   if(title.length>maxLen)title=title.slice(0,maxLen);
   return title;
 }
+// Normalize steel name for fuzzy matching:
+// "CPM-S30V", "CPM S30V", "S30V" all become "s30v" so they match each other.
+function normSteel(s){return(s||"").toLowerCase().replace(/^cpm[-\s]*/,"").replace(/^cts[-\s]*/,"").replace(/[-\s]/g,"");}
+// Returns array of lowercase variants to check against post text
+function steelVariants(steel){
+  if(!steel)return[];
+  const raw=steel.toLowerCase();
+  const norm=normSteel(raw);
+  return[...new Set([raw,norm,"cpm-"+norm,"cpm "+norm,"cpm"+norm,"cts-"+norm,"cts "+norm])].filter(Boolean);
+}
+
 // Price research via Reddit public JSON (free, no auth)
-async function doFetchPriceResearch(){
+async function doFetchPriceResearch(forceRefresh){
   const f=S.kf;
   const qBase=[f.brand,f.model].filter(Boolean).join(" ").trim();
   if(!qBase){S.priceResearch={status:"idle",results:[],query:""};render();return;}
@@ -813,9 +824,9 @@ async function doFetchPriceResearch(){
   const qSearchBroad=qSearchBase;
   S.priceResearch={status:"loading",results:[],query:qBase};render();
 
-  // Check 30-min localStorage cache before hitting Reddit
+  // Check 30-min localStorage cache before hitting Reddit (skip if force-refresh)
   const cacheKey=("ks_pr_"+(qBase+"_"+(f.steel||"")).replace(/\s+/g,"_").toLowerCase());
-  try{const c=JSON.parse(localStorage.getItem(cacheKey)||"null");if(c&&Date.now()-c.ts<30*60*1000){S.priceResearch=c.data;render();return;}}catch(e){}
+  if(!forceRefresh){try{const c=JSON.parse(localStorage.getItem(cacheKey)||"null");if(c&&Date.now()-c.ts<30*60*1000){S.priceResearch=c.data;render();return;}}catch(e){}}
 
   const fetchQ=async(searchQ,limit)=>{
     const ctrl=new AbortController();
@@ -833,7 +844,7 @@ async function doFetchPriceResearch(){
     let score=0;
     modelWords.forEach(w=>{if(fullLow.includes(w.toLowerCase()))score+=2;});
     if(brandLow.length>2&&fullLow.includes(brandLow))score+=1;
-    if(f.steel&&fullLow.includes(f.steel.toLowerCase()))score+=3;
+    const _stVars=steelVariants(f.steel);if(_stVars.length&&_stVars.some(v=>fullLow.includes(v)))score+=3;
     return score;
   };
 
@@ -857,7 +868,8 @@ async function doFetchPriceResearch(){
     const isRelevant=!isWTB&&allModelWordsMatch&&brandMatch;
     // Soft relevance: at least the anchor word appears (used as fallback tier)
     const mentionsAnchor=anchorWord?fullLow.includes(anchorWord.toLowerCase()):true;
-    const steelMatch=f.steel?fullLow.includes(f.steel.toLowerCase()):false;
+    const stVars=steelVariants(f.steel);
+    const steelMatch=stVars.length>0?stVars.some(v=>fullLow.includes(v)):false;
     const score=relevanceScore(fullLow);
     const prices=extractKnifePrices(fullText,qBase);
     return{title:d.title,url:"https://reddit.com"+d.permalink,author:d.author,
@@ -920,9 +932,10 @@ function extractKnifePrices(text,q){
   if(text.length>60000)text=text.slice(0,60000);
   const sections=text.split(/\n[-─*_]{3,}\n|\n(?=__[A-Z])|\n{2,}(?=[A-Z\*\#])/);
   const steel=S.kf?.steel||"";
+  const stVarsEx=steelVariants(steel);
   const baseTerms=q.toLowerCase().split(/\s+/).filter(t=>t.length>2);
-  // Try sections mentioning knife AND steel (most targeted)
-  let relevant=steel?sections.filter(s=>baseTerms.some(t=>s.toLowerCase().includes(t))&&s.toLowerCase().includes(steel.toLowerCase())):[];
+  // Try sections mentioning knife AND steel (most targeted), using normalized variants
+  let relevant=steel?sections.filter(s=>{const sl=s.toLowerCase();return baseTerms.some(t=>sl.includes(t))&&stVarsEx.some(v=>sl.includes(v));}):[];
   // Fall back to sections mentioning any knife term
   if(!relevant.length)relevant=sections.filter(s=>baseTerms.some(t=>s.toLowerCase().includes(t)));
   const src=relevant.length?relevant.join('\n'):text;
@@ -1132,12 +1145,6 @@ function saveKF(){
   if(kt!=="WTS"&&!f.tradeValue){S.err="Trade value required for WTT listings.";render();return;}
   S.err="";
   f.photos=S.kfUploads.filter(x=>x.url).map(x=>x.url);
-  // Duplicate check: warn if same brand+model already in this draft listing
-  if(S.kfMode==="draft"){
-    const bLow=f.brand.toLowerCase(),mLow=f.model.toLowerCase();
-    const dup=S.draft.knives.find((k,i)=>i!==S.kfIdx&&(k.brand||"").toLowerCase()===bLow&&(k.model||"").toLowerCase()===mLow);
-    if(dup&&!confirm(`"${f.brand} ${f.model}" is already in this listing — add a second copy anyway?`))return;
-  }
   if(S.kfMode==="locker"){
     if(!f.id)f.id=gid();
     // Track price history when editing Roll knife with price change
@@ -1460,6 +1467,11 @@ function kfFormHtml(){
   if(pr.status==="loading"){
     prPanel=`<div class="pr-panel"><div class="pr-panel-hdr"><span>Searching r/Knife_Swap for "${esc(pr.query)}"…</span></div><div style="padding:16px 12px;font-size:12px;color:var(--t3);text-align:center;display:flex;align-items:center;justify-content:center;gap:8px"><span class="up-spin"></span>Loading…</div></div>`;
   }else if(pr.status==="done"||pr.status==="empty"){
+    // Cache indicator
+    const cacheKeyChk=("ks_pr_"+(pr.query+"_"+(s.kf.steel||"")).replace(/\s+/g,"_").toLowerCase());
+    let cacheAgo="";
+    try{const c=JSON.parse(localStorage.getItem(cacheKeyChk)||"null");if(c&&c.ts){const m=Math.round((Date.now()-c.ts)/60000);cacheAgo=`<span style="font-size:10px;color:var(--t4);font-weight:400">· cached ${m}m ago</span>`;}}catch(e){}
+
     const steelMatchCount=pr.results.filter(r=>r.steelMatch).length;
     const hdrLabel=pr.querySteel&&pr.searchedWithSteel
       ?`${esc(s.kf.steel)} results · ${pr.results.length} found`
@@ -1468,8 +1480,8 @@ function kfFormHtml(){
         :pr.querySteel
           ?`${pr.results.length} results (no ${esc(s.kf.steel)} mentions found)`
           :`${pr.results.length} results for "${esc(pr.query)}"`;
-    const rows=pr.results.map(r=>{
-      // Status chip
+
+    const makeRow=r=>{
       const chip=r.isSold
         ?`<span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--redbg);color:var(--redt);flex-shrink:0;white-space:nowrap">SOLD</span>`
         :r.isWTT
@@ -1477,26 +1489,41 @@ function kfFormHtml(){
           :r.prices.length
             ?`<span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--greenbg);color:var(--greent);flex-shrink:0;white-space:nowrap">Active</span>`
             :"";
-      // Steel match badge — highlights posts that explicitly mention the searched steel
       const steelBadge=r.steelMatch&&s.kf.steel
         ?`<span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--greenbg);color:var(--greent);white-space:nowrap;border:.5px solid rgba(52,199,89,.3)">✓ ${esc(s.kf.steel)}</span>`
         :(pr.querySteel&&!r.steelMatch?`<span style="font-size:9.5px;padding:2px 7px;border-radius:20px;background:var(--bg);color:var(--t4);white-space:nowrap;border:.5px solid var(--b1)">diff steel?</span>`:"");
-      // Price chips — clickable to apply; 💾 to save as reference comp
       const priceChips=r.prices.slice(0,4).map(p=>`<span style="display:inline-flex;align-items:center;gap:2px"><span class="pr-price" onclick="applyPriceFromResearch('${esc(p)}')" style="cursor:pointer;user-select:none" title="Click to use ${esc(p)}">${esc(p)}</span><button onclick="saveRefComp('${esc(p)}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--t4);padding:0;line-height:1" title="Save as reference comp">💾</button></span>`).join(" ");
       const meta=`${esc(r.author)} · ${esc(r.date)}${r.flair?" · "+esc(r.flair):""}`;
       return`<div class="pr-row${r.steelMatch?" pr-row-match":""}"><div class="pr-row-text"><a class="pr-row-title" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a><div class="pr-row-meta">${meta}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">${chip}${steelBadge}${priceChips}</div></div>`;
-    }).join("")||`<div style="padding:14px 12px;font-size:12px;color:var(--t3);text-align:center">No recent posts found for this knife.</div>`;
-    const avgNote=pr.results.reduce((acc,r)=>acc.concat(r.prices),[]).length
-      ?(()=>{
-          const allNums=pr.results.reduce((acc,r)=>acc.concat(r.prices.map(p=>parseFloat(p.replace(/[^0-9.]/g,"")))).filter(Boolean),[]);
-          const steelNums=pr.results.filter(r=>r.steelMatch).reduce((acc,r)=>acc.concat(r.prices.map(p=>parseFloat(p.replace(/[^0-9.]/g,"")))).filter(Boolean),[]);
-          const numSet=steelNums.length>=2?steelNums:allNums;
-          const avg=numSet.reduce((a,b)=>a+b,0)/numSet.length;
-          const label=steelNums.length>=2?`${esc(s.kf.steel||"")} comps`:`all comps`;
-          return`<div style="padding:7px 12px;font-size:11px;color:var(--t3);border-top:.5px solid var(--b2)">💡 Avg price (${label}): <strong style="color:var(--t1)">$${Math.round(avg)}</strong> across ${numSet.length} mention${numSet.length!==1?"s":""}</div>`;
-       })()
-      :"";
-    prPanel=`<div class="pr-panel"><div class="pr-panel-hdr"><span>${hdrLabel}</span><button onclick="clearPriceResearch()" style="background:none;border:none;cursor:pointer;color:var(--t4);font-size:13px;padding:0">&#x2715;</button></div>${rows}${avgNote}</div>`;
+    };
+
+    // Split into Sold (historical comps) vs Active (current market)
+    const soldR=pr.results.filter(r=>r.isSold);
+    const activeR=pr.results.filter(r=>!r.isSold);
+
+    // Helper: compute avg, median, low, high from a result set's prices
+    const priceStats=arr=>{
+      const nums=arr.reduce((acc,r)=>acc.concat(r.prices.map(p=>parseFloat(p.replace(/[^0-9.]/g,""))).filter(Boolean)),[]);
+      if(!nums.length)return null;
+      nums.sort((a,b)=>a-b);
+      const avg=Math.round(nums.reduce((a,b)=>a+b,0)/nums.length);
+      const med=nums.length%2===0?Math.round((nums[nums.length/2-1]+nums[nums.length/2])/2):nums[Math.floor(nums.length/2)];
+      return{avg,med,lo:nums[0],hi:nums[nums.length-1],n:nums.length};
+    };
+
+    const soldStats=priceStats(soldR);
+    const activeStats=priceStats(activeR);
+    // Prefer steel-matching stats if available
+    const steelSoldStats=priceStats(soldR.filter(r=>r.steelMatch));
+    const steelActiveStats=priceStats(activeR.filter(r=>r.steelMatch));
+
+    const statBar=(st,label)=>st?`<div style="padding:6px 12px;font-size:11px;color:var(--t3);border-top:.5px solid var(--b2);display:flex;gap:12px;flex-wrap:wrap">💡 <strong style="color:var(--t1)">${label}</strong> · Avg <strong style="color:var(--t1)">$${st.avg}</strong> · Median <strong style="color:var(--t1)">$${st.med}</strong> · Range $${st.lo}–$${st.hi} <span style="color:var(--t4)">(${st.n} price${st.n!==1?"s":""})</span></div>`:"";
+
+    const soldSection=soldR.length?`<div style="padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--redt);text-transform:uppercase;letter-spacing:.07em;background:var(--redbg);opacity:.85">📊 Historical — ${soldR.length} sold listing${soldR.length!==1?"s":""}</div>${soldR.map(makeRow).join("")}${statBar(steelSoldStats&&steelSoldStats.n>=2?steelSoldStats:soldStats,"Sold comps"+(steelSoldStats&&steelSoldStats.n>=2?` · ${esc(s.kf.steel||"")} only`:""))}`:""
+    const activeSection=activeR.length?`<div style="padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--greent);text-transform:uppercase;letter-spacing:.07em;background:var(--greenbg);opacity:.85">🏷️ Currently Active — ${activeR.length} listing${activeR.length!==1?"s":""}</div>${activeR.map(makeRow).join("")}${statBar(steelActiveStats&&steelActiveStats.n>=2?steelActiveStats:activeStats,"Active asks"+(steelActiveStats&&steelActiveStats.n>=2?` · ${esc(s.kf.steel||"")} only`:""))}`:""
+    const noResults=!soldR.length&&!activeR.length?`<div style="padding:14px 12px;font-size:12px;color:var(--t3);text-align:center">No recent posts found for this knife.</div>`:"";
+
+    prPanel=`<div class="pr-panel"><div class="pr-panel-hdr"><span>${hdrLabel} ${cacheAgo}</span><div style="display:flex;gap:6px;align-items:center"><button onclick="syncKF();doFetchPriceResearch(true)" style="background:none;border:none;cursor:pointer;color:var(--t4);font-size:11px;padding:0;white-space:nowrap" title="Force fresh search">🔄</button><button onclick="clearPriceResearch()" style="background:none;border:none;cursor:pointer;color:var(--t4);font-size:13px;padding:0">&#x2715;</button></div></div>${soldSection}${activeSection}${noResults}</div>`;
   }else if(pr.status==="fallback"){
     prPanel=`<div class="pr-panel"><div style="padding:10px 12px;font-size:12px;color:var(--t3)">Couldn't load inline — opened Reddit search in a new tab.</div></div>`;
   }
@@ -1605,8 +1632,17 @@ function renderRoll(){
   const filtered=fil==="all"?inv:fil==="pending"?inv.filter(k=>k.pending&&k.status!=="sold"):inv.filter(k=>k.status===fil);
   const rollValue=inv.filter(k=>k.status!=="sold").reduce((s,k)=>s+parseFloat(k.price||0),0);
   const stats=`<div class="stats"><div class="stat"><div class="stat-n">${inv.length}</div><div class="stat-l">Total</div></div><div class="stat"><div class="stat-n green">${av}</div><div class="stat-l">🟢 Available</div></div><div class="stat"><div class="stat-n orange">${li}</div><div class="stat-l">In Listing</div></div>${pe>0?`<div class="stat"><div class="stat-n" style="color:var(--oranget)">${pe}</div><div class="stat-l">🟡 Pending</div></div>`:""}<div class="stat"><div class="stat-n" style="color:var(--t3)">${so}</div><div class="stat-l">🔴 Sold</div></div>${rollValue>0?`<div class="stat"><div class="stat-n purple">$${Math.round(rollValue).toLocaleString()}</div><div class="stat-l">Collection Value</div></div>`:""}<div class="stat" style="margin-left:auto;display:flex;gap:7px;align-items:center"><button class="btn btn-sec btn-sm" onclick="exportRollCSV()" title="Export to CSV">↓ CSV</button><button class="btn btn-pri btn-sm" onclick="openKF(-1,'locker')">+ Add Knife</button></div></div>`;
-  const filterBar=`<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center"><div class="seg">${[["All","all"],["🟢 Available","available"],["In Listing","listed"],["🟡 Pending","pending"],["🔴 Sold","sold"]].map(([l,v])=>`<button class="seg-item${fil===v?" on":""}" onclick="S.lockerFilter='${v}';render()">${l}</button>`).join("")}</div></div>`;
-  const cards=filtered.length?`<div class="lk-grid">${filtered.map((k,i)=>{
+  // Sort the filtered array
+  const srt=S.rollSort||"added";
+  const sortedFiltered=[...filtered].sort((a,b)=>{
+    if(srt==="price-asc")return parseFloat(a.price||0)-parseFloat(b.price||0);
+    if(srt==="price-desc")return parseFloat(b.price||0)-parseFloat(a.price||0);
+    if(srt==="days")return(b.addedAt||"").localeCompare(a.addedAt||""); // oldest first = most days
+    if(srt==="brand")return(a.brand||"").localeCompare(b.brand||"");
+    return 0; // "added" = insertion order (already correct)
+  });
+  const filterBar=`<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center"><div class="seg">${[["All","all"],["🟢 Available","available"],["In Listing","listed"],["🟡 Pending","pending"],["🔴 Sold","sold"]].map(([l,v])=>`<button class="seg-item${fil===v?" on":""}" onclick="S.lockerFilter='${v}';render()">${l}</button>`).join("")}</div><select style="font-size:12px;padding:5px 8px;border:.5px solid var(--b2);border-radius:8px;background:var(--card);color:var(--t1);font-family:var(--font)" onchange="S.rollSort=this.value;render()"><option value="added"${srt==="added"?" selected":""}>Sort: Date Added</option><option value="price-asc"${srt==="price-asc"?" selected":""}>Price: Low → High</option><option value="price-desc"${srt==="price-desc"?" selected":""}>Price: High → Low</option><option value="days"${srt==="days"?" selected":""}>Oldest First</option><option value="brand"${srt==="brand"?" selected":""}>Brand A–Z</option></select></div>`;
+  const cards=sortedFiltered.length?`<div class="lk-grid">${sortedFiltered.map((k,i)=>{
     const realIdx=inv.indexOf(k);
     const statusDot=k.status==="sold"?"🔴":k.pending?"🟡":"🟢";
     const sb=k.status==="available"&&!k.pending?`<span class="lk-badge av">🟢 Available</span>`:k.pending&&k.status!=="sold"?`<span class="lk-badge pe">🟡 Pending</span>`:k.status==="listed"?`<span class="lk-badge li">In Listing</span>`:`<span class="lk-badge so">🔴 Sold</span>`;
@@ -1622,7 +1658,7 @@ function renderRoll(){
     const comps=(k.comps||[]);
     const compsHtml=comps.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">${comps.slice(0,3).map((c,ci)=>`<span class="comp-chip" title="Comp price">$${esc(c.price)}<button onclick="removeRefComp('${esc(k.id)}',${ci})" style="background:none;border:none;cursor:pointer;padding:0;color:inherit;font-size:11px;opacity:.6;margin-left:2px" title="Remove">×</button></span>`).join("")}</div>`:"";
     return`<div class="lk-card"><div class="lk-brand">${esc(k.brand)}</div><div class="lk-model">${statusDot} ${esc(k.model)} ${dayBadge}${lkPc?` <span style="font-size:10px;color:var(--blue)">📷${lkPc}</span>`:""}</div><div class="lk-steel">${esc(k.steel||"Steel N/A")} · ${esc(k.bladeCondition)}</div><div class="lk-price">$${esc(k.price)}${k.obo?" OBO":""}</div>${phHtml}${compsHtml}${sb}<div class="lk-acts">${k.status!=="sold"?`<button class="btn btn-sm${k.pending?" btn-sec":""}" style="${k.pending?"background:var(--orangebg);color:var(--oranget)":""}" onclick="markInvPending(${realIdx})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button>`:""}${k.status!=="sold"?`<button class="btn btn-sm btn-gn" onclick="markInvSold(${realIdx})">🔴 Sold</button>`:`<button class="btn btn-sm btn-sec" onclick="markInvSold(${realIdx})">Relist</button>`}<button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">Remove</button></div></div>`;
-  }).join("")}</div>`:`<div style="text-align:center;padding:40px 0;color:var(--t4);font-size:13px">No ${fil} knives</div>`;
+  }).join("")}</div>`:`<div style="text-align:center;padding:40px 0;color:var(--t4);font-size:13px">No ${fil==="all"?"":fil+" "}knives</div>`;
   const form=S.kfOpen&&S.kfMode==="locker"?kfFormHtml():"";
   return hdr+`<div class="main">${stats}${filterBar}${form}${cards}</div>`;
 }
