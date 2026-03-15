@@ -383,7 +383,7 @@ async function saveSettings(){
 const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[]});
 const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[]});
 const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:""});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -496,6 +496,28 @@ async function sendMagicLink(email){
 async function signOut(){
   if(_sb)await _sb.auth.signOut();
   currentUser=null;S.authStatus="guest";S.authEmail="";S.showMigrate=false;render();
+}
+async function deleteAccount(){
+  if(!_sb||!currentUser)return;
+  const typed=(document.getElementById("del-confirm-input")?.value||"").trim().toLowerCase();
+  if(typed!==S.authEmail.toLowerCase()){S.err="Email does not match. Please type your exact email address.";render();return;}
+  S.err="";render();
+  try{
+    // Wipe all user data from Supabase
+    await _sb.from("posts").delete().eq("user_id",currentUser.id);
+    await _sb.from("inventory").delete().eq("user_id",currentUser.id);
+    await _sb.from("profiles").delete().eq("id",currentUser.id);
+    // Attempt full auth user deletion via RPC if available (optional DB function)
+    try{await _sb.rpc("delete_user");}catch(e){}
+    // Sign out and wipe local state
+    await _sb.auth.signOut();
+    S.posts=[];S.inventory=[];S.delFlowEmail=null;S.modal=null;
+    try{localStorage.removeItem("ks_v4");localStorage.removeItem("ks_inv_v1");localStorage.removeItem("ks_settings");}catch(e){}
+    currentUser=null;S.authStatus="guest";S.authEmail="";
+    S.err="Your account data has been permanently deleted.";
+  }catch(e){S.err="Deletion failed: "+e.message;}
+  render();
+  setTimeout(()=>{S.err="";render();},5000);
 }
 async function migrateToSupabase(){
   if(!_sb||!currentUser)return;
@@ -959,61 +981,53 @@ function renderModal(type){
 </div>`;
 }
 function renderAuthModal(){
-  let body="";
+  const closeBtn=`<button onclick="S.modal=null;S.err='';render()" style="position:absolute;top:14px;right:14px;background:rgba(0,0,0,.07);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px;color:var(--t3);display:flex;align-items:center;justify-content:center;z-index:2">&times;</button>`;
+  const brand=`<div style="text-align:center;padding:32px 24px 20px">
+    <div style="width:58px;height:58px;border-radius:16px;background:linear-gradient(145deg,#1C1C1E,#3A3A3C);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 6px 20px rgba(0,0,0,.25)"><span style="font-size:19px;font-weight:800;color:#fff;letter-spacing:.02em">KS</span></div>
+    <div style="font-size:21px;font-weight:700;color:var(--t1);letter-spacing:-.03em;line-height:1">r/Knife_Swap</div>
+    <div style="font-size:11px;font-weight:600;color:var(--t4);letter-spacing:.07em;text-transform:uppercase;margin-top:4px">Post Generator + Tracker</div>
+  </div>`;
+  let inner="";
   if(S.showMigrate){
-    body=`<div class="auth-modal-body">
-      <div class="auth-sync-banner">
-        <strong>&#9729; You have local data</strong>
-        You have ${S.posts.length} listing${S.posts.length!==1?"s":""} and ${S.inventory.length} knife${S.inventory.length!==1?"s":""} in The Roll saved locally. Sync them to your account so they're available on any device.
-        <div class="auth-sync-btns">
-          <button class="btn btn-pri btn-sm" onclick="migrateToSupabase()">Sync to Account</button>
-          <button class="btn btn-sec btn-sm" onclick="skipMigrate()">Skip - Load from Cloud</button>
-        </div>
+    inner=`${brand}<div style="padding:0 24px 28px">
+      <div class="auth-sync-banner"><strong>You have local data</strong> — ${S.posts.length} listing${S.posts.length!==1?"s":""} and ${S.inventory.length} knife${S.inventory.length!==1?"s":""} in The Roll. Sync them to your account so they're available on any device.
+        <div class="auth-sync-btns"><button class="btn btn-pri btn-sm" onclick="migrateToSupabase()">Sync to Account</button><button class="btn btn-sec btn-sm" onclick="skipMigrate()">Skip - Load from Cloud</button></div>
       </div>
     </div>`;
   } else if(S.authStatus==="signed_in"){
-    body=`<div class="auth-modal-body">
-      <div class="auth-signed">
+    inner=`<div style="padding:28px 24px 24px">
+      <div class="auth-signed" style="margin-bottom:14px">
         <div class="auth-signed-avatar">${S.authEmail[0].toUpperCase()}</div>
-        <div class="auth-signed-info">
-          <div class="auth-signed-email">${esc(S.authEmail)}</div>
-          <div class="auth-signed-status">&#10003; Syncing to cloud</div>
-        </div>
+        <div class="auth-signed-info"><div class="auth-signed-email">${esc(S.authEmail)}</div><div class="auth-signed-status">✓ Syncing to cloud</div></div>
       </div>
-      <p style="font-size:13px;color:var(--t3);line-height:1.5;margin-bottom:16px">Your listings, inventory, and settings sync automatically across all your devices.</p>
-      <button class="btn btn-sec" style="width:100%" onclick="signOut()">Sign Out</button>
+      <p style="font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:16px">Your listings, inventory, and settings sync automatically across all your devices.</p>
+      <button class="btn btn-sec" style="width:100%;margin-bottom:8px" onclick="signOut()">Sign Out</button>
+      <button class="btn" style="width:100%;background:var(--redbg);color:var(--redt);border:.5px solid rgba(255,59,48,.2);border-radius:980px;font-size:13px;font-weight:600;padding:9px 16px;cursor:pointer;font-family:var(--font)" onclick="S.modal=null;S.view='settings';S.delFlowEmail='';render()">Delete Account...</button>
     </div>`;
   } else if(S.authStatus==="pending"){
-    body=`<div class="auth-modal-body">
-      <div class="auth-pending">
-        <div class="auth-pending-ico">&#9993;</div>
-        <div class="auth-pending-h">Check your inbox!</div>
-        <div class="auth-pending-p">We sent a magic link to <strong>${esc(S.authEmail)}</strong>.<br>Click the link in that email to sign in - no password needed.</div>
-      </div>
-      <button class="btn btn-sec" style="width:100%;margin-top:20px" onclick="S.authStatus='guest';S.authEmail='';render()">Use a different email</button>
+    inner=`${brand}<div style="padding:0 24px 28px;text-align:center">
+      <div style="font-size:46px;margin-bottom:14px">📬</div>
+      <div style="font-size:18px;font-weight:700;color:var(--t1);margin-bottom:8px;letter-spacing:-.02em">Check your inbox</div>
+      <div style="font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:22px">We sent a magic link to <strong style="color:var(--t1)">${esc(S.authEmail)}</strong>.<br>Click the link to sign in — no password needed.</div>
+      <button class="btn btn-sec" style="width:100%" onclick="S.authStatus='guest';S.authEmail='';render()">Use a different email</button>
     </div>`;
   } else {
     const sbLive=!!_sb;
-    body=`<div class="auth-modal-body">
-      <div style="font-size:12px;line-height:1.6;color:var(--redt);background:rgba(255,59,48,.07);border-radius:8px;padding:10px 12px;margin-bottom:14px;border:.5px solid rgba(255,59,48,.2)">⚠️ <strong>Right now your data only exists in this browser.</strong> Clearing your cache, history, or site data will permanently delete everything - posts, inventory, all of it - with no way to recover it.</div>
-      <div style="text-align:center;padding:0 0 14px">
-        <div style="font-size:15px;font-weight:600;color:var(--t1);margin-bottom:4px">Back up your data</div>
-        <p style="font-size:13px;color:var(--t3);line-height:1.5">Enter your email and we'll send a one-click magic link. No password required - your data syncs across all your devices.</p>
-      </div>
-      ${sbLive?`<div class="auth-field">
+    inner=`${brand}<div style="padding:0 24px 28px">
+      <div style="background:rgba(255,59,48,.07);border:.5px solid rgba(255,59,48,.18);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--redt);line-height:1.55;margin-bottom:18px">⚠️ <strong>Your data only exists in this browser.</strong> Clearing your cache will permanently delete all your listings and inventory with no way to recover them.</div>
+      ${sbLive?`<div class="auth-field" style="margin-bottom:14px">
         <label>Email address</label>
-        <input type="email" id="auth-email-input" placeholder="you@example.com" value="${esc(S.authEmail)}" onkeydown="if(event.key==='Enter')sendMagicLink(document.getElementById('auth-email-input').value)"/>
+        <input type="email" id="auth-email-input" placeholder="you@reddit.com" value="${esc(S.authEmail)}" onkeydown="if(event.key==='Enter')sendMagicLink(document.getElementById('auth-email-input').value)"/>
       </div>
-      ${S.err?`<div class="err" style="margin-bottom:10px">${esc(S.err)}</div>`:""}
-      <button class="btn btn-pri" style="width:100%" onclick="S.err='';sendMagicLink(document.getElementById('auth-email-input').value)">Send Magic Link</button>
-      <p style="font-size:11px;color:var(--t4);text-align:center;margin-top:12px;line-height:1.5">No account needed to use the app - sign in only to back up your data.</p>`
-      :`<div style="text-align:center;padding:8px 0 4px;font-size:13px;color:var(--t3)">Cloud sync is not available.<br>Your data saves locally in this browser only.</div>`}
+      ${S.err?`<div class="err" style="margin-bottom:12px">${esc(S.err)}</div>`:""}
+      <button class="btn btn-pri" style="width:100%;padding:11px 16px;font-size:14px" onclick="S.err='';sendMagicLink(document.getElementById('auth-email-input').value)">Send Magic Link</button>
+      <div style="text-align:center;margin-top:13px;font-size:11px;color:var(--t4);line-height:1.7">No password required · No account setup · 100% free<br>Syncs across all your devices automatically</div>`
+      :`<div style="text-align:center;padding:8px 0 4px;font-size:13px;color:var(--t3)">Cloud sync is not available in this deployment.</div>`}
     </div>`;
   }
   return`<div class="modal-overlay" onclick="S.modal=null;S.err='';render()">
-  <div class="modal" onclick="event.stopPropagation()" style="max-width:380px">
-    <div class="modal-hdr"><div class="modal-title">${S.authStatus==="signed_in"?"Your Account":"Cloud Sync"}</div><button class="modal-close" onclick="S.modal=null;S.err='';render()">&#x2715;</button></div>
-    ${body}
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:400px;position:relative">
+    ${closeBtn}${inner}
   </div>
 </div>`;
 }
@@ -1310,6 +1324,26 @@ function renderSettings(){
     <div class="srow"><div><div class="srow-lbl">Photo Hosting</div><div class="srow-sub" style="max-width:340px;line-height:1.5">Photos upload directly to <strong>Catbox.moe</strong> - free, permanent hosting. Files cannot be deleted without a Catbox account. <a href="https://catbox.moe" target="_blank" style="color:var(--blue);text-decoration:none">Create a free Catbox account</a> to manage your files.</div></div></div>
     <div class="srow"><div><div class="srow-lbl">Catbox Userhash</div><div class="srow-sub" style="max-width:260px;line-height:1.5">Link uploads to your Catbox account so you can delete them later. Find your userhash on the <a href="https://catbox.moe/user/manage.php" target="_blank" style="color:var(--blue);text-decoration:none">Catbox account page</a>.</div></div><div class="srow-ctrl"><input type="text" style="max-width:190px;font-size:13px;padding:7px 10px" value="${esc(sv.catboxHash||"")}" placeholder="(optional)" onchange="SETTINGS.catboxHash=this.value.trim();saveSettings()"/></div></div>
   </div>
+  ${S.authStatus==="signed_in"?`
+  <div class="settings-section-lbl" style="color:var(--redt);margin-top:8px">Danger Zone</div>
+  <div class="sgroup" style="border:.5px solid rgba(255,59,48,.25)">
+    <div class="srow" style="flex-direction:column;align-items:flex-start;gap:12px">
+      <div>
+        <div class="srow-lbl" style="color:var(--redt)">Delete Account</div>
+        <div class="srow-sub">Permanently delete your account and all data — listings, inventory, and settings. This cannot be undone.</div>
+      </div>
+      ${S.delFlowEmail!==null?`<div style="width:100%;background:var(--redbg);border:.5px solid rgba(255,59,48,.25);border-radius:10px;padding:14px 14px 12px">
+        <div style="font-size:13px;font-weight:700;color:var(--redt);margin-bottom:4px">This is permanent and cannot be undone.</div>
+        <div style="font-size:12px;color:var(--redt);opacity:.85;margin-bottom:11px;line-height:1.5">Type your email address <strong>${esc(S.authEmail)}</strong> to confirm:</div>
+        <input id="del-confirm-input" type="email" placeholder="${esc(S.authEmail)}" autocomplete="off" style="width:100%;font-size:13px;padding:7px 10px;border:.5px solid rgba(255,59,48,.35);border-radius:8px;background:#fff;color:var(--t1);margin-bottom:10px;outline:none"/>
+        ${S.err?`<div class="err" style="margin-bottom:10px">${esc(S.err)}</div>`:""}
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-rd" style="flex:1;justify-content:center" onclick="deleteAccount()">Permanently Delete</button>
+          <button class="btn btn-sec" onclick="S.delFlowEmail=null;S.err='';render()">Cancel</button>
+        </div>
+      </div>`:`<button class="btn btn-rd btn-sm" onclick="S.delFlowEmail='';S.err='';render()">Delete My Account</button>`}
+    </div>
+  </div>`:""}
 </div></div>`;
 }
 
@@ -1325,7 +1359,7 @@ window.updateModelList=updateModelList;window.saveSettings=saveSettings;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
 window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.removeKnifeUpload=removeKnifeUpload;
 window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;
-window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
+window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
 window.autoPostType=autoPostType;window.buildTitleStr=buildTitleStr;window.doFetchPriceResearch=doFetchPriceResearch;window.clearPriceResearch=clearPriceResearch;
 render();
 (async()=>{
