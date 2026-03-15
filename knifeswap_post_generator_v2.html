@@ -432,6 +432,62 @@ textarea{resize:vertical;line-height:1.55}
   .auth-field input:focus{background:#3A3A3C}
   .auth-sync-banner{background:rgba(10,132,255,.15);border-color:rgba(10,132,255,.35)}
 }
+
+/* ─── MOBILE ─────────────────────────────────────────────── */
+@media(max-width:640px){
+  /* Header — 2-row stacked grid */
+  .hdr{
+    grid-template-columns:1fr auto;
+    grid-template-rows:auto auto;
+    grid-template-areas:"logo right" "tabs tabs";
+    height:auto;
+    padding:0 14px;
+  }
+  .hdr-logo{grid-area:logo;padding:8px 0}
+  .hdr-sub{display:none}
+  .hdr-r{grid-area:right;padding:8px 0;gap:4px}
+  .hdr-tabs{
+    grid-area:tabs;
+    justify-content:flex-start;
+    overflow-x:auto;
+    scrollbar-width:none;
+    padding:0 0 8px;
+    border-top:.5px solid var(--b1);
+    margin-top:2px;
+  }
+  .hdr-tabs::-webkit-scrollbar{display:none}
+  /* Flat scrollable tab pills */
+  .tab-seg{background:none;padding:5px 0 0;border-radius:0;gap:4px}
+  .tab-item{font-size:13px;padding:5px 13px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+  .tab-item.on{background:var(--blue);color:#fff;box-shadow:none}
+  /* Compact icon buttons — hide text labels */
+  .hdr-ico-btn{width:34px;padding:0;justify-content:center;gap:0}
+  .hdr-ico-btn .btn-lbl{display:none}
+  /* Auth button — hide email, show avatar/icon only */
+  .auth-btn .auth-label,.auth-btn .btn-lbl{display:none}
+  .auth-btn{padding:0 9px;gap:0;min-width:34px;justify-content:center}
+  /* Content */
+  .main{padding:12px 12px 60px}
+  .cmp-main{padding:12px 12px 60px}
+  /* Single-column form grids */
+  .fr2,.fr3{grid-template-columns:1fr}
+  /* Stats — 2-up wrap */
+  .stats{flex-wrap:wrap;gap:8px}
+  .stat{flex:1 1 calc(50% - 4px);min-width:0}
+  /* Locker grid tighter */
+  .lk-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
+  /* Post text box — less tall */
+  .post-box{font-size:11px;max-height:220px}
+  /* Knife row — wrap actions onto new line */
+  .krow{flex-wrap:wrap;gap:6px}
+  .krow-info{min-width:0;flex:1 1 calc(100% - 80px)}
+  .krow-price{font-size:13px}
+  /* Settings srow — stack label+control */
+  .srow{flex-direction:column;align-items:flex-start;gap:6px}
+  .srow>*:last-child{width:100%}
+  /* Compose knife actions wrap */
+  .ki-acts{flex-wrap:wrap}
+}
 </style>
 
 <datalist id="dl-brands"></datalist>
@@ -1187,11 +1243,11 @@ function mainHdr(){
     ?`<button class="auth-btn" style="opacity:.55;pointer-events:none;cursor:default" aria-label="Loading"><div class="auth-avatar" style="background:var(--t4);width:18px;height:18px;border-radius:50%;flex-shrink:0"></div><span class="auth-label" style="color:var(--t4)">···</span></button>`
     :S.authStatus==="signed_in"
       ?`<button class="auth-btn signed" onclick="S.modal='auth';render()" title="${esc(S.authEmail)}"><div class="auth-avatar">${S.authEmail[0].toUpperCase()}</div><span class="auth-label">${esc(S.authEmail)}</span></button>`
-      :`<button class="auth-btn" onclick="S.modal='auth';render()">&#9729; Sign In</button>`;
+      :`<button class="auth-btn" onclick="S.modal='auth';render()">&#9729;<span class="btn-lbl"> Sign In</span></button>`;
   return`<div class="hdr">
     <div class="hdr-logo" onclick="S.view='list';render()"><div class="hdr-ico"><span class="hdr-ico-lbl">KS</span></div><div><div class="hdr-title">Knife_Swap</div><div class="hdr-sub">Post Generator &amp; Tracker</div></div></div>
     <div class="hdr-tabs"><div class="tab-seg"><button class="tab-item${S.view==='list'?' on':''}" onclick="S.view='list';render()">Listings</button><button class="tab-item${S.view==='roll'?' on':''}" onclick="S.view='roll';render()">The Roll</button><button class="tab-item${S.view==='sold'?' on':''}" onclick="S.view='sold';render()">Sold</button></div></div>
-    <div class="hdr-r"><button class="hdr-ico-btn" onclick="S.modal='rules';render()"><span class="ico">&#128214;</span>Rules</button><button class="hdr-ico-btn" onclick="S.view='settings';render()"><span class="ico">&#9881;</span>Settings</button>${authBtn}</div>
+    <div class="hdr-r"><button class="hdr-ico-btn" onclick="S.modal='rules';render()"><span class="ico">&#128214;</span><span class="btn-lbl">Rules</span></button><button class="hdr-ico-btn" onclick="S.view='settings';render()"><span class="ico">&#9881;</span><span class="btn-lbl">Settings</span></button>${authBtn}</div>
   </div>`;
 }
 function kfFormHtml(){
