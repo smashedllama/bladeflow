@@ -797,11 +797,15 @@ function buildTitleStr(knives,postType,maxLen){
 // Price research via Reddit public JSON (free, no auth)
 async function doFetchPriceResearch(){
   const f=S.kf;
-  const q=[f.brand,f.model].filter(Boolean).join(" ").trim();
-  if(!q){S.priceResearch={status:"idle",results:[],query:""};render();return;}
-  // Steel-specific query for a more targeted first pass
-  const qSteel=f.steel?[f.brand,f.model,f.steel].filter(Boolean).join(" ").trim():null;
-  S.priceResearch={status:"loading",results:[],query:qSteel||q};render();
+  const qBase=[f.brand,f.model].filter(Boolean).join(" ").trim();
+  if(!qBase){S.priceResearch={status:"idle",results:[],query:""};render();return;}
+  // Pick the most distinctive word from the model name (first word >3 chars) for quoted search
+  // Quoting forces Reddit to require that word, cutting out irrelevant "any Spyderco" results
+  const anchorWord=(f.model||"").split(/\s+/).find(w=>w.length>3)||f.model||"";
+  const qSearchBase=anchorWord?(f.brand?`${f.brand} "${anchorWord}"`:`"${anchorWord}"`):qBase;
+  const qSearch=f.steel?`${qSearchBase} ${f.steel}`:qSearchBase;
+  const qSearchBroad=qSearchBase; // without steel, still uses quoted anchor
+  S.priceResearch={status:"loading",results:[],query:qBase};render();
 
   const fetchQ=async(searchQ,limit)=>{
     const url="https://www.reddit.com/r/Knife_Swap/search.json?q="+encodeURIComponent(searchQ)+"&sort=new&restrict_sr=on&limit="+limit;
@@ -816,41 +820,43 @@ async function doFetchPriceResearch(){
     const isSold=tl.includes("[sold]")||tl.includes("(sold)")||/\bsold\b/.test(flair.toLowerCase());
     const isWTT=flair.includes("WTT")||(tl.includes("[wtt]")&&!tl.includes("[wts]"));
     const fullText=d.title+" "+(d.selftext||"");
+    const fullLow=fullText.toLowerCase();
+    // Flag posts that explicitly mention the model — client-side relevance gate
+    const mentionsModel=anchorWord?fullLow.includes(anchorWord.toLowerCase()):true;
     // Flag posts that explicitly mention the exact steel variant
-    const steelMatch=f.steel?fullText.toLowerCase().includes(f.steel.toLowerCase()):false;
-    const prices=extractKnifePrices(fullText,q);
+    const steelMatch=f.steel?fullLow.includes(f.steel.toLowerCase()):false;
+    const prices=extractKnifePrices(fullText,qBase);
     return{title:d.title,url:"https://reddit.com"+d.permalink,author:d.author,
       date:new Date(d.created_utc*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),
-      prices,isSold,isWTT,flair,steelMatch};
+      prices,isSold,isWTT,flair,steelMatch,mentionsModel};
   };
 
   try{
     let posts=[];
     let searchedWithSteel=false;
-    if(qSteel){
-      // First pass: targeted steel+model search
-      const steelChildren=await fetchQ(qSteel,15);
-      const steelPosts=steelChildren.map(parsePost);
+    if(f.steel){
+      // First pass: quoted anchor + steel — most precise
+      const steelChildren=await fetchQ(qSearch,15);
+      const steelPosts=steelChildren.map(parsePost).filter(p=>p.mentionsModel);
       if(steelPosts.length>=3){
-        // Enough focused results — stay narrow
         posts=steelPosts;
         searchedWithSteel=true;
       }else{
-        // Supplement with broad brand+model search — steel matches bubble to top
-        const broadChildren=await fetchQ(q,15);
-        const broadPosts=broadChildren.map(parsePost);
+        // Supplement with quoted-anchor broad search — steel matches bubble to top
+        const broadChildren=await fetchQ(qSearchBroad,15);
+        const broadPosts=broadChildren.map(parsePost).filter(p=>p.mentionsModel);
         const seen=new Set(steelPosts.map(p=>p.url));
         const broadOnly=broadPosts.filter(p=>!seen.has(p.url));
         broadOnly.sort((a,b)=>Number(b.steelMatch)-Number(a.steelMatch));
         posts=[...steelPosts,...broadOnly];
       }
     }else{
-      posts=(await fetchQ(q,15)).map(parsePost);
+      posts=(await fetchQ(qSearchBroad,15)).map(parsePost).filter(p=>p.mentionsModel);
     }
-    S.priceResearch={status:posts.length?"done":"empty",results:posts,query:q,querySteel:qSteel,searchedWithSteel};
+    S.priceResearch={status:posts.length?"done":"empty",results:posts,query:qBase,querySteel:f.steel?qSearch:null,searchedWithSteel};
   }catch(e){
-    S.priceResearch={status:"fallback",results:[],query:qSteel||q};
-    window.open("https://www.reddit.com/r/Knife_Swap/search/?q="+encodeURIComponent(qSteel||q)+"&sort=new&restrict_sr=1","_blank","noopener");
+    S.priceResearch={status:"fallback",results:[],query:qBase};
+    window.open("https://www.reddit.com/r/Knife_Swap/search/?q="+encodeURIComponent(qSearch)+"&sort=new&restrict_sr=1","_blank","noopener");
   }
   render();
 }
