@@ -729,7 +729,7 @@ async function saveSettings(){
 const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[]});
 const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[]});
 const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",tradeInterests:SETTINGS.tradeInterests||""});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about"};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug"};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -1628,6 +1628,7 @@ function renderModal(type){
   if(type==="tutorial")return renderTutorialModal();
   if(type==="about")return renderAboutModal();
   if(type==="cloudinary")return renderCloudinaryModal();
+  if(type==="feedback")return renderFeedbackModal();
   if(type!=="rules")return"";
   const rules=[
     {h:"Timestamp Required",b:"Every post must include a photo of <strong>all items for sale</strong> with a handwritten note showing your Reddit username and the full date (month, day, year). No timestamp = post removed."},
@@ -1764,6 +1765,67 @@ function renderCloudinaryModal(){
   </div>
 </div>`;
 }
+function renderFeedbackModal(){
+  const isBug=S.feedbackTab==="bug";
+  const tabBtn=(id,label)=>`<button onclick="S.feedbackTab='${id}';render()" style="flex:1;padding:9px 0;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font);border-radius:8px;transition:all var(--tr);${S.feedbackTab===id?"background:var(--blue);color:#fff":"background:transparent;color:var(--t2)"}">${label}</button>`;
+  const bugFields=`
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">What happened?</label>
+      <textarea id="fb-what" rows="3" placeholder="Describe the bug…" style="width:100%;box-sizing:border-box;font-family:var(--font);font-size:13px;padding:9px 11px;border-radius:10px;border:.5px solid var(--b2);background:var(--bg);color:var(--t1);resize:vertical"></textarea>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">Steps to reproduce <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
+      <textarea id="fb-steps" rows="3" placeholder="1. Go to…&#10;2. Click…&#10;3. See error" style="width:100%;box-sizing:border-box;font-family:var(--font);font-size:13px;padding:9px 11px;border-radius:10px;border:.5px solid var(--b2);background:var(--bg);color:var(--t1);resize:vertical"></textarea>
+    </div>
+    <div style="margin-bottom:4px">
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">Device / browser <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
+      <input id="fb-device" type="text" placeholder="e.g. iPhone 15, Safari" style="width:100%;box-sizing:border-box;font-family:var(--font);font-size:13px;padding:9px 11px;border-radius:10px;border:.5px solid var(--b2);background:var(--bg);color:var(--t1)"/>
+    </div>`;
+  const featureFields=`
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">What would you like to see?</label>
+      <textarea id="fb-idea" rows="3" placeholder="Describe the feature…" style="width:100%;box-sizing:border-box;font-family:var(--font);font-size:13px;padding:9px 11px;border-radius:10px;border:.5px solid var(--b2);background:var(--bg);color:var(--t1);resize:vertical"></textarea>
+    </div>
+    <div style="margin-bottom:4px">
+      <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">Why would it be useful? <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
+      <textarea id="fb-why" rows="3" placeholder="How does this help your workflow?" style="width:100%;box-sizing:border-box;font-family:var(--font);font-size:13px;padding:9px 11px;border-radius:10px;border:.5px solid var(--b2);background:var(--bg);color:var(--t1);resize:vertical"></textarea>
+    </div>`;
+  return`<div class="modal-overlay" onclick="S.modal=null;render()">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:460px">
+    <div class="modal-hdr">
+      <div class="modal-title">${isBug?"🐛 Report a Bug":"💡 Request a Feature"}</div>
+      <button class="modal-close" onclick="S.modal=null;render()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:18px">
+        ${tabBtn("bug","🐛 Bug Report")}
+        ${tabBtn("feature","💡 Feature Request")}
+      </div>
+      ${isBug?bugFields:featureFields}
+      <div style="display:flex;gap:8px;margin-top:18px">
+        <button class="btn btn-sec btn-sm" style="flex:1" onclick="S.modal=null;render()">Cancel</button>
+        <button class="btn btn-pri" style="flex:2;justify-content:center" onclick="
+          var subj=encodeURIComponent('Knife Swap Post Tool \u2013 '+(S.feedbackTab==='bug'?'Bug Report':'Feature Request'));
+          var body='';
+          if(S.feedbackTab==='bug'){
+            var what=(document.getElementById('fb-what')||{}).value||'';
+            var steps=(document.getElementById('fb-steps')||{}).value||'';
+            var device=(document.getElementById('fb-device')||{}).value||'';
+            body='What happened:\n'+(what||'(not provided)')+'\n\nSteps to reproduce:\n'+(steps||'(not provided)')+'\n\nDevice / browser:\n'+(device||'(not provided)');
+          }else{
+            var idea=(document.getElementById('fb-idea')||{}).value||'';
+            var why=(document.getElementById('fb-why')||{}).value||'';
+            body='Feature idea:\n'+(idea||'(not provided)')+'\n\nWhy it would be useful:\n'+(why||'(not provided)');
+          }
+          window.open('mailto:help@altflow.dev?subject='+subj+'&body='+encodeURIComponent(body));
+        ">📬 Open in Mail App</button>
+      </div>
+      <p style="font-size:11px;color:var(--t3);text-align:center;margin-top:12px;line-height:1.5">Opens your default mail app with the form pre-filled. Your email address is never stored by this tool.</p>
+    </div>
+  </div>
+</div>`;
+}
+
 function renderCloudinaryStatus(){
   const el=document.getElementById('cl-status');
   if(!el)return;
@@ -2302,7 +2364,7 @@ function renderSettings(){
   <div class="settings-section-lbl">About</div>
   <div class="sgroup">
     <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.1 - ${BRANDS.length} brands, ${STEELS.length} steels</div></div>
-    <div class="srow"><div class="srow-lbl">Help</div><div class="srow-ctrl"><button class="btn btn-am btn-sm" onclick="S.modal='tutorial';S.tutStep=0;render()">📖 View Tutorial</button><button class="btn btn-sec btn-sm" onclick="S.modal='about';S.aboutTab='about';render()">ℹ️ About &amp; FAQ</button></div></div>
+    <div class="srow"><div class="srow-lbl">Help</div><div class="srow-ctrl"><button class="btn btn-am btn-sm" onclick="S.modal='tutorial';S.tutStep=0;render()">📖 View Tutorial</button><button class="btn btn-sec btn-sm" onclick="S.modal='about';S.aboutTab='about';render()">ℹ️ About &amp; FAQ</button><button class="btn btn-sec btn-sm" onclick="S.modal='feedback';S.feedbackTab='bug';render()">✉️ Feedback</button></div></div>
     <div class="srow"><div><div class="srow-lbl">Built by</div><div class="srow-sub">u/smashedllama2 — free tool for the r/Knife_Swap community</div></div><div class="srow-ctrl"><a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#FFDD00;color:#000;font-size:12px;font-weight:700;padding:7px 13px;border-radius:8px;text-decoration:none;white-space:nowrap">☕ Buy me a coffee</a></div></div>
     <div class="srow" style="flex-wrap:wrap;gap:10px"><div style="flex:1;min-width:200px"><div class="srow-lbl">Photo Hosting</div><div class="srow-sub">Drag-and-drop uploads via your own free <a href="https://cloudinary.com" target="_blank" style="color:var(--blue);text-decoration:none">Cloudinary</a> account. Photos go directly from your browser to your account — never through our servers. Stored with <strong>AES-256</strong> at rest, <strong>TLS 1.2+</strong> in transit.</div></div><div class="srow-ctrl" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${sv.cloudinaryCloud&&sv.cloudinaryPreset?`<span style="font-size:11px;font-weight:600;color:var(--greent);background:var(--greenbg);padding:4px 9px;border-radius:20px">✅ Connected</span>`:`<span style="font-size:11px;font-weight:600;color:var(--oranget);background:var(--orangebg);padding:4px 9px;border-radius:20px">Setup needed</span>`}<button class="btn btn-sec btn-sm" onclick="S.modal='cloudinary';render()">📖 Setup Guide</button></div></div>
     <div class="srow"><div><div class="srow-lbl">Cloud Name</div><div class="srow-sub">Your Cloudinary cloud name (dashboard, top-left).</div></div><div class="srow-ctrl"><input type="text" style="width:170px;min-width:170px;font-size:13px;padding:7px 10px" value="${esc(sv.cloudinaryCloud||"")}" placeholder="e.g. dxyz12abc" onchange="SETTINGS.cloudinaryCloud=this.value.trim();saveSettings()"/></div></div>
