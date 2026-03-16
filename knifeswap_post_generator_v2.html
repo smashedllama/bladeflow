@@ -666,7 +666,7 @@ function tm(a,v){return a.includes(v)?a.filter(x=>x!==v):[...a,v]}
 function tmx(a,v,ex){if(v===ex)return[ex];const r=a.filter(x=>x!==ex);return r.includes(v)?r.filter(x=>x!==v):[...r,v]}
 
 // ─── SETTINGS ─────────────────────────────────────────────────
-const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,catboxHash:"",imgbbKey:"",postHeader:"",tradeInterests:"",rollAnim:false});
+const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,catboxHash:"",imgbbKey:"",postHeader:"",tradeInterests:"",rollAnim:false,cloudinaryCloud:"dsujlxujp",cloudinaryPreset:"KnifeSwap"});
 let SETTINGS=DS();
 async function loadSettings(){try{const r=await window.storage.get("ks_settings");if(r&&r.value)SETTINGS={...DS(),...JSON.parse(r.value)};}catch(e){}}
 async function saveSettings(){
@@ -1166,16 +1166,18 @@ function handleDragOver(e){e.preventDefault();document.querySelector(".up-zone")
 function handleDragLeave(){document.querySelector(".up-zone")?.classList.remove("drag");}
 
 async function uploadToHost(file){
-  if(!SETTINGS.imgbbKey){
-    throw new Error("No API key — add your free imgbb key in Settings → Photo Hosting");
-  }
+  const cloud=(SETTINGS.cloudinaryCloud||"").trim();
+  const preset=(SETTINGS.cloudinaryPreset||"").trim();
+  if(!cloud)throw new Error("No Cloudinary cloud name — add it in Settings → Photo Hosting");
+  if(!preset)throw new Error("No Cloudinary upload preset — add it in Settings → Photo Hosting");
   const fd=new FormData();
-  fd.append("image",file);
-  const res=await fetch(`https://api.imgbb.com/1/upload?key=${encodeURIComponent(SETTINGS.imgbbKey)}`,{method:"POST",body:fd});
-  if(!res.ok)throw new Error("imgbb server error "+res.status);
+  fd.append("file",file);
+  fd.append("upload_preset",preset);
+  const res=await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloud)}/image/upload`,{method:"POST",body:fd});
+  if(!res.ok)throw new Error("Cloudinary server error "+res.status);
   const data=await res.json();
-  if(!data.success)throw new Error(data.error?.message||"imgbb upload failed — check API key in Settings");
-  return data.data.url;
+  if(data.error)throw new Error(data.error.message||"Cloudinary upload failed");
+  return data.secure_url;
 }
 
 async function uploadFile(file){
@@ -1975,9 +1977,9 @@ function renderSettings(){
   <div class="settings-section-lbl">About</div>
   <div class="sgroup">
     <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.1 - ${BRANDS.length} brands, ${STEELS.length} steels</div></div>
-    <div class="srow"><div><div class="srow-lbl">Photo Hosting</div><div class="srow-sub" style="max-width:340px;line-height:1.5">Photos upload to <strong>imgbb.com</strong> — free, permanent image hosting. <a href="https://api.imgbb.com/" target="_blank" style="color:var(--blue);text-decoration:none">Create a free imgbb account</a> to get your API key (takes 30 seconds).</div></div></div>
-    <div class="srow"><div><div class="srow-lbl">imgbb API Key <span style="color:var(--redt);font-size:11px;font-weight:600">Required for uploads</span></div><div class="srow-sub" style="max-width:260px;line-height:1.5">Get your free key at <a href="https://api.imgbb.com/" target="_blank" style="color:var(--blue);text-decoration:none">api.imgbb.com</a> — sign up, then copy the API key shown on the page.</div></div><div class="srow-ctrl"><input type="text" style="max-width:190px;font-size:13px;padding:7px 10px" value="${esc(sv.imgbbKey||"")}" placeholder="Paste API key here" onchange="SETTINGS.imgbbKey=this.value.trim();saveSettings()"/></div></div>
-    <div class="srow"><div><div class="srow-lbl">Catbox Userhash</div><div class="srow-sub" style="max-width:260px;line-height:1.5">Optional — for the <strong>Create Album</strong> feature. Find your userhash on the <a href="https://catbox.moe/user/manage.php" target="_blank" style="color:var(--blue);text-decoration:none">Catbox account page</a>.</div></div><div class="srow-ctrl"><input type="text" style="max-width:190px;font-size:13px;padding:7px 10px" value="${esc(sv.catboxHash||"")}" placeholder="(optional)" onchange="SETTINGS.catboxHash=this.value.trim();saveSettings()"/></div></div>
+    <div class="srow"><div><div class="srow-lbl">Photo Hosting</div><div class="srow-sub">Photos upload instantly to Cloudinary — drag, drop, done. Works out of the box with no setup required.</div></div></div>
+    <div class="srow"><div><div class="srow-lbl">Cloud Name</div><div class="srow-sub">Your Cloudinary cloud name from the dashboard.</div></div><div class="srow-ctrl"><input class="inp" type="text" value="${esc(sv.cloudinaryCloud||"")}" placeholder="e.g. dsujlxujp" onchange="SETTINGS.cloudinaryCloud=this.value.trim();saveSettings()"/></div></div>
+    <div class="srow"><div><div class="srow-lbl">Upload Preset</div><div class="srow-sub">Must be set to <strong>Unsigned</strong> in Cloudinary settings.</div></div><div class="srow-ctrl"><input class="inp" type="text" value="${esc(sv.cloudinaryPreset||"")}" placeholder="e.g. KnifeSwap" onchange="SETTINGS.cloudinaryPreset=this.value.trim();saveSettings()"/></div></div>
   </div>
   ${S.authStatus==="signed_in"?`
   <div class="settings-section-lbl" style="color:var(--redt);margin-top:8px">Danger Zone</div>
