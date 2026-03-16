@@ -145,6 +145,13 @@ textarea{resize:vertical;line-height:1.55}
 .post-box.preview .md-table th{text-align:left;padding:5px 10px;border-bottom:1.5px solid var(--b1);font-weight:600;color:var(--t2)}
 .post-box.preview .md-table td{padding:5px 10px;border-bottom:.5px solid var(--b2)}
 .post-box.preview del{color:var(--t3)}
+.ts-gate{background:var(--orangebg);border:.5px solid rgba(255,149,0,.25);border-radius:var(--rs);padding:18px 20px;margin-bottom:12px;text-align:center}
+.ts-gate-icon{font-size:28px;margin-bottom:6px}
+.ts-gate-title{font-size:13px;font-weight:700;color:var(--oranget);margin-bottom:8px}
+.ts-gate-body{font-size:12.5px;color:var(--t2);line-height:1.6;margin-bottom:8px}
+.ts-gate-stamp{display:inline-block;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--t1);background:var(--card);border:.5px solid var(--b1);border-radius:6px;padding:4px 12px;margin-top:5px;letter-spacing:.01em}
+.ts-gate-hint{font-size:11px;color:var(--t3)}
+button:disabled{opacity:.35;cursor:not-allowed}
 .pc-meta{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap}
 .pmeta{font-size:11px;font-weight:500;color:var(--t4)}
 .pmeta.ok{color:var(--greent)}
@@ -1796,8 +1803,16 @@ function renderList(){
         </div>
       </div>`:""
       ;
-      const isPrev=s.mdPreview.has(p.id);
-      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?" ⚠️":charLen>30000?" ⚡":""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No photos"}</span><span class="pmeta"> · ${TMPL[p.variant||0]}</span></div>${isPrev?`<div class="post-box preview">${renderMd(p.postText||"")}</div>`:`<div class="post-box">${esc(p.postText||"")}</div>`}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="copyPost('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""}>${s.copied===p.id?"Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openRedditPost('${p.id}')">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[((p.variant||0)+1)%TMPL.length]}</button><button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')" title="Toggle rendered markdown preview">${isPrev?"&lt;/&gt; Raw":"👁 Preview"}</button><button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${checkPostRules(p.id).map(c=>`<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}</div>`;
+      const isRaw=s.mdPreview.has(p.id);
+      const today=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+      const tsUser=SETTINGS.username||"yourusername";
+      const tsLabel=`u/${tsUser} - ${today}`;
+      const postBox=!hasPhotos
+        ?`<div class="ts-gate"><div class="ts-gate-icon">📸</div><div class="ts-gate-title">Timestamp required before posting</div><div class="ts-gate-body">Take a photo of all your knives with a handwritten note that reads:<br><span class="ts-gate-stamp">${esc(tsLabel)}</span></div><div class="ts-gate-hint">Upload or link it in the Photos &amp; Timestamp section when you scroll down</div></div>`
+        :isRaw
+          ?`<div class="post-box">${esc(p.postText||"")}</div>`
+          :`<div class="post-box preview">${renderMd(p.postText||"")}</div>`;
+      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?" ⚠️":charLen>30000?" ⚡":""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No timestamp"}</span><span class="pmeta"> · ${TMPL[p.variant||0]}</span></div>${postBox}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="copyPost('${p.id}')"${!hasPhotos?" disabled title='Add a timestamp photo first'":s.copied===p.id?` style="background:var(--green)"`:""}>${s.copied===p.id?"Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openRedditPost('${p.id}')"${!hasPhotos?" disabled title='Add a timestamp photo first'":""}>Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[((p.variant||0)+1)%TMPL.length]}</button>${hasPhotos?`<button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')">${isRaw?"👁 Preview":"&lt;/&gt; Raw"}</button>`:""}<button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${checkPostRules(p.id).map(c=>`<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}</div>`;
     }
     const da=daysAgo(p.createdAt);
     const ageBadge=!allSold?(da>=7?`<span class="repost-day-badge rdy">Repost ready</span>`:`<span class="repost-day-badge wait">${da}d old</span>`):"";
