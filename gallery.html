@@ -230,25 +230,13 @@ body{
 
 /* ── FOOTER ── */
 .footer{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:8px 14px;
+  display:flex;align-items:center;justify-content:center;
+  padding:7px 14px;
   background:var(--surf);border-top:.5px solid var(--b1);
-  flex-shrink:0;gap:8px;
-  flex-wrap:nowrap;
+  flex-shrink:0;
 }
-.footer-btns{display:flex;gap:6px;flex-shrink:0}
-.footer-btn{
-  display:flex;align-items:center;gap:5px;
-  background:var(--surf2);border:.5px solid var(--b1);
-  border-radius:8px;color:var(--t2);
-  font-size:12px;font-weight:500;font-family:var(--font);
-  padding:7px 12px;cursor:pointer;
-  transition:background .15s,color .15s;white-space:nowrap;
-}
-.footer-btn:hover{background:var(--b1);color:var(--t1)}
-.footer-btn:active{background:var(--b2)}
-.footer-btn .ico{font-size:14px}
-.made-with{font-size:11px;color:var(--t3);white-space:nowrap;flex-shrink:0;overflow:hidden;text-overflow:ellipsis}
+.footer-btns{display:none}
+.made-with{font-size:11px;color:var(--t3);white-space:nowrap;text-align:center}
 .made-with a{color:var(--t2);text-decoration:none;font-weight:500}
 .made-with a:hover{color:var(--acc)}
 
@@ -283,10 +271,6 @@ body{
   .hdr-divider{display:none}
   .made-with{display:none}
   .nav-arrow{opacity:.7}
-}
-@media(max-width:400px){
-  .footer-btn span:not(.ico){display:none}
-  .footer-btn{padding:7px 10px}
 }
 </style>
 </head>
@@ -339,14 +323,7 @@ body{
 
 <!-- FOOTER -->
 <footer class="footer">
-  <div class="footer-btns">
-    <button class="footer-btn" onclick="copyLink()" id="btn-copy">
-      <span class="ico">🔗</span><span>Copy link</span>
-    </button>
-    <button class="footer-btn" id="btn-fs" onclick="toggleFullscreen()">
-      <span class="ico" id="fs-icon">⛶</span><span id="fs-label">Fullscreen</span>
-    </button>
-  </div>
+  <div class="footer-btns"></div>
   <div class="made-with">Built by <a href="https://www.reddit.com/user/smashedllama2" target="_blank" rel="noopener">u/smashedllama2</a> · <a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener">☕ Support</a> · <a href="https://smashedllama.github.io/knife-swap-tool/" target="_blank">KnifeSwap Tool</a></div>
 </footer>
 
@@ -420,7 +397,6 @@ function init() {
     if (e.key === '[') selectSection(Math.max(0, curSection - 1));
     if (e.key === ']') selectSection(Math.min(sections.length - 1, curSection + 1));
   });
-  document.addEventListener('fullscreenchange', updateFsBtn);
 }
 
 // ─── NAV ────────────────────────────────────────────────────────
@@ -611,27 +587,7 @@ function onDragStart(e) {
 }
 
 // ─── ACTIONS ────────────────────────────────────────────────────
-function copyLink() {
-  navigator.clipboard.writeText(location.href).then(() => {
-    toast('Gallery link copied!');
-  }).catch(() => {
-    toast('Copy failed — try manually');
-  });
-}
-
-function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen?.();
-  } else {
-    document.exitFullscreen?.();
-  }
-}
-
-function updateFsBtn() {
-  const on = !!document.fullscreenElement;
-  document.getElementById('fs-icon').textContent = on ? '⊡' : '⛶';
-  document.getElementById('fs-label').textContent = on ? 'Exit' : 'Fullscreen';
-}
+// (No footer buttons — navigation is via sidebar/tabs and swipe)
 
 // ─── TOAST ──────────────────────────────────────────────────────
 let toastTimer;

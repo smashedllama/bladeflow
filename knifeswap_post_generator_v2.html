@@ -1140,6 +1140,14 @@ function buildPostGalleryUrl(post, knifeIdx){
   }catch(e){return null;}
 }
 
+// Returns the [TIMESTAMP](url) markdown link (or placeholder if no photos yet)
+function buildTimestampLine(post){
+  const ts=(post.photos||[]).filter(Boolean);
+  if(!ts.length)return"[ paste your timestamp photo link here ]";
+  const url=buildPostGalleryUrl(post,undefined)||ts[0];
+  return`[TIMESTAMP](${url})`;
+}
+
 function buildPost(post,v){
   v=v!==undefined?v:(post.variant||0);
   const ts=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
@@ -1159,9 +1167,7 @@ function buildPost(post,v){
 
   if(v===0){
     // DETAILED - full structured format with clear sections
-    const knifePhotos=post.knives.flatMap(k=>(k.photos||[]).filter(Boolean));
-    const combinedPhotos=[...allPhotos,...knifePhotos];
-    const photoBlock=combinedPhotos.length?combinedPhotos.join("\n"):"[ paste your timestamp photo link here ]";
+    const photoBlock=buildTimestampLine(post);
     const headerBlock=ph?`\n\n${ph}`:"";
     const blocks=post.knives.map((k,i)=>{
       const iss=k.issues.filter(x=>x!=="None").join(", ")||"None";
@@ -1187,14 +1193,12 @@ function buildPost(post,v){
     const tradeFooter=isWTT?(ti?`\n**Trade Interests:** ${ti}`:""):"\n**No Trades**";
     const notesLine=post.notes?`\n**Notes:** ${post.notes}`:"";
     const sig=un?`*${un} - ${ts}*`:`*${ts}*`;
-    return`${type} ${title}${rp}${headerBlock}\n\n**Timestamp + Photos:**\n${photoBlock}\n\n---\n\n${blocks}${bundleBlock}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** Included (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
+    return`${type} ${title}${rp}${headerBlock}\n\n**Timestamp:** ${photoBlock}\n\n---\n\n${blocks}${bundleBlock}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** Included (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
   }
 
   if(v===1){
     // COMPACT - one block per knife, key details only
-    const knifePhotos1=post.knives.flatMap(k=>(k.photos||[]).filter(Boolean));
-    const combinedPhotos1=[...allPhotos,...knifePhotos1];
-    const photoLine=combinedPhotos1.length?combinedPhotos1.join("\n"):"[ paste your timestamp photo link here ]";
+    const photoLine=buildTimestampLine(post);
     const headerBlock=ph?`\n\n${ph}`:"";
     const lines=post.knives.map((k,i)=>{
       const iss=k.issues.filter(x=>x!=="None").join(", ")||"None";
@@ -1218,9 +1222,7 @@ function buildPost(post,v){
 
   // TABLE (v=3) - Reddit markdown table
   if(v===3){
-    const knifePhotos3=post.knives.flatMap(k=>(k.photos||[]).filter(Boolean));
-    const combinedPhotos3=[...allPhotos,...knifePhotos3];
-    const photoBlock=combinedPhotos3.length?combinedPhotos3.join("\n"):"[ paste your timestamp photo link here ]";
+    const photoBlock=buildTimestampLine(post);
     const hdrBlock=ph?`\n\n${ph}`:"";
     const noshipLine=noShipList.length?`\n**Will NOT ship to:** ${noShipList.join(", ")}`:"";
     const tradeFooter=isWTT?(ti?`\n**Trade Interests:** ${ti}`:""):"\n**No Trades**";
@@ -1251,13 +1253,11 @@ function buildPost(post,v){
       if(k.notes)parts.push(k.notes);
       return`| ${nameCell} | ${priceCell} | ${parts.join(". ")}${parts.length?".":""} |`;
     }).join("\n");
-    return`${type} ${title}${rp}${hdrBlock}\n\n**Timestamp + Photos:**\n${photoBlock}\n\n---\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${bundleBlock}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** Included (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
+    return`${type} ${title}${rp}${hdrBlock}\n\n**Timestamp:** ${photoBlock}\n\n---\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${bundleBlock}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** Included (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
   }
 
   // MINIMAL (v=2) - one line per knife
-  const knifePhotos2=post.knives.flatMap(k=>(k.photos||[]).filter(Boolean));
-  const combinedPhotos2=[...allPhotos,...knifePhotos2];
-  const photoLine=combinedPhotos2.length?combinedPhotos2.join("\n"):"[ paste your timestamp photo link here ]";
+  const photoLine=buildTimestampLine(post);
   const headerBlock=ph?`\n${ph}`:"";
   const bundleLine=bundle?`\nBundle: $${post.bundlePrice} for all`:"";
   const noshipLine=noShipList.length?` | No ship: ${noShipList.join(", ")}`:"";
