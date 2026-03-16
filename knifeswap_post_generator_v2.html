@@ -69,6 +69,8 @@ body,html{background:var(--bg)}
 .btn-rd:hover{background:#FFE0DE}
 .btn-pu{background:var(--purplebg);color:var(--purplet)}
 .btn-pu:hover{background:#EBD9FF}
+.btn-am{background:var(--orangebg);color:var(--oranget)}
+.btn-am:hover{background:#FFE5B4}
 .btn-sm{padding:5px 13px;font-size:11.5px}
 .btn-xs{padding:4px 10px;font-size:11px}
 .btn-hdr{background:var(--blue);color:#fff;border:none;border-radius:980px;padding:7px 15px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all var(--tr);display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,113,227,.28)}
@@ -112,15 +114,16 @@ textarea{resize:vertical;line-height:1.55}
 
 /* STATS */
 .stats{display:flex;gap:10px;margin-bottom:20px}
-.stat{flex:1;background:var(--card);border-radius:var(--r);padding:14px 15px;border:.5px solid var(--b1);box-shadow:var(--sh)}
+.stat{flex:1;background:var(--card);border-radius:var(--r);padding:15px 17px;border:.5px solid var(--b1);box-shadow:var(--sh)}
 .stat-n{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .stat-n.blue{color:var(--blue)}.stat-n.green{color:var(--green)}.stat-n.orange{color:var(--orange)}.stat-n.purple{color:var(--purple)}
 .stat-l{font-size:10px;font-weight:600;color:var(--t3);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+.stats-acts{display:flex;gap:7px;align-items:center;flex-shrink:0;margin-left:auto;padding-left:4px}
 
 /* POST CARDS */
 .pc{background:var(--card);border:.5px solid var(--b1);border-radius:var(--r);margin-bottom:10px;box-shadow:var(--sh);overflow:hidden;transition:box-shadow var(--tr)}
 .pc:hover{box-shadow:var(--shm)}
-.pc-hdr{padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.pc-hdr{padding:15px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
 .pc-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.05em;flex-shrink:0}
 .pc-badge.wts{background:var(--orangebg);color:var(--oranget);border:.5px solid rgba(255,149,0,.25)}
 .pc-badge.wtt{background:var(--bluebg);color:var(--bluet);border:.5px solid rgba(0,113,227,.2)}
@@ -136,6 +139,19 @@ textarea{resize:vertical;line-height:1.55}
 .pmeta{font-size:11px;font-weight:500;color:var(--t4)}
 .pmeta.ok{color:var(--greent)}
 .krows-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:8px;padding-top:14px;border-top:.5px solid var(--b1)}
+.pc-acts{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.pc-acts .btn-rd{margin-left:auto}
+.rule-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.rule-tag{font-size:10.5px;font-weight:500;padding:3px 10px;border-radius:20px}
+.rule-tag.ok{background:var(--greenbg);color:var(--greent)}
+.rule-tag.fail{background:var(--redbg);color:var(--redt)}
+.pending-tag{font-size:10px;font-weight:700;background:var(--orangebg);color:var(--oranget);border-radius:6px;padding:1px 6px;vertical-align:middle}
+.photo-tag{font-size:10px;font-weight:500;color:var(--blue);background:rgba(0,122,255,.1);border-radius:6px;padding:1px 6px;vertical-align:middle}
+.repost-btns{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.section-hdr{display:flex;align-items:center;gap:8px;padding:0 2px;margin:24px 0 10px}
+.section-hdr-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t4)}
+.section-hdr-count{font-size:11px;color:var(--t4);background:rgba(0,0,0,.07);padding:1px 8px;border-radius:10px;font-weight:600}
+.section-hdr-sub{font-size:11px;color:var(--t3)}
 .krow{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:var(--rs);background:var(--bg);border:.5px solid var(--b1);margin-bottom:7px}
 .krow.sold{background:var(--greenbg);border-color:rgba(52,199,89,.2)}
 .krow.pending-row{background:var(--orangebg);border-color:rgba(255,149,0,.25)}
@@ -160,7 +176,7 @@ textarea{resize:vertical;line-height:1.55}
 
 /* LOCKER */
 .lk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
-.lk-card{background:var(--card);border:.5px solid var(--b1);border-radius:var(--r);padding:15px;box-shadow:var(--sh);transition:box-shadow var(--tr)}
+.lk-card{background:var(--card);border:.5px solid var(--b1);border-radius:var(--r);padding:17px;box-shadow:var(--sh);transition:box-shadow var(--tr)}
 .lk-card:hover{box-shadow:var(--shm)}
 .lk-brand{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:2px}
 .lk-model{font-size:15px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;line-height:1.2}
@@ -177,6 +193,9 @@ textarea{resize:vertical;line-height:1.55}
 .lk-pick-row:hover{background:var(--bluebg)}
 .lk-pick-row:last-child{border-bottom:none}
 .lk-pick-name{font-size:13px;font-weight:600;letter-spacing:-.01em;flex:1}
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.sort-select{width:auto!important;font-size:12px;padding:5px 8px;border-radius:8px;background:var(--card);color:var(--t1);font-family:var(--font)}
+.comps-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
 /* ROLL UNROLL ANIMATION */
 @keyframes rollUnfurl{
   0%{opacity:0;transform:perspective(600px) rotateX(-75deg) translateY(-8px);transform-origin:top center}
@@ -290,9 +309,9 @@ textarea{resize:vertical;line-height:1.55}
 
 /* SETTINGS */
 .sgroup{background:var(--card);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);margin-bottom:18px;border:.5px solid var(--b1)}
-.srow{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:.5px solid rgba(0,0,0,.06)}
+.srow{display:flex;align-items:flex-start;gap:12px;padding:15px 18px;border-bottom:.5px solid rgba(0,0,0,.06)}
 .srow:last-child{border-bottom:none}
-.srow-lbl{font-size:14px;font-weight:500;color:var(--t1);flex-shrink:0;padding-top:1px;min-width:120px}
+.srow-lbl{font-size:14px;font-weight:600;color:var(--t1);flex-shrink:0;padding-top:1px;min-width:130px}
 .srow-sub{font-size:11.5px;color:var(--t3);margin-top:2px}
 .srow-ctrl{flex:1;display:flex;justify-content:flex-end;flex-wrap:wrap;gap:6px}
 .settings-main{padding:18px 18px 50px;max-width:520px;margin:0 auto}
@@ -328,11 +347,11 @@ textarea{resize:vertical;line-height:1.55}
 .supa-indicator.off{background:var(--t4)}
 /* KNIFE TYPE SELECTOR */
 .kf-type-sel{display:flex;gap:6px;margin-bottom:14px}
-.kf-type-btn{flex:1;padding:7px 4px;font-size:12px;font-weight:600;border-radius:8px;border:1.5px solid var(--b1);background:var(--bg);color:var(--t3);cursor:pointer;font-family:var(--font);transition:all var(--tr);text-align:center}
+.kf-type-btn{flex:1;padding:9px 6px;font-size:12.5px;font-weight:600;border-radius:10px;border:1.5px solid var(--b1);background:var(--bg);color:var(--t3);cursor:pointer;font-family:var(--font);transition:all var(--tr);text-align:center}
 .kf-type-btn.on.wts{background:rgba(0,122,255,.1);color:var(--blue);border-color:var(--blue)}
 .kf-type-btn.on.wtt{background:rgba(52,199,89,.12);color:var(--greent);border-color:var(--green)}
 .kf-type-btn.on.wtstt{background:rgba(255,149,0,.1);color:var(--oranget);border-color:var(--oranget)}
-.ki-type-tag{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:middle}
+.ki-type-tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;margin-left:5px;vertical-align:middle}
 .ki-type-tag.wts{background:rgba(0,122,255,.1);color:var(--blue)}
 .ki-type-tag.wtt{background:rgba(52,199,89,.12);color:var(--greent)}
 .ki-type-tag.wtstt{background:rgba(255,149,0,.1);color:var(--oranget)}
@@ -496,6 +515,8 @@ textarea{resize:vertical;line-height:1.55}
   .btn-rd:hover{background:rgba(255,69,58,.28)}
   .btn-pu{background:var(--purplebg);color:var(--purplet)}
   .btn-pu:hover{background:rgba(191,90,242,.28)}
+  .btn-am{background:var(--orangebg);color:var(--oranget)}
+  .btn-am:hover{background:rgba(255,159,10,.28)}
   .btn-sec{background:rgba(255,255,255,.1);color:var(--t1)}
   .btn-sec:hover{background:rgba(255,255,255,.16)}
   /* yn toggle: make active state clearly distinguishable */
@@ -1676,7 +1697,7 @@ function renderList(){
   const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold).reduce((a,k)=>a+parseFloat(k.price||0),0),0);
   const hdr=mainHdr();
   if(!s.posts.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">📋</div><div class="empty-h">No listings yet</div><div class="empty-p">Create your first r/Knife_Swap post. Add a single knife or bundle several into one listing.</div><button class="btn btn-pri" onclick="startCompose()">+ Create First Listing</button></div></div>`;
-  const stats=`<div class="stats"><div class="stat"><div class="stat-n blue">${ak}</div><div class="stat-l">Active</div></div><div class="stat"><div class="stat-n green">${sk}</div><div class="stat-l">Sold</div></div>${val>0?`<div class="stat"><div class="stat-n orange">$${Math.round(val)}</div><div class="stat-l">Listed</div></div>`:""}<div class="stat"><div class="stat-n">${s.posts.length}</div><div class="stat-l">Posts</div></div><div class="stat"><div class="stat-n purple">${s.inventory.length}</div><div class="stat-l">The Roll</div></div><div class="stat" style="margin-left:auto"><button class="btn btn-pri btn-sm" onclick="startCompose()">+ New Listing</button></div></div>`;
+  const stats=`<div class="stats"><div class="stat"><div class="stat-n blue">${ak}</div><div class="stat-l">Active</div></div><div class="stat"><div class="stat-n green">${sk}</div><div class="stat-l">Sold</div></div>${val>0?`<div class="stat"><div class="stat-n orange">$${Math.round(val)}</div><div class="stat-l">Listed</div></div>`:""}<div class="stat"><div class="stat-n">${s.posts.length}</div><div class="stat-l">Posts</div></div><div class="stat"><div class="stat-n purple">${s.inventory.length}</div><div class="stat-l">The Roll</div></div><div class="stats-acts"><button class="btn btn-pri btn-sm" onclick="startCompose()">+ New Listing</button></div></div>`;
   const moving=s.movingKnife;
   const allCards=s.posts.map(p=>{
     const open=s.expanded===p.id;
@@ -1702,7 +1723,7 @@ function renderList(){
         const sfHtml=isSF?`<div class="sold-flow"><div style="font-size:12px;font-weight:700;color:var(--greent);margin-bottom:9px">Who bought it?</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input id="sold-to-input" type="text" placeholder="Buyer's Reddit username (optional)" style="flex:1;min-width:160px;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none"/><button class="btn btn-gn btn-sm" onclick="confirmSoldFlow()">Confirm Sold</button><button class="btn btn-sec btn-sm" onclick="cancelSoldFlow()">Cancel</button></div><div style="font-size:11px;color:var(--greent);opacity:.8;margin-top:8px;line-height:1.5">Add their username to generate a confirmation comment for the <a href="https://www.reddit.com/r/Knife_Swap/search/?q=Confirmed+Trade+Thread&restrict_sr=1&sort=new&type=link" target="_blank" rel="noopener" style="color:inherit;font-weight:700;text-decoration:underline">Confirmed Trade Thread</a></div></div>`:"";
         const kDot=k.sold?"🔴":k.pending?"🟡":"🟢";
         const kRowClass=`krow${k.sold?" sold":k.pending?" pending-row":""}${isMoving?" moving":""}`;
-        return`<div class="${kRowClass}"><div class="krow-info"><div class="krow-name${k.sold?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold?` <span style="font-size:10px;font-weight:700;background:var(--orangebg);color:var(--oranget);border-radius:4px;padding:1px 5px">PENDING</span>`:""}${kPhotoCount?` <span style="font-size:10px;font-weight:500;color:var(--blue);background:rgba(0,122,255,.1);border-radius:4px;padding:1px 5px">📷 ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${k.sold&&k.soldAt?" · Sold "+fmtD(k.soldAt):""}${soldToMeta}</div></div><span class="krow-price${k.sold?" s":""}">${knifePrice(k)}</span>${k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:`<button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" style="${k.pending?"background:var(--orangebg);color:var(--oranget)":""}" onclick="markPending('${p.id}',${i})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})">🟢→🔴 Sold</button>`}${!k.sold&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${sfHtml}${picker}`;
+        return`<div class="${kRowClass}"><div class="krow-info"><div class="krow-name${k.sold?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">📷 ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${k.sold&&k.soldAt?" · Sold "+fmtD(k.soldAt):""}${soldToMeta}</div></div><span class="krow-price${k.sold?" s":""}">${knifePrice(k)}</span>${k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:`<button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})">🟢→🔴 Sold</button>`}${!k.sold&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${sfHtml}${picker}`;
       }).join("");
       const da2=daysAgo(p.createdAt);
       const repostSection=pA>0?`<div class="repost-track">
@@ -1711,14 +1732,14 @@ function renderList(){
           ?`<div class="repost-track-ready">📅 ${da2} days since posting - eligible to repost. <strong>Take a fresh timestamp photo</strong> with today's date before reposting.</div>`
           :`<div class="repost-track-wait">📅 ${da2} day${da2===1?"":"s"} since posting - same-price repost available in <strong>${7-da2} more day${7-da2===1?"":"s"}</strong>. Price drop available anytime.</div>`
         }
-        <div style="display:flex;gap:7px;margin-top:9px;flex-wrap:wrap">
+        <div class="repost-btns">
           <button class="btn btn-pu btn-sm" onclick="startPriceDropRepost('${p.id}')">📉 Price Drop Repost</button>
           ${da2>=7?`<button class="btn btn-sec btn-sm" onclick="startSamePriceRepost('${p.id}')">🔄 Same Price Repost</button>`:`<button class="btn btn-sm" style="background:var(--bg);color:var(--t4);cursor:default;border:.5px solid var(--b1)" disabled title="Available in ${7-da2} more day${7-da2===1?'':'s'}">🔄 Same Price (${7-da2}d)</button>`}
         </div>
       </div>`:""
       ;
       const isPrev=s.mdPreview.has(p.id);
-      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?" ⚠️":charLen>30000?" ⚡":""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No photos"}</span><span class="pmeta"> · ${TMPL[p.variant||0]}</span></div>${isPrev?`<div class="post-box" style="white-space:normal;font-family:var(--font);font-size:12.5px;line-height:1.75;overflow-y:auto;max-height:320px">${renderMd(p.postText||"")}</div>`:`<div class="post-box">${esc(p.postText||"")}</div>`}<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><button class="btn btn-pri btn-sm" onclick="copyPost('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""}>${s.copied===p.id?"Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openRedditPost('${p.id}')">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[((p.variant||0)+1)%TMPL.length]}</button><button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')" title="Toggle rendered markdown preview">${isPrev?"&lt;/&gt; Raw":"👁 Preview"}</button><button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')" style="margin-left:auto">Delete</button></div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">${checkPostRules(p.id).map(c=>`<span style="font-size:10.5px;font-weight:500;padding:2px 9px;border-radius:20px;background:${c.ok?"var(--greenbg)":"var(--redbg)"};color:${c.ok?"var(--greent)":"var(--redt)"}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}</div>`;
+      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?" ⚠️":charLen>30000?" ⚡":""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No photos"}</span><span class="pmeta"> · ${TMPL[p.variant||0]}</span></div>${isPrev?`<div class="post-box" style="white-space:normal;font-family:var(--font);font-size:12.5px;line-height:1.75;overflow-y:auto;max-height:320px">${renderMd(p.postText||"")}</div>`:`<div class="post-box">${esc(p.postText||"")}</div>`}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="copyPost('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""}>${s.copied===p.id?"Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openRedditPost('${p.id}')">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[((p.variant||0)+1)%TMPL.length]}</button><button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')" title="Toggle rendered markdown preview">${isPrev?"&lt;/&gt; Raw":"👁 Preview"}</button><button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${checkPostRules(p.id).map(c=>`<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}</div>`;
     }
     const da=daysAgo(p.createdAt);
     const ageBadge=!allSold?(da>=7?`<span class="repost-day-badge rdy">Repost ready</span>`:`<span class="repost-day-badge wait">${da}d old</span>`):"";
@@ -1728,7 +1749,7 @@ function renderList(){
   });
   const activeCards=allCards.filter(c=>!c.allSold).map(c=>c.html).join("");
   const doneList=allCards.filter(c=>c.allSold);
-  const doneSection=doneList.length?`<div style="margin-top:24px"><div style="display:flex;align-items:center;gap:8px;padding:0 2px;margin-bottom:10px"><span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t4)">Completed</span><span style="font-size:11px;color:var(--t4);background:rgba(0,0,0,.07);padding:1px 8px;border-radius:10px;font-weight:600">${doneList.length}</span><span style="font-size:11px;color:var(--t3)">All knives sold - see Sold tab for details</span></div>${doneList.map(c=>c.html).join("")}</div>`:"";
+  const doneSection=doneList.length?`<div class="section-hdr"><span class="section-hdr-lbl">Completed</span><span class="section-hdr-count">${doneList.length}</span><span class="section-hdr-sub">All knives sold — see Sold tab for details</span></div>${doneList.map(c=>c.html).join("")}`:"";
   return hdr+`<div class="main">${stats}${activeCards}${doneSection}</div>`;
 }
 
@@ -1744,7 +1765,7 @@ function renderRoll(){
   const fil=S.lockerFilter;
   const filtered=fil==="all"?inv:fil==="pending"?inv.filter(k=>k.pending&&k.status!=="sold"):inv.filter(k=>k.status===fil);
   const rollValue=inv.filter(k=>k.status!=="sold").reduce((s,k)=>s+parseFloat(k.price||0),0);
-  const stats=`<div class="stats"><div class="stat"><div class="stat-n">${inv.length}</div><div class="stat-l">Total</div></div><div class="stat"><div class="stat-n green">${av}</div><div class="stat-l">🟢 Available</div></div><div class="stat"><div class="stat-n orange">${li}</div><div class="stat-l">In Listing</div></div>${pe>0?`<div class="stat"><div class="stat-n" style="color:var(--oranget)">${pe}</div><div class="stat-l">🟡 Pending</div></div>`:""}<div class="stat"><div class="stat-n" style="color:var(--t3)">${so}</div><div class="stat-l">🔴 Sold</div></div>${rollValue>0?`<div class="stat"><div class="stat-n purple">$${Math.round(rollValue).toLocaleString()}</div><div class="stat-l">Collection Value</div></div>`:""}<div class="stat" style="margin-left:auto;display:flex;gap:7px;align-items:center"><button class="btn btn-sec btn-sm" onclick="exportRollCSV()" title="Export to CSV">↓ CSV</button><button class="btn btn-pri btn-sm" onclick="openKF(-1,'locker')">+ Add Knife</button></div></div>`;
+  const stats=`<div class="stats"><div class="stat"><div class="stat-n">${inv.length}</div><div class="stat-l">Total</div></div><div class="stat"><div class="stat-n green">${av}</div><div class="stat-l">🟢 Available</div></div><div class="stat"><div class="stat-n orange">${li}</div><div class="stat-l">In Listing</div></div>${pe>0?`<div class="stat"><div class="stat-n orange">${pe}</div><div class="stat-l">🟡 Pending</div></div>`:""}<div class="stat"><div class="stat-n" style="color:var(--t3)">${so}</div><div class="stat-l">🔴 Sold</div></div>${rollValue>0?`<div class="stat"><div class="stat-n purple">$${Math.round(rollValue).toLocaleString()}</div><div class="stat-l">Collection Value</div></div>`:""}<div class="stats-acts"><button class="btn btn-sec btn-sm" onclick="exportRollCSV()" title="Export to CSV">↓ CSV</button><button class="btn btn-pri btn-sm" onclick="openKF(-1,'locker')">+ Add Knife</button></div></div>`;
   // Sort the filtered array
   const srt=S.rollSort||"added";
   const sortedFiltered=[...filtered].sort((a,b)=>{
@@ -1754,7 +1775,7 @@ function renderRoll(){
     if(srt==="brand")return(a.brand||"").localeCompare(b.brand||"");
     return 0; // "added" = insertion order (already correct)
   });
-  const filterBar=`<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center"><div class="seg">${[["All","all"],["🟢 Available","available"],["In Listing","listed"],["🟡 Pending","pending"],["🔴 Sold","sold"]].map(([l,v])=>`<button class="seg-item${fil===v?" on":""}" onclick="S.lockerFilter='${v}';render()">${l}</button>`).join("")}</div><select style="font-size:12px;padding:5px 8px;border:.5px solid var(--b2);border-radius:8px;background:var(--card);color:var(--t1);font-family:var(--font)" onchange="S.rollSort=this.value;render()"><option value="added"${srt==="added"?" selected":""}>Sort: Date Added</option><option value="price-asc"${srt==="price-asc"?" selected":""}>Price: Low → High</option><option value="price-desc"${srt==="price-desc"?" selected":""}>Price: High → Low</option><option value="days"${srt==="days"?" selected":""}>Oldest First</option><option value="brand"${srt==="brand"?" selected":""}>Brand A–Z</option></select></div>`;
+  const filterBar=`<div class="filter-bar"><div class="seg">${[["All","all"],["🟢 Available","available"],["In Listing","listed"],["🟡 Pending","pending"],["🔴 Sold","sold"]].map(([l,v])=>`<button class="seg-item${fil===v?" on":""}" onclick="S.lockerFilter='${v}';render()">${l}</button>`).join("")}</div><select class="sort-select" onchange="S.rollSort=this.value;render()"><option value="added"${srt==="added"?" selected":""}>Sort: Date Added</option><option value="price-asc"${srt==="price-asc"?" selected":""}>Price: Low → High</option><option value="price-desc"${srt==="price-desc"?" selected":""}>Price: High → Low</option><option value="days"${srt==="days"?" selected":""}>Oldest First</option><option value="brand"${srt==="brand"?" selected":""}>Brand A–Z</option></select></div>`;
   const cards=sortedFiltered.length?`<div class="lk-grid${SETTINGS.rollAnim?' roll-spreading':''}">${sortedFiltered.map((k,i)=>{
     const realIdx=inv.indexOf(k);
     const statusDot=k.status==="sold"?"🔴":k.pending?"🟡":"🟢";
@@ -1769,9 +1790,9 @@ function renderRoll(){
     const phHtml=ph.length?`<div class="ph-line">${ph.slice(-3).map((h,i,arr)=>`<span class="ph-old">$${esc(h.price)}</span>${i<arr.length-1?`<span style="font-size:9px;color:var(--t4)">›</span>`:""}`).join("")}<span style="font-size:9px;color:var(--t4)">›</span><span style="font-size:10.5px;font-weight:700;color:var(--greent)">$${esc(k.price)}</span></div>`:"";
     // Reference comps
     const comps=(k.comps||[]);
-    const compsHtml=comps.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">${comps.slice(0,3).map((c,ci)=>`<span class="comp-chip" title="Comp price">$${esc(c.price)}<button onclick="removeRefComp('${esc(k.id)}',${ci})" style="background:none;border:none;cursor:pointer;padding:0;color:inherit;font-size:11px;opacity:.6;margin-left:2px" title="Remove">×</button></span>`).join("")}</div>`:"";
+    const compsHtml=comps.length?`<div class="comps-row">${comps.slice(0,3).map((c,ci)=>`<span class="comp-chip" title="Comp price">$${esc(c.price)}<button onclick="removeRefComp('${esc(k.id)}',${ci})" style="background:none;border:none;cursor:pointer;padding:0;color:inherit;font-size:11px;opacity:.6;margin-left:2px" title="Remove">×</button></span>`).join("")}</div>`:"";
     return`<div class="lk-card${SETTINGS.rollAnim?' unfurl':''}"${SETTINGS.rollAnim?` style="animation-delay:${(Math.min(i*.055,.75)).toFixed(3)}s"`:''}>
-<div class="lk-brand">${esc(k.brand)}</div><div class="lk-model">${statusDot} ${esc(k.model)} ${dayBadge}${lkPc?` <span style="font-size:10px;color:var(--blue)">📷${lkPc}</span>`:""}</div><div class="lk-steel">${esc(k.steel||"Steel N/A")} · ${esc(k.bladeCondition)}</div><div class="lk-price">$${esc(k.price)}${k.obo?" OBO":""}</div>${phHtml}${compsHtml}${sb}<div class="lk-acts">${k.status!=="sold"?`<button class="btn btn-sm${k.pending?" btn-sec":""}" style="${k.pending?"background:var(--orangebg);color:var(--oranget)":""}" onclick="markInvPending(${realIdx})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button>`:""}${k.status!=="sold"?`<button class="btn btn-sm btn-gn" onclick="markInvSold(${realIdx})">🔴 Sold</button>`:`<button class="btn btn-sm btn-sec" onclick="markInvSold(${realIdx})">Relist</button>`}<button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">Remove</button></div></div>`;
+<div class="lk-brand">${esc(k.brand)}</div><div class="lk-model">${statusDot} ${esc(k.model)} ${dayBadge}${lkPc?` <span style="font-size:10px;color:var(--blue)">📷${lkPc}</span>`:""}</div><div class="lk-steel">${esc(k.steel||"Steel N/A")} · ${esc(k.bladeCondition)}</div><div class="lk-price">$${esc(k.price)}${k.obo?" OBO":""}</div>${phHtml}${compsHtml}${sb}<div class="lk-acts">${k.status!=="sold"?`<button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markInvPending(${realIdx})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button>`:""}${k.status!=="sold"?`<button class="btn btn-sm btn-gn" onclick="markInvSold(${realIdx})">🔴 Sold</button>`:`<button class="btn btn-sm btn-sec" onclick="markInvSold(${realIdx})">Relist</button>`}<button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">Remove</button></div></div>`;
   }).join("")}</div>`:`<div style="text-align:center;padding:40px 0;color:var(--t4);font-size:13px">No ${fil==="all"?"":fil+" "}knives</div>`;
   const form=S.kfOpen&&S.kfMode==="locker"?kfFormHtml():"";
   return hdr+`<div class="main">${stats}${filterBar}${form}${cards}</div>`;
