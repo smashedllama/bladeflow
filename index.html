@@ -666,7 +666,7 @@ function tm(a,v){return a.includes(v)?a.filter(x=>x!==v):[...a,v]}
 function tmx(a,v,ex){if(v===ex)return[ex];const r=a.filter(x=>x!==ex);return r.includes(v)?r.filter(x=>x!==v):[...r,v]}
 
 // ─── SETTINGS ─────────────────────────────────────────────────
-const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,catboxHash:"",imgbbKey:"",postHeader:"",tradeInterests:"",rollAnim:false,cloudinaryCloud:"dsujlxujp",cloudinaryPreset:"KnifeSwap"});
+const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,catboxHash:"",imgbbKey:"",postHeader:"",tradeInterests:"",rollAnim:false,cloudinaryCloud:"",cloudinaryPreset:""});
 let SETTINGS=DS();
 async function loadSettings(){try{const r=await window.storage.get("ks_settings");if(r&&r.value)SETTINGS={...DS(),...JSON.parse(r.value)};}catch(e){}}
 async function saveSettings(){
@@ -1977,9 +1977,9 @@ function renderSettings(){
   <div class="settings-section-lbl">About</div>
   <div class="sgroup">
     <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.1 - ${BRANDS.length} brands, ${STEELS.length} steels</div></div>
-    <div class="srow"><div><div class="srow-lbl">Photo Hosting</div><div class="srow-sub">Photos upload instantly to Cloudinary — drag, drop, done. Works out of the box with no setup required.</div></div></div>
-    <div class="srow"><div><div class="srow-lbl">Cloud Name</div><div class="srow-sub">Your Cloudinary cloud name from the dashboard.</div></div><div class="srow-ctrl"><input class="inp" type="text" value="${esc(sv.cloudinaryCloud||"")}" placeholder="e.g. dsujlxujp" onchange="SETTINGS.cloudinaryCloud=this.value.trim();saveSettings()"/></div></div>
-    <div class="srow"><div><div class="srow-lbl">Upload Preset</div><div class="srow-sub">Must be set to <strong>Unsigned</strong> in Cloudinary settings.</div></div><div class="srow-ctrl"><input class="inp" type="text" value="${esc(sv.cloudinaryPreset||"")}" placeholder="e.g. KnifeSwap" onchange="SETTINGS.cloudinaryPreset=this.value.trim();saveSettings()"/></div></div>
+    <div class="srow"><div><div class="srow-lbl">Photo Hosting</div><div class="srow-sub">Connect your own free <a href="https://cloudinary.com" target="_blank" style="color:var(--blue);text-decoration:none">Cloudinary</a> account for seamless drag-and-drop photo uploads. Free tier is more than enough for personal use.<br><br>1. Sign up free at <a href="https://cloudinary.com" target="_blank" style="color:var(--blue);text-decoration:none">cloudinary.com</a><br>2. Copy your <strong>Cloud Name</strong> from the dashboard<br>3. Go to Settings → Upload → Upload Presets → Add preset → set to <strong>Unsigned</strong><br>4. Paste both below and you're done</div></div></div>
+    <div class="srow"><div><div class="srow-lbl">Cloud Name</div><div class="srow-sub">Found on your Cloudinary dashboard homepage.</div></div><div class="srow-ctrl"><input class="inp" type="text" value="${esc(sv.cloudinaryCloud||"")}" placeholder="e.g. dxyz12abc" onchange="SETTINGS.cloudinaryCloud=this.value.trim();saveSettings()"/></div></div>
+    <div class="srow"><div><div class="srow-lbl">Upload Preset</div><div class="srow-sub">Create one in Cloudinary → Settings → Upload → Presets. Must be <strong>Unsigned</strong>.</div></div><div class="srow-ctrl"><input class="inp" type="text" value="${esc(sv.cloudinaryPreset||"")}" placeholder="e.g. knife-swap" onchange="SETTINGS.cloudinaryPreset=this.value.trim();saveSettings()"/></div></div>
   </div>
   ${S.authStatus==="signed_in"?`
   <div class="settings-section-lbl" style="color:var(--redt);margin-top:8px">Danger Zone</div>
