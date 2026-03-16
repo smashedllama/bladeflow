@@ -341,7 +341,6 @@
   </div>
   <div class="hdr-right">
     <span class="hdr-user" id="hdr-user"></span>
-    <button class="icon-btn" id="btn-theme" title="Toggle theme" onclick="toggleTheme()">☀️</button>
   </div>
 </header>
 
@@ -377,7 +376,7 @@
       <span class="ico" id="fs-icon">⛶</span><span id="fs-label">Fullscreen</span>
     </button>
   </div>
-  <div class="made-with">Made with <a href="https://smashedllama.github.io/knife-swap-tool/" target="_blank">KnifeSwap</a></div>
+  <div class="made-with">Built by <a href="https://www.reddit.com/user/smashedllama2" target="_blank" rel="noopener">u/smashedllama2</a> · <a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener">☕ Buy me a coffee</a> · <a href="https://smashedllama.github.io/knife-swap-tool/" target="_blank">KnifeSwap Tool</a></div>
 </footer>
 
 <div class="toast" id="toast"></div>
@@ -431,9 +430,6 @@ function init() {
 
   // Fullscreen change
   document.addEventListener('fullscreenchange', updateFsBtn);
-
-  // Theme
-  initTheme();
 }
 
 // ─── SLIDES ──────────────────────────────────────────────────
@@ -580,31 +576,7 @@ function updateFsBtn() {
   document.getElementById('fs-label').textContent = on ? 'Exit' : 'Fullscreen';
 }
 
-// ─── THEME ───────────────────────────────────────────────────
-function initTheme() {
-  const saved = localStorage.getItem('ks-gallery-theme');
-  if (saved) document.documentElement.setAttribute('data-theme', saved);
-  updateThemeBtn();
-}
-
-function toggleTheme() {
-  const html = document.documentElement;
-  const cur = html.getAttribute('data-theme');
-  const sys = window.matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark';
-  const next = (cur === 'dark' || (!cur && sys === 'dark')) ? 'light' : 'dark';
-  html.setAttribute('data-theme', next);
-  localStorage.setItem('ks-gallery-theme', next);
-  updateThemeBtn();
-}
-
-function updateThemeBtn() {
-  const html = document.documentElement;
-  const cur = html.getAttribute('data-theme');
-  const sys = window.matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark';
-  const isDark = cur === 'dark' || (!cur && sys === 'dark');
-  document.getElementById('btn-theme').textContent = isDark ? '☀️' : '🌙';
-  document.getElementById('btn-theme').title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
-}
+// Theme follows system preference automatically
 
 // ─── TOAST ───────────────────────────────────────────────────
 let toastTimer;
