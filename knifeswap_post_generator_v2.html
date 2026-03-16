@@ -1247,6 +1247,18 @@ function removeKnifeUpload(uid){
   S.kf.photos=S.kfUploads.filter(x=>x.url).map(x=>x.url);
   render();
 }
+function addKnifePhotoUrl(){
+  const el=document.getElementById("kf-manual-url");
+  if(!el)return;
+  const url=el.value.trim();
+  if(!url)return;
+  if(S.kfUploads.some(x=>x.url===url))return;
+  const name=url.split("/").pop().split("?")[0]||"photo";
+  S.kfUploads.push({uid:gid(),name,url,uploading:false,error:null});
+  S.kf.photos=S.kfUploads.filter(x=>x.url).map(x=>x.url);
+  el.value="";
+  render();
+}
 
 async function copyText(txt){try{await navigator.clipboard.writeText(txt);}catch(e){}}
 
@@ -1710,9 +1722,13 @@ function kfFormHtml(){
     <div class="fr3"><div class="field"><label>Carried?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.carried===v?" on":""}" onclick="syncKF();S.kf.carried='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Used to cut?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.usedCut===v?" on":""}" onclick="syncKF();S.kf.usedCut='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Sharpened?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.sharpened===v?" on":""}" onclick="syncKF();S.kf.sharpened='${v}';render()">${v}</button>`).join("")}</div></div></div>
     <button class="adv-btn" onclick="syncKF();S.adv=!S.adv;render()">${s.adv?"Hide":"Show"} advanced</button>${advHtml}
     <div class="field" style="margin-top:12px">
-      <label>Knife Photos &amp; Videos <span style="font-weight:400;color:var(--t4);font-size:11px">(optional - stored with this knife)</span></label>
+      <label>Knife Photos <span style="font-weight:400;color:var(--t4);font-size:11px">(optional — 2+ photos auto-open as gallery)</span></label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+        <button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload()" type="button">↑ Upload</button>
+        <input type="text" id="kf-manual-url" placeholder="or paste any image URL (i.imgur.com/xxx.jpg)" style="flex:1;min-width:180px;font-size:12px;padding:6px 9px" onkeydown="if(event.key==='Enter'){event.preventDefault();addKnifePhotoUrl();}"/>
+        <button class="btn btn-sec btn-sm" onclick="addKnifePhotoUrl()" type="button">Add</button>
+      </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload()" type="button">+ Add Photos</button>
         ${s.kfUploads.map((u,ui)=>{const isImg=u.url&&/\.(jpg|jpeg|png|gif|webp|avif)(\?|$)/i.test(u.url);return`<div style="display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 8px;background:var(--bg);border:.5px solid var(--b2);border-radius:6px;max-width:220px">${isImg?`<img class="up-thumb" style="width:26px;height:26px" src="${esc(u.url)}" alt="" loading="lazy"/>`:""}${u.uploading?`<span style="color:var(--t4)">uploading...</span>`:u.error?`<span style="color:var(--redt);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.error)}</span>`:`<a href="${esc(u.url)}" target="_blank" style="color:var(--blue);text-decoration:none;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(u.name)}</a>`}${u.url&&!u.uploading?`<button class="up-reorder" onclick="reorderKnifeUpload(${ui},-1)" ${ui===0?"disabled":""}>↑</button><button class="up-reorder" onclick="reorderKnifeUpload(${ui},1)" ${ui===s.kfUploads.length-1?"disabled":""}>↓</button>`:""}${!u.uploading?`<button onclick="removeKnifeUpload('${u.uid}')" style="background:none;border:none;color:var(--t4);cursor:pointer;padding:0;font-size:12px;line-height:1">&times;</button>`:""}</div>`;}).join("")}
       </div>
     </div>
@@ -1912,13 +1928,13 @@ function renderCompose(){
       <div class="ts-req">📸 Include one photo showing <strong>all knives</strong> in this post with a handwritten note: your Reddit username + full date (e.g. <em>u/yourname - March 14, 2026</em>)</div>
       <div class="up-zone" onclick="triggerUpload()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave()">
         <div class="up-lbl">Drop photos here or click to upload</div>
-        <div class="up-sub">${SETTINGS.imgbbKey?"Uploads to imgbb.com · free permanent hosting":"⚠️ Add your free imgbb API key in Settings → Photo Hosting to enable uploads"}</div>
+        <div class="up-sub">${SETTINGS.cloudinaryCloud?"Uploads to Cloudinary · fast CDN · photos open in gallery viewer":"Set up Cloudinary in Settings → Photo Hosting to enable drag-and-drop uploads"}</div>
       </div>
-      ${upFiles.filter(f=>f.url).length>=2&&SETTINGS.catboxHash?`<button class="btn btn-pu btn-sm" onclick="createCatboxAlbum()" style="margin-top:8px" type="button">📁 Create Catbox Album</button><span style="font-size:11px;color:var(--t3);margin-left:6px">Groups all photos into one album link</span>`:""}
-      ${!SETTINGS.imgbbKey?`<div style="font-size:11px;color:var(--oranget);background:var(--orangebg);border-radius:var(--rxs);padding:6px 10px;margin-top:6px;line-height:1.5">No API key — <a href="https://api.imgbb.com/" target="_blank" style="color:var(--oranget);font-weight:700">get a free imgbb key</a> and add it in <button onclick="S.view='settings';render()" style="background:none;border:none;cursor:pointer;font-size:inherit;font-weight:700;color:var(--oranget);padding:0;font-family:var(--font)">Settings → Photo Hosting</button></div>`:""}
+      ${!SETTINGS.cloudinaryCloud?`<div style="font-size:11px;color:var(--oranget);background:var(--orangebg);border-radius:var(--rxs);padding:6px 10px;margin-top:6px;line-height:1.5">No photo hosting configured — <button onclick="S.view='settings';render()" style="background:none;border:none;cursor:pointer;font-size:inherit;font-weight:700;color:var(--oranget);padding:0;font-family:var(--font)">Settings → Photo Hosting</button> to set up free Cloudinary uploads, or paste a URL below.</div>`:""}
       ${upRows?`<div class="up-files">${upRows}</div>`:""}
-      <div style="margin-top:8px;display:flex;align-items:center;gap:6px"><div style="flex:1;height:.5px;background:rgba(0,0,0,.1)"></div><span style="font-size:11px;color:var(--t4);white-space:nowrap">or paste URL manually</span><div style="flex:1;height:.5px;background:rgba(0,0,0,.1)"></div></div>
-      <input type="text" id="d-manualUrl" placeholder="https://i.ibb.co/... or https://imgur.com/..." style="margin-top:8px" onchange="syncDraft()"/>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:6px"><div style="flex:1;height:.5px;background:rgba(0,0,0,.1)"></div><span style="font-size:11px;color:var(--t4);white-space:nowrap">or paste any image URL</span><div style="flex:1;height:.5px;background:rgba(0,0,0,.1)"></div></div>
+      <input type="text" id="d-manualUrl" placeholder="https://i.imgur.com/xxx.jpg · Cloudinary · Imgur · any direct image link" style="margin-top:8px" onchange="syncDraft()"/>
+      <div style="font-size:11px;color:var(--t4);margin-top:4px">Imgur: use direct image links (i.imgur.com/xxx.jpg) not album pages</div>
       ${d.photos.length?`<div style="font-size:11px;color:var(--greent);margin-top:5px;font-weight:500">${d.photos.length} photo${d.photos.length>1?"s":""} linked</div>`:""}
     </div>
     <div style="margin-bottom:12px"><div class="field"><label>Payment <button onclick="S.modal='rules';render()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--blue);padding:0 0 0 6px;font-family:var(--font)">Rules &#8599;</button></label><div style="font-size:11px;color:var(--oranget);background:var(--orangebg);border-radius:var(--rxs);padding:6px 10px;margin:5px 0 8px;line-height:1.4">Venmo, Zelle, Cash App, Apple Pay &amp; Other require <strong>25+ confirmed swaps</strong>. PayPal G&amp;S is required until then.</div><div class="chips" style="margin-top:5px">${PAYS.map(p=>`<button class="chip sm mul${d.payment.includes(p)?" on":""}" onclick="syncDraft();S.draft.payment=tm(S.draft.payment,'${p}').length?tm(S.draft.payment,'${p}'):S.draft.payment;render()">${p}</button>`).join("")}</div>${d.payment.includes("Other")?`<input type="text" id="d-paymentOther" value="${esc(d.paymentOther)}" placeholder="Please specify payment method…" style="margin-top:8px" oninput="syncDraft()"/>`:""}
@@ -2042,7 +2058,7 @@ window.markSold=markSold;window.cycleTmpl=cycleTmpl;window.deletePost=deletePost
 window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=executeMove;
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
-window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.removeKnifeUpload=removeKnifeUpload;
+window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;
 window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;
 window.markPending=markPending;window.markInvPending=markInvPending;
 window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
