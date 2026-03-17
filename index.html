@@ -826,7 +826,7 @@ async function saveSettings(){
 }
 
 // ─── STATE ────────────────────────────────────────────────────
-const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
+const EK=()=>({brand:"",model:"",steel:"",price:"",soldPrice:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",tradeInterests:SETTINGS.tradeInterests||"",shippingCarrier:SETTINGS.shippingCarrier||"USPS"});
 let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold",tour:null};
@@ -1296,7 +1296,7 @@ function buildPost(post,v){
   const rp=post.repost?" *(Price Drop / Repost)*":"";
   const type=post.postType||"[WTS]";
   const un=SETTINGS.username||"";
-  const title=post.knives.map(k=>k.brand+" "+k.model+(k.sold?" ~~[SOLD]~~":k.pending?" [PENDING]":"")).join(" | ");
+  const title=post.knives.map(k=>k.brand+" "+k.model+(k.sold?(k.soldPrice?` ~~[SOLD @ $${k.soldPrice}]~~`:" ~~[SOLD]~~"):k.pending?" [PENDING]":"")).join(" | ");
   const bundle=post.bundleEnabled&&post.bundlePrice;
   const ph=SETTINGS.postHeader?(SETTINGS.postHeader.trim()):"";
   const ti=post.tradeInterests||(SETTINGS.tradeInterests||"");
@@ -1314,8 +1314,9 @@ function buildPost(post,v){
       const kphotos=(k.photos||[]).filter(Boolean);
       const nameLinked=kphotos.length?`[${k.brand} ${k.model}](${buildPostGalleryUrl(post,i)||galleryUrl(k)})`:(`${k.brand} ${k.model}`);
       const statusLabel=k.sold?"[SOLD]":k.pending?"[PENDING]":"";
+      const soldLabel=k.sold?(k.soldPrice?`[SOLD @ $${k.soldPrice}]`:"[SOLD]"):"";
       const hdr=k.sold
-        ?`~~**${dot(k)} ${i+1}. ${nameLinked} [SOLD]**~~ | ~~${pl}~~`
+        ?`~~**${dot(k)} ${i+1}. ${nameLinked}**~~ **${soldLabel}** | ~~${pl}~~`
         :`**${dot(k)} ${i+1}. ${nameLinked}${statusLabel?" "+statusLabel:""}** | **${pl}**`;
       const sc=k.shippingClass||"Priority";
       const lines=[
@@ -1345,7 +1346,7 @@ function buildPost(post,v){
       const ac=k.accessories.filter(x=>x!=="None").join(", ")||"None";
       const kphotos=(k.photos||[]).filter(Boolean);
       const nameLinked=kphotos.length?`[${k.brand} ${k.model}](${buildPostGalleryUrl(post,i)||galleryUrl(k)})`:(`${k.brand} ${k.model}`);
-      const statusLabel=k.sold?" [SOLD]":k.pending?" [PENDING]":"";
+      const statusLabel=k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":"";
       let block=`${dot(k)} **${i+1}. ${nameLinked}**${statusLabel} | ${knifePrice(k)}`;
       block+=`\n${k.steel||"N/A"} | ${k.bladeCondition} | ${k.owners} owner | Centering: ${k.centering}`;
       if(iss!=="None")block+=` | Issues: ${iss}`;
@@ -1374,9 +1375,10 @@ function buildPost(post,v){
     const rows=post.knives.map((k,i)=>{
       const kphotos3=(k.photos||[]).filter(Boolean);
       const gurl3=kphotos3.length?(buildPostGalleryUrl(post,i)||galleryUrl(k)):null;
+      const soldTag3=k.sold?(k.soldPrice?` \\[SOLD @ $${k.soldPrice}\\]`:" \\[SOLD\\]"):k.pending?" \\[PENDING\\]":"";
       const nameCell=gurl3
-        ?`[${k.brand} ${k.model}](${gurl3})${k.sold?" \\[SOLD\\]":k.pending?" \\[PENDING\\]":""}`
-        :`${k.brand} ${k.model}${k.sold?" \\[SOLD\\]":k.pending?" \\[PENDING\\]":""}`;
+        ?`[${k.brand} ${k.model}](${gurl3})${soldTag3}`
+        :`${k.brand} ${k.model}${soldTag3}`;
       const priceCell=knifePrice(k);
       const parts=[];
       if(k.steel)parts.push(`**${k.steel}**`);
@@ -1406,7 +1408,7 @@ function buildPost(post,v){
   const tradeFooter=isWTT?(ti?` | Trades: ${ti}`:""):" | No Trades";
   const sig=un?`${un} - ${ts}`:ts;
   const shipSummary2=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ ins`:`${carrier} w/ ins`;
-  return`${type} ${title}${rp}\n${photoLine}${headerBlock}\n\n${post.knives.map((k,i)=>{const gu=(k.photos||[]).filter(Boolean).length?(buildPostGalleryUrl(post,i)||galleryUrl(k)):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);return`${dot(k)} ${nm}${k.sold?" [SOLD]":k.pending?" [PENDING]":""} | ${knifePrice(k)} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}\n\nPayment: ${pay} | Shipping: ${shipSummary2}${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}\n${sig}`;
+  return`${type} ${title}${rp}\n${photoLine}${headerBlock}\n\n${post.knives.map((k,i)=>{const gu=(k.photos||[]).filter(Boolean).length?(buildPostGalleryUrl(post,i)||galleryUrl(k)):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);return`${dot(k)} ${nm}${k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":""} | ${knifePrice(k)} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}\n\nPayment: ${pay} | Shipping: ${shipSummary2}${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}\n${sig}`;
 }
 
 // ─── UPLOAD ───────────────────────────────────────────────────
@@ -1673,7 +1675,7 @@ function confirmSoldFlow(){
   pushUndo("Knife marked sold");
   const raw=(document.getElementById("sold-to-input")?.value||"").trim();
   const buyer=raw.replace(/^@/,"").replace(/^\/?u\//i,"");
-  const g=id=>document.getElementById(id);
+  const soldPrice=(g("sold-price-input")?.value||"").trim().replace(/^\$/,"");
   const addr={
     name:(g("ship-name")?.value||"").trim(),
     line1:(g("ship-line1")?.value||"").trim(),
@@ -1686,7 +1688,7 @@ function confirmSoldFlow(){
   // Previously required name+line1+city+state+zip which silently dropped partial addresses,
   // hiding the PirateShip button even when real data was entered.
   const hasAddr=!!(addr.line1||addr.zip);
-  up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldAt=new Date().toISOString();k.soldTo=buyer||null;k.shippingAddress=hasAddr?addr:null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="sold";}p.postText=buildPost(p);});
+  up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldAt=new Date().toISOString();k.soldTo=buyer||null;k.soldPrice=soldPrice||null;k.shippingAddress=hasAddr?addr:null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="sold";}p.postText=buildPost(p);});
   saveInv();S.soldFlow=null;render();
 }
 function cancelSoldFlow(){S.soldFlow=null;render();}
@@ -1701,11 +1703,12 @@ function buildConfirmComment(pid,ki){
   const k=p.knives[ki];if(!k||!k.sold)return"";
   const type=p.postType||"[WTS]";
   const kStr=`${k.brand} ${k.model}${k.steel?" ("+k.steel+")":""}`;
-  const buyer=k.soldTo?`u/${k.soldTo}`:"u/[add buyer username]";
+  const buyer=k.soldTo?`u/${k.soldTo}`:"u/[buyer username]";
   const seller=SETTINGS.username?`u/${SETTINGS.username}`:"u/[your username]";
-  if(type==="[WTT]"){const tv=k.tradeValue?` (TV: $${k.tradeValue})`:"";return`u/ksbot traded ${seller} and ${buyer}\n\nTraded ${kStr}${tv} with ${buyer}. Smooth transaction, highly recommend!`;}
-  const price=k.price?` for $${k.price}`:"";
-  return`u/ksbot sold ${seller} and ${buyer}\n\nSold ${kStr}${price} to ${buyer}. Smooth transaction, highly recommend!`;
+  const salePrice=k.soldPrice||k.price;
+  if(type==="[WTT]"){const tv=k.tradeValue?` (TV: $${k.tradeValue})`:"";return`u/ksbot traded ${seller} and ${buyer}\n\nTraded ${kStr}${tv} with ${buyer}.`;}
+  const priceStr=salePrice?` for $${salePrice}`:"";
+  return`u/ksbot sold ${seller} and ${buyer}\n\n${kStr} to ${buyer}${priceStr}.`;
 }
 function buildDibsMessage(pid,ki){
   const p=S.posts.find(x=>x.id===pid);if(!p)return"";
@@ -2584,8 +2587,12 @@ function renderList(){
         const soldToMeta=k.sold&&k.soldTo?` · Buyer: u/${esc(k.soldTo)}`:"";
         const sfHtml=isSF?`<div class="sold-flow">
 <div style="font-size:12px;font-weight:700;color:var(--greent);margin-bottom:9px">Who bought it?</div>
-<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-  <input id="sold-to-input" type="text" placeholder="Buyer's Reddit username (optional)" style="flex:1;min-width:160px;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none;background:var(--surf);color:var(--t1);font-family:var(--font)"/>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:7px">
+  <input id="sold-to-input" type="text" placeholder="Buyer's Reddit username" style="flex:1;min-width:160px;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none;background:var(--surf);color:var(--t1);font-family:var(--font)"/>
+  <span style="font-size:12px;font-weight:600;color:var(--t3);white-space:nowrap">Sold for $</span>
+  <input id="sold-price-input" type="text" inputmode="decimal" placeholder="${esc(k.price||"price")}" style="width:90px;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none;background:var(--surf);color:var(--t1);font-family:var(--font)"/>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:4px">
   <button class="btn btn-gn btn-sm" onclick="confirmSoldFlow()">Confirm Sold</button>
   <button class="btn btn-sec btn-sm" onclick="cancelSoldFlow()">Cancel</button>
 </div>
