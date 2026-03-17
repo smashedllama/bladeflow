@@ -2435,10 +2435,18 @@ function renderGuide(){
     </div>`;
   const step=(n,label,body)=>`
     <div style="display:grid;grid-template-columns:28px 1fr;gap:0 12px;margin-bottom:14px;align-items:start">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${n}</div>
+      <div style="width:28px;height:28px;border-radius:50%;background:#007AFF;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${n}</div>
       <div>
         <div style="font-size:14px;font-weight:600;color:var(--t1);margin-bottom:4px">${label}</div>
         <div style="font-size:13px;color:var(--t2);line-height:1.7">${body}</div>
+      </div>
+    </div>`;
+  const critStep=(n,label,body)=>`
+    <div style="display:grid;grid-template-columns:28px 1fr;gap:0 12px;margin-bottom:14px;align-items:start;background:var(--redbg);border:.5px solid rgba(255,59,48,.3);border-radius:12px;padding:12px 12px 12px 10px">
+      <div style="width:28px;height:28px;border-radius:50%;background:#FF3B30;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${n}</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--redt);margin-bottom:4px">${label}</div>
+        <div style="font-size:13px;color:var(--t1);line-height:1.7">${body}</div>
       </div>
     </div>`;
   const tool=(txt)=>`<div style="background:rgba(0,122,255,.08);border:.5px solid rgba(0,122,255,.25);border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;color:var(--blue);line-height:1.6"><strong style="display:block;margin-bottom:2px">In the tool:</strong>${txt}</div>`;
@@ -2509,7 +2517,7 @@ function renderGuide(){
     ${sec("💬","Step 6: When Someone Yolos","rgba(255,149,0,.15)",`
       <p style="font-size:13px;color:var(--t2);line-height:1.7;margin:0 0 12px">"Yolo" or "dibs" in the comments means they want to buy at your listed price. This is the standard claim format on r/Knife_Swap.</p>
       ${step(1,"First visible comment has priority","The first person who comments on the post gets first dibs. Sellers technically can choose who to sell to, but going out of order creates tension on the post and is generally frowned upon.")}
-      ${step(2,"Comments only — never DMs alone","A buyer must comment on the post publicly. Never sell to someone who only sends you a DM without commenting. This protects you: buyers who can't comment may be shadowbanned or otherwise restricted on the sub, which creates problems.")}
+      ${critStep(2,"Comments only. Never DMs alone.","A buyer must comment on the post publicly. Never sell to someone who only sends you a DM without commenting first. Buyers who cannot comment may be shadowbanned or otherwise restricted on the sub. Selling to them puts you at risk with no recourse.")}
       ${step(3,"Reply to their comment","Something like 'Yours, sending a chat' in the comments. Then send them a chat/DM with payment details.")}
       ${step(4,"If multiple people are interested","They will call seconds, thirds, etc. in the comments. If your first buyer backs out, move to the next person in line in comment order.")}
       ${tool("Hit the Payment Info button on the knife row to copy a pre-formatted payment message — knife name, price, payment links, and a no-notes warning. Paste it straight into Reddit chat.")}
