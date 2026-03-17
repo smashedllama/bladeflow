@@ -1421,8 +1421,8 @@ function handleDragLeave(){document.querySelector(".up-zone")?.classList.remove(
 async function uploadToHost(file){
   const cloud=(SETTINGS.cloudinaryCloud||"").trim();
   const preset=(SETTINGS.cloudinaryPreset||"").trim();
-  if(!cloud)throw new Error("No Cloudinary cloud name — add it in Settings → Photo Hosting");
-  if(!preset)throw new Error("No Cloudinary upload preset — add it in Settings → Photo Hosting");
+  if(!cloud)throw new Error("No Cloudinary cloud name. Add it in Settings under Photo Hosting.");
+  if(!preset)throw new Error("No Cloudinary upload preset. Add it in Settings under Photo Hosting.");
   const fd=new FormData();
   fd.append("file",file);
   fd.append("upload_preset",preset);
@@ -1751,7 +1751,7 @@ function buildDibsMessage(pid,ki){
   const PAY_PH={"PayPal G&S":"paypal.me/","PayPal F&F":"paypal.me/","Venmo":"@","Zelle":"","Cash App":"$","Apple Pay":""};
   const methodLines=methods.map(m=>{const l=links[m];return l?`• ${m}: ${l}`:`• ${m}`;}).join("\n")||"• [configure payment links in Settings]";
   const noNotesServices=methods.filter(m=>["Venmo","PayPal F&F","Cash App","Zelle","Apple Pay"].some(s=>m.includes(s.split(" ")[0])));
-  const noNotesLine=noNotesServices.length?`\n⚠️ Please do NOT add any notes to your payment — mentioning goods/knives in payment notes can flag or ban accounts on ${noNotesServices.slice(0,2).join(" and ")}.\n`:"";
+  const noNotesLine=noNotesServices.length?`\n⚠️ Please do NOT add any notes to your payment. Mentioning goods/knives in payment notes can flag or ban accounts on ${noNotesServices.slice(0,2).join(" and ")}.\n`:"";
   return`The ${kName} is yours! 🎉\n\nPlease send ${price} via:\n${methodLines}\n${noNotesLine}\nOnce payment clears I'll get it packed up and shipped out right away. Thanks! 🙌`;
 }
 async function copyDibsMessage(pid,ki){
@@ -1818,11 +1818,11 @@ async function openRedditPost(pid){
   // Show paste reminder (overrides flair toast if both apply)
   let msg;
   if(!copied){
-    msg="⚠️ Couldn't auto-copy — copy the post text manually then paste into Reddit body";
+    msg="⚠️ Couldn't auto-copy. Copy the post text manually then paste into Reddit body.";
   } else if(p.repost){
-    msg="📋 Post text copied — paste into body, then select 'Price Reduced' flair";
+    msg="📋 Post text copied. Paste into body, then select 'Price Reduced' flair.";
   } else {
-    msg="📋 Post text copied to clipboard — paste it into the Reddit body";
+    msg="📋 Post text copied to clipboard. Paste it into the Reddit body.";
   }
   S.flairToast=msg;
   clearTimeout(S._flairTid);
@@ -1965,7 +1965,7 @@ function renderPreflightModal(){
           <input id="pf-ts-input" type="url" placeholder="Paste your timestamp photo URL here…" style="flex:1;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);font-family:var(--font);outline:none"/>
           <button class="btn btn-sec btn-sm" onclick="addTimestampToPreflight('${pid}')">Add</button>
         </div>
-        <div style="font-size:11px;color:var(--redt);line-height:1.4">Required — posts without a timestamp get removed by mods. Paste your photo URL above to unlock.</div>`:""}
+        <div style="font-size:11px;color:var(--redt);line-height:1.4">Required. Posts without a timestamp get removed by mods. Paste your photo URL above to unlock.</div>`:""}
       </div>`;
     }
     return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--b2)">
@@ -2041,7 +2041,7 @@ function renderAuthModal(){
   let inner="";
   if(S.showMigrate){
     inner=`${brand}<div style="padding:0 24px 28px">
-      <div class="auth-sync-banner"><strong>You have local data</strong> — ${S.posts.length} listing${S.posts.length!==1?"s":""} and ${S.inventory.length} knife${S.inventory.length!==1?"s":""} in The Roll. Sync them to your account so they're available on any device.
+      <div class="auth-sync-banner"><strong>You have local data</strong>: ${S.posts.length} listing${S.posts.length!==1?"s":""} and ${S.inventory.length} knife${S.inventory.length!==1?"s":""} in The Roll. Sync them to your account so they're available on any device.
         <div class="auth-sync-btns"><button class="btn btn-pri btn-sm" onclick="migrateToSupabase()">Sync to Account</button><button class="btn btn-sec btn-sm" onclick="skipMigrate()">Skip - Load from Cloud</button></div>
       </div>
     </div>`;
@@ -2059,7 +2059,7 @@ function renderAuthModal(){
     inner=`${brand}<div style="padding:0 24px 28px;text-align:center">
       <div style="font-size:46px;margin-bottom:14px">📬</div>
       <div style="font-size:18px;font-weight:700;color:var(--t1);margin-bottom:8px;letter-spacing:-.02em">Check your inbox</div>
-      <div style="font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:22px">We sent a magic link to <strong style="color:var(--t1)">${esc(S.authEmail)}</strong>.<br>Click the link to sign in — no password needed.</div>
+      <div style="font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:22px">We sent a magic link to <strong style="color:var(--t1)">${esc(S.authEmail)}</strong>.<br>Click the link to sign in. No password needed.</div>
       <button class="btn btn-sec" style="width:100%" onclick="S.authStatus='guest';S.authEmail='';render()">Use a different email</button>
     </div>`;
   } else {
@@ -2096,10 +2096,10 @@ function renderCloudinaryModal(){
         <div><div style="font-size:13px;font-weight:700;color:var(--oranget)">Not configured yet</div><div style="font-size:11px;color:var(--oranget);opacity:.8;margin-top:1px">Complete the steps below, then enter your credentials at the bottom.</div></div>
       </div>`;
   const steps=[
-    {n:"1",ico:"🌐",title:"Create a free Cloudinary account",body:`Go to <a href="https://cloudinary.com/users/register_free" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">cloudinary.com/users/register_free</a> and sign up. No credit card required — the free plan handles thousands of photos.`},
+    {n:"1",ico:"🌐",title:"Create a free Cloudinary account",body:`Go to <a href="https://cloudinary.com/users/register_free" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">cloudinary.com/users/register_free</a> and sign up. No credit card required. The free plan handles thousands of photos.`},
     {n:"2",ico:"🔑",title:"Find your Cloud Name",body:`After signing in, your <strong>Cloud Name</strong> is shown in large text on the dashboard (top-left). It looks like <code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">dxyz12abc</code>. Copy it.`},
     {n:"3",ico:"⚙️",title:"Create an Upload Preset",body:`In Cloudinary go to <strong>Settings → Upload → Upload presets</strong> and click <strong>Add upload preset</strong>. Give it a name (e.g. <code style="font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px">knife-swap</code>). Set <strong>Signing mode</strong> to <strong>Unsigned</strong>. Save.`},
-    {n:"4",ico:"🔒",title:"Your data stays private",body:`Photos are uploaded <strong>directly from your browser to your Cloudinary account</strong> — they never pass through our servers. Cloudinary stores all photos with <strong>AES-256 encryption</strong> at rest and all transfers use <strong>TLS 1.2+</strong> in transit. Only you control your account and your images.`},
+    {n:"4",ico:"🔒",title:"Your data stays private",body:`Photos are uploaded <strong>directly from your browser to your Cloudinary account</strong>. They never pass through our servers. Cloudinary stores all photos with <strong>AES-256 encryption</strong> at rest and all transfers use <strong>TLS 1.2+</strong> in transit. Only you control your account and your images.`},
     {n:"5",ico:"✏️",title:"Enter your credentials below",body:`Paste your Cloud Name and preset name into the fields in Settings. They are saved locally to your browser. Once entered, drag-and-drop photo uploads will work immediately.`}
   ];
   const stepsHtml=steps.map(s=>`
@@ -2123,7 +2123,7 @@ function renderCloudinaryModal(){
           <input type="text" style="flex:1;min-width:160px;font-size:13px;padding:8px 11px;border:.5px solid var(--b1);border-radius:8px;background:var(--surf2);color:var(--t1);outline:none;font-family:var(--font)" placeholder="e.g. knife-swap" value="${esc(preset)}" oninput="SETTINGS.cloudinaryPreset=this.value.trim();saveSettings();renderCloudinaryStatus()"/>
         </div>
       </div>
-      <div id="cl-status" style="margin-top:10px;font-size:12px;color:var(--greent);font-weight:600;min-height:18px">${isConnected?"✅ All set — drag-and-drop uploads are ready!":""}</div>
+      <div id="cl-status" style="margin-top:10px;font-size:12px;color:var(--greent);font-weight:600;min-height:18px">${isConnected?"✅ Connected! Drag-and-drop uploads are ready.":""}</div>
     </div>`;
   return`<div class="modal-overlay" onclick="S.modal=null;render()">
   <div class="modal" onclick="event.stopPropagation()" style="max-width:500px">
@@ -2133,7 +2133,7 @@ function renderCloudinaryModal(){
     </div>
     <div class="modal-body">
       ${statusHtml}
-      <div style="font-size:12.5px;color:var(--t2);line-height:1.6;margin-bottom:14px">Set up your own free Cloudinary account for drag-and-drop photo uploads. Each user hosts their own photos — you own your images, not us.</div>
+      <div style="font-size:12.5px;color:var(--t2);line-height:1.6;margin-bottom:14px">Set up your own free Cloudinary account for drag-and-drop photo uploads. Each user hosts their own photos. You own your images, not us.</div>
       ${stepsHtml}
       ${inputsHtml}
     </div>
@@ -2206,7 +2206,7 @@ function renderCloudinaryStatus(){
   if(!el)return;
   const c=(SETTINGS.cloudinaryCloud||"").trim();
   const p=(SETTINGS.cloudinaryPreset||"").trim();
-  el.textContent=c&&p?"✅ All set — drag-and-drop uploads are ready!":"";
+  el.textContent=c&&p?"✅ Connected! Drag-and-drop uploads are ready.":"";
 }
 function tutDone(){localStorage.setItem('ks-tutorial-done','1');S.modal=null;render();}
 function tutGo(view){localStorage.setItem('ks-tutorial-done','1');S.modal=null;S.view=view;render();}
@@ -2223,24 +2223,24 @@ function renderTutorialModal(){
      This walkthrough covers everything from first-time setup to closing a confirmed trade. Takes about 3 minutes.
      ${preview(`<strong style="color:var(--t1)">What we cover:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
-       <li>⚙️ First-time setup — username, payments, photos</li>
-       <li>📋 The Roll — your knife inventory</li>
+       <li>⚙️ First-time setup: username, payments, photos</li>
+       <li>📋 The Roll: your knife inventory</li>
        <li>📝 Building and posting a listing</li>
-       <li>💬 When someone yolos — the dibs message</li>
+       <li>💬 When someone yolos: the dibs message</li>
        <li>📦 Marking sold and shipping tracking</li>
        <li>🤝 The confirmed trade thread</li>
      </ul>`)}`},
     // 1 — Settings: username + payment
     {phase:"Setup · Step 1 of 3",icon:"⚙️",title:"Set Up Your Profile",
      body:`Before your first post, configure three things in Settings. They auto-fill into every listing you make from here on.
-     ${preview(`<strong style="color:var(--t1)">Username</strong> — your Reddit handle, included in the timestamp callout in every post<br><br>
-     <strong style="color:var(--t1)">Payment Methods</strong> — PayPal G&amp;S is required until you have 25+ confirmed swaps. Add others once you qualify<br><br>
-     <strong style="color:var(--t1)">Payment Links</strong> — paste your PayPal.me, Venmo handle, Cash App tag etc. They auto-fill into the message you send buyers when they yolo`)}
+     ${preview(`<strong style="color:var(--t1)">Username</strong>: your Reddit handle, included in the timestamp callout in every post<br><br>
+     <strong style="color:var(--t1)">Payment Methods</strong>: PayPal G&amp;S is required until you have 25+ confirmed swaps. Add others once you qualify<br><br>
+     <strong style="color:var(--t1)">Payment Links</strong>: paste your PayPal.me, Venmo handle, Cash App tag etc. They auto-fill into the message you send buyers when they yolo`)}
      <div class="tut-cta-row"><button class="btn btn-pri btn-sm" onclick="${go('settings')}">⚙️ Open Settings</button></div>`,
      cta:null},
     // 2 — Photo hosting
     {phase:"Setup · Step 2 of 3",icon:"📸",title:"Set Up Photo Uploads",
-     body:`Drag-and-drop photo uploads use a free <strong>Cloudinary</strong> account. Your photos upload directly from your browser to your own account — they never touch our servers.
+     body:`Drag-and-drop photo uploads use a free <strong>Cloudinary</strong> account. Your photos upload directly from your browser to your own account. They never touch our servers.
      ${preview(`<strong style="color:var(--t1)">Takes about 2 minutes:</strong>
      <ol style="margin:8px 0 0;padding-left:18px;line-height:2">
        <li>Sign up free at <a href="https://cloudinary.com/users/register_free" target="_blank" rel="noopener" style="color:var(--blue)">cloudinary.com</a></li>
@@ -2257,16 +2257,16 @@ function renderTutorialModal(){
      <div style="font-family:monospace;font-size:12px;margin-top:6px;color:var(--t2);white-space:pre-wrap">* PayPal G&S only · CONUS · Yolo &gt; Chat
 * Not looking for trades at this time
 * All prices shipped, insurance included</div>`)}
-     ${tip("Tip","You can also set default trade interests here — added automatically to any WTT or WTS/WTT post you create.")}`},
+     ${tip("Tip","You can also set default trade interests here. They are added automatically to any WTT or WTS/WTT post you create.")}`},
     // 4 — The Roll
-    {phase:"The Roll",icon:"📋",title:"The Roll — Your Knife Inventory",
-     body:`The Roll is your personal knife inventory. Add a knife once with all its details and it's available to pull into any listing with one click — no re-entering info.
+    {phase:"The Roll",icon:"📋",title:"The Roll: Your Knife Inventory",
+     body:`The Roll is your personal knife inventory. Add a knife once with all its details and it's available to pull into any listing with one click. No re-entering info.
      ${preview(`<strong style="color:var(--t1)">The Roll tracks:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
-       <li>Days held — so you know when to drop price</li>
-       <li>Price history — every price change is logged</li>
-       <li>Status — Available, Listed, Pending, Sold</li>
-       <li>Photos — stored with the knife, ready to add to any post</li>
+       <li>Days held: so you know when to drop price</li>
+       <li>Price history: every price change is logged</li>
+       <li>Status: Available, Listed, Pending, Sold</li>
+       <li>Photos: stored with the knife, ready to add to any post</li>
      </ul>`)}
      <div class="tut-cta-row"><button class="btn btn-pri btn-sm" onclick="${go('roll')}">📋 Go to The Roll</button></div>`},
     // 5 — Adding a knife
@@ -2275,32 +2275,32 @@ function renderTutorialModal(){
      ${preview(`<strong style="color:var(--t1)">Key fields:</strong><br>
      <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:8px;font-size:12px">
        <span style="color:var(--t3)">Brand / Model</span><span>Spyderco / Para 3 LW</span>
-       <span style="color:var(--t3)">Steel</span><span>CPM-S30V — affects pricing</span>
+       <span style="color:var(--t3)">Steel</span><span>CPM-S30V: affects pricing</span>
        <span style="color:var(--t3)">Condition</span><span>Factory edge, carried</span>
        <span style="color:var(--t3)">SV Price</span><span>Your asking price in USD</span>
        <span style="color:var(--t3)">Photos</span><span>Drag-and-drop or paste URL</span>
      </div>`)}
-     ${tip("Price Research","After entering brand, model and steel, click Check Comps — it searches r/Knife_Swap for the 25 most recent sold listings of that exact model so you can price accurately.")}`},
+     ${tip("Price Research","After entering brand, model and steel, click Check Comps. It searches r/Knife_Swap for the 25 most recent sold listings of that exact model so you can price accurately.")}`},
     // 6 — Creating a listing
     {phase:"Listings",icon:"📝",title:"Creating a Post",
-     body:`Click ${chip("+ New Listing")} from the Listings tab. Add knives from The Roll with one click, or enter them manually. The tool generates the full Reddit post — title and body — automatically.
+     body:`Click ${chip("+ New Listing")} from the Listings tab. Add knives from The Roll with one click, or enter them manually. The tool generates the full Reddit post (title and body) automatically.
      ${preview(`<strong style="color:var(--t1)">4 post templates available:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
-       <li><strong>Detailed</strong> — full condition notes, issues, accessories</li>
-       <li><strong>Compact</strong> — clean one-liner per knife</li>
-       <li><strong>Table</strong> — markdown table layout</li>
-       <li><strong>Minimal</strong> — bare essentials only</li>
+       <li><strong>Detailed</strong>: full condition notes, issues, accessories</li>
+       <li><strong>Compact</strong>: clean one-liner per knife</li>
+       <li><strong>Table</strong>: markdown table layout</li>
+       <li><strong>Minimal</strong>: bare essentials only</li>
      </ul>
      Use the ${chip("Switch")} button on any listing to cycle between them anytime.`)}
      <div class="tut-cta-row"><button class="btn btn-pri btn-sm" onclick="tutDone();startCompose()">📝 Start a New Listing</button></div>`},
     // 7 — Timestamp
-    {phase:"Listings",icon:"📷",title:"The Timestamp — Required",
+    {phase:"Listings",icon:"📷",title:"The Timestamp: Required",
      body:`Every r/Knife_Swap post must include a timestamp photo. Posts without one are removed by mods. No exceptions.
      ${preview(`<strong style="color:var(--t1)">A valid timestamp must show:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
        <li>All knives you are selling in the same frame</li>
        <li>A handwritten note with your Reddit username</li>
-       <li>The full date written by hand — month, day, year</li>
+       <li>The full date written by hand (month, day, year)</li>
      </ul>
      <div style="margin-top:8px;font-size:12px;padding:8px 10px;background:var(--redbg);border-radius:8px;color:var(--redt)">❌ Digital text overlaid in a photo editor does not count</div>`)}
      ${tip("How to add it","Upload your timestamp photo to Imgur or use Cloudinary drag-and-drop. Paste the direct image URL into the timestamp field on your listing. The pre-flight check will confirm it's there before allowing you to copy.")}`},
@@ -2316,15 +2316,15 @@ function renderTutorialModal(){
        <li>✅ Shipping info is mentioned</li>
      </ul>
      You also confirm you've read the r/Knife_Swap rules. Nothing copies until everything checks out. If the timestamp is missing you can paste it right in the modal.`)}
-     ${tip("Rules checkbox","Once you confirm the rules checkbox, it stays checked across all future posts — you only need to do it once.")}`},
+     ${tip("Rules checkbox","Once you confirm the rules checkbox, it stays checked across all future posts. You only need to do it once.")}`},
     // 9 — Dibs message
     {phase:"Selling",icon:"💬",title:"When Someone Yolos",
-     body:`When a buyer calls dibs or yolos, hit ${chip("📬 Payment Info")} on that knife row. It copies a complete payment message to your clipboard — ready to paste into Reddit DMs.
+     body:`When a buyer calls dibs or yolos, hit ${chip("📬 Payment Info")} on that knife row. It copies a complete payment message to your clipboard, ready to paste into Reddit DMs.
      ${preview(`<strong style="color:var(--t1)">The message includes:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
        <li>The knife name and price</li>
        <li>Your payment methods and links (from Settings)</li>
-       <li>A "No Notes" warning — critical for Venmo, Cash App, Zelle etc. Adding notes about knives in payment apps can get accounts flagged or banned</li>
+       <li>A "No Notes" warning: critical for Venmo, Cash App, and Zelle. Adding notes about knives in payment apps can get accounts flagged or banned</li>
      </ul>`)}
      ${tip("Set up payment links first","Go to Settings → Payment Links and fill in your PayPal.me, Venmo handle, Cash App tag etc. They auto-appear in every dibs message.")}`},
     // 10 — Marking sold + address
@@ -2332,8 +2332,8 @@ function renderTutorialModal(){
      body:`Click ${chip("🟢→🔴 Sold")} on any knife row. A quick form slides open to capture the sale details.
      ${preview(`<strong style="color:var(--t1)">The sold form captures:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
-       <li><strong>Buyer's Reddit username</strong> — used to generate the confirm comment</li>
-       <li><strong>Shipping address</strong> (optional) — saved for PirateShip. Enter the ZIP and city/state auto-fills</li>
+       <li><strong>Buyer's Reddit username</strong>: used to generate the confirm comment</li>
+       <li><strong>Shipping address</strong> (optional): saved for PirateShip. Enter the ZIP and city/state auto-fills</li>
      </ul>
      The knife moves to your sold history and the post text updates automatically.`)}
      ${tip("Pending?","Use 🟡 Pending to flag a knife when payment is incoming but not cleared. Mark it Sold once payment hits.")}`},
@@ -2349,29 +2349,29 @@ function renderTutorialModal(){
      <div class="tut-cta-row"><button class="btn btn-sec btn-sm" onclick="${go('shipping')}">📦 View Shipping Tab</button></div>`},
     // 12 — PirateShip
     {phase:"Shipping",icon:"🚢",title:"Shipping with PirateShip",
-     body:`PirateShip offers deeply discounted USPS and UPS rates — often 30–40% cheaper than paying at the post office. It's free to use.
+     body:`PirateShip offers deeply discounted USPS and UPS rates, often 30-40% cheaper than paying at the post office. It's free to use.
      ${preview(`<strong style="color:var(--t1)">The tool integrates in two ways:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
-       <li>${chip("🚢 Ship on PirateShip")} — opens PirateShip and copies the buyer's address to your clipboard simultaneously. Just paste it in.</li>
-       <li>${chip("📋 Copy Address")} — copies the address in a clean multi-line format to paste anywhere</li>
+       <li>${chip("🚢 Ship on PirateShip")}: opens PirateShip in a new tab and copies the buyer's address to your clipboard. Just paste it in.</li>
+       <li>${chip("📋 Copy Address")}: copies the address in a clean multi-line format to paste anywhere</li>
      </ul>
      Shipping address is captured when you mark a knife sold. ZIP code auto-looks up city and state.`)}
-     ${tip("USPS First Class vs Priority","First Class is cheaper for packages under 1 lb — most folding knives qualify. Priority is faster and includes up to $100 insurance. Both can be purchased on PirateShip at discounted rates.")}`},
+     ${tip("USPS First Class vs Priority","First Class is cheaper for packages under 1 lb. Most folding knives qualify. Priority is faster and includes up to $100 insurance. Both are available on PirateShip at discounted rates.")}`},
     // 13 — Confirmed trade
     {phase:"Closing the Loop",icon:"🤝",title:"The Confirmed Trade Thread",
      body:`After your buyer receives the knife, both parties should post in r/Knife_Swap's monthly <strong>Confirmed Trade Thread</strong>. This builds your swap count and unlocks additional payment methods at 25+ trades.
      ${preview(`<strong style="color:var(--t1)">How it works:</strong>
      <ol style="margin:8px 0 0;padding-left:18px;line-height:2">
        <li>Go to the Shipping tab and find the delivered knife</li>
-       <li>Click ${chip("📋 Confirm Comment")} — copies your formatted comment</li>
+       <li>Click ${chip("📋 Confirm Comment")}: copies your formatted comment</li>
        <li>Paste it in the Confirmed Trade Thread on Reddit</li>
        <li>Your buyer replies <strong>"Confirmed"</strong></li>
        <li>u/ksbot records it and updates both your flair counts</li>
      </ol>`)}
-     ${tip("Confirm Comment is available early","The Confirm Comment button appears in all shipping stages — Ready, In Transit, and Delivered — so you can copy it whenever you need it.")}`},
+     ${tip("Confirm Comment is available early","The Confirm Comment button appears in all shipping stages (Ready, In Transit, and Delivered) so you can copy it whenever you need it.")}`},
     // 14 — Done
     {phase:"All Done!",icon:"🎉",title:"You're All Set",
-     body:`That's everything. This tool handles the formatting, the rules, the photos, the dibs messages, the shipping tracking, and the trade confirmation — so you can spend more time on the knives.<br><br>Built by <strong>u/smashedllama2</strong>, an active r/Knife_Swap member. If it saves you time, a coffee is appreciated.
+     body:`That's everything. This tool handles the formatting, the rules, the photos, the dibs messages, the shipping tracking, and the trade confirmation, so you can spend more time on the knives.<br><br>Built by <strong>u/smashedllama2</strong>, an active r/Knife_Swap member. If it saves you time, a coffee is appreciated.
      <div class="tut-cta-row" style="margin-top:18px">
        <button class="btn btn-sec btn-sm" onclick="${go('roll')}">📋 Go to The Roll</button>
        <button class="btn btn-pri btn-sm" onclick="tutDone();startCompose()">📝 Start a Listing</button>
@@ -2390,7 +2390,7 @@ function renderTutorialModal(){
   <div class="tut-card" onclick="event.stopPropagation()">
     <div style="background:linear-gradient(135deg,var(--acc),var(--blue));border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
       <div>
-        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:3px">NEW — Click-Through Tour</div>
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:3px">NEW: Click-Through Tour</div>
         <div style="font-size:13px;font-weight:700;color:#fff;line-height:1.3">Walk through the app with live demo data</div>
       </div>
       <button class="btn btn-sm" style="background:#fff;color:var(--acc);font-weight:700;white-space:nowrap;flex-shrink:0" onclick="S.modal=null;startTour()">🎬 Start Tour</button>
@@ -2439,16 +2439,23 @@ function renderAboutModal(){
     const faqs=[
       {q:"Do I need an account?",a:"No. The tool works completely without an account. Sign-in is only needed if you want to sync your data across multiple devices using cloud backup."},
       {q:"Where is my data stored?",a:"By default everything is stored in your browser's localStorage. If you sign in with a free account, data syncs to the cloud and is available on any device."},
-      {q:"What is The Roll?",a:"The Roll is your knife inventory. Add a knife once with all its details, then pull it into any listing with one click. It tracks price history, days held, and status."},
+      {q:"What is The Roll?",a:"The Roll is your knife inventory. Add a knife once with all its details, then pull it into any listing with one click. It tracks price history, days held, sold price, and current status."},
       {q:"Why is the Copy button grayed out?",a:"A timestamp photo link is required before you can copy a post. Paste a direct link to your timestamp photo and the Copy button will unlock."},
       {q:"What is Cloudinary and do I need it?",a:"Cloudinary is a free image hosting service. You only need it if you want to drag-and-drop upload photos directly from the tool. You can skip it entirely and paste direct image URLs instead."},
       {q:"Will Imgur links work?",a:"Yes, but only direct image links in the format i.imgur.com/xxx.jpg. Album page URLs (imgur.com/a/xxx) will not work as photo links in posts."},
-      {q:"How does the price drop checker work?",a:"r/Knife_Swap requires either a 10% drop or a $25 drop to repost within 7 days. After 7 days you can repost at the same price. The tool checks these rules automatically and shows you the minimum valid repost price."},
+      {q:"How does the price drop checker work?",a:"r/Knife_Swap requires either a 10% price reduction or a $25 reduction to repost within 7 days. After 7 days you can repost at the same price. The tool checks these rules automatically and shows the minimum valid repost price. Hit the Repost button on any listing to generate a new post with the drop already applied."},
+      {q:"How do I mark a knife as sold?",a:"Click the red Sold button on any knife row in your listing. A form slides open to capture the buyer's Reddit username, the final sale price, and their shipping address. The knife moves to your sold history and the post text updates automatically with a strikethrough [SOLD] label."},
+      {q:"What is the confirmed trade comment?",a:"After your buyer receives the knife, both parties post in r/Knife_Swap's monthly Confirmed Trade Thread. Hit the Confirm Comment button on any knife in the Shipping tab to copy a pre-formatted comment. Paste it in the thread, your buyer replies 'Confirmed', and u/ksbot records it for both your flair counts."},
+      {q:"How does PirateShip work with this tool?",a:"When you mark a knife sold and enter the buyer's address, a Ship on PirateShip button appears in the Shipping tab. Clicking it opens PirateShip in a new tab and copies the buyer's address to your clipboard so you can paste it directly into the label form. PirateShip rates are typically 30-40% cheaper than retail post office pricing."},
       {q:"Can I use this for WTT posts?",a:"Yes. Each knife can be set to WTS, WTT, or WTS/WTT. The tool picks the correct post type for the title automatically based on what you add."},
-      {q:"What are the four templates?",a:"Detailed, Compact, Minimal, and Table. Detailed includes all condition info. Compact is shorter. Minimal is just the essentials. Table lays everything out in a Reddit markdown table. Switch between them with the Switch button."},
+      {q:"What are the four templates?",a:"Detailed, Compact, Minimal, and Table. Detailed includes all condition info. Compact is shorter. Minimal is just the essentials. Table lays everything out in a Reddit markdown table. Switch between them with the Switch button on any listing."},
+      {q:"What does Pending mean?",a:"Pending flags a knife as payment incoming but not yet cleared. Use it when a buyer has called dibs and you're waiting for funds to arrive. The knife shows as pending in your post and won't be marked sold until you confirm it."},
+      {q:"What payment methods should I include?",a:"PayPal G&S (Goods and Services) is required for all sellers until you reach 25 confirmed trades. After 25 trades you can accept Venmo, Cash App, Zelle, and other methods. Add your payment links in Settings and they auto-fill into every dibs message you send."},
+      {q:"How does price research work?",a:"After entering a knife's brand, model, and steel, click Check Comps in the knife form. The tool searches r/Knife_Swap for recent sold listings matching that knife and steel, then shows average, median, and price range. You can save any result as a reference comp on that knife."},
+      {q:"Can I export my data?",a:"Yes. Go to Settings and use the Export CSV buttons to download your full inventory (The Roll) or sold history as a spreadsheet-ready CSV file."},
       {q:"Is this affiliated with r/Knife_Swap moderators?",a:"No. This is a fan-built tool. It is not officially affiliated with or endorsed by the r/Knife_Swap moderators. Always check the official subreddit rules for the latest requirements."},
-      {q:"How do I set up photos?",a:"Option 1: Set up a free Cloudinary account and enter your Cloud Name and Upload Preset in Settings. Option 2: Paste any direct image URL into the photo URL field on a knife."},
-      {q:"What happens to my data if I clear my browser?",a:"If you have not signed in for cloud sync, clearing your browser cache will permanently delete all your listings, inventory, and settings. Sign in to back up your data."}
+      {q:"How do I set up photos?",a:"Option 1: Set up a free Cloudinary account and enter your Cloud Name and Upload Preset in Settings. This enables drag-and-drop uploads. Option 2: Paste any direct image URL (i.imgur.com links work great) into the photo URL field on any knife."},
+      {q:"What happens to my data if I clear my browser?",a:"If you have not signed in for cloud sync, clearing your browser cache will permanently delete all your listings, inventory, and settings. Sign in with a free account to back up your data to the cloud."}
     ];
     content=faqs.map(f=>`<div class="faq-item"><div class="faq-q">${f.q}</div><div class="faq-a">${f.a}</div></div>`).join("");
   }
@@ -2540,8 +2547,8 @@ function kfFormHtml(){
 
     const statBar=(st,label)=>st?`<div style="padding:6px 12px;font-size:11px;color:var(--t3);border-top:.5px solid var(--b2);display:flex;gap:12px;flex-wrap:wrap">💡 <strong style="color:var(--t1)">${label}</strong> · Avg <strong style="color:var(--t1)">$${st.avg}</strong> · Median <strong style="color:var(--t1)">$${st.med}</strong> · Range $${st.lo}–$${st.hi} <span style="color:var(--t4)">(${st.n} price${st.n!==1?"s":""})</span></div>`:"";
 
-    const soldSection=soldR.length?`<div style="padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--redt);text-transform:uppercase;letter-spacing:.07em;background:var(--redbg);opacity:.85">📊 Historical — ${soldR.length} sold listing${soldR.length!==1?"s":""}</div>${soldR.map(makeRow).join("")}${statBar(steelSoldStats&&steelSoldStats.n>=2?steelSoldStats:soldStats,"Sold comps"+(steelSoldStats&&steelSoldStats.n>=2?` · ${esc(s.kf.steel||"")} only`:""))}`:""
-    const activeSection=activeR.length?`<div style="padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--greent);text-transform:uppercase;letter-spacing:.07em;background:var(--greenbg);opacity:.85">🏷️ Currently Active — ${activeR.length} listing${activeR.length!==1?"s":""}</div>${activeR.map(makeRow).join("")}${statBar(steelActiveStats&&steelActiveStats.n>=2?steelActiveStats:activeStats,"Active asks"+(steelActiveStats&&steelActiveStats.n>=2?` · ${esc(s.kf.steel||"")} only`:""))}`:""
+    const soldSection=soldR.length?`<div style="padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--redt);text-transform:uppercase;letter-spacing:.07em;background:var(--redbg);opacity:.85">📊 Historical: ${soldR.length} sold listing${soldR.length!==1?"s":""}</div>${soldR.map(makeRow).join("")}${statBar(steelSoldStats&&steelSoldStats.n>=2?steelSoldStats:soldStats,"Sold comps"+(steelSoldStats&&steelSoldStats.n>=2?` · ${esc(s.kf.steel||"")} only`:""))}`:""
+    const activeSection=activeR.length?`<div style="padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--greent);text-transform:uppercase;letter-spacing:.07em;background:var(--greenbg);opacity:.85">🏷️ Currently Active: ${activeR.length} listing${activeR.length!==1?"s":""}</div>${activeR.map(makeRow).join("")}${statBar(steelActiveStats&&steelActiveStats.n>=2?steelActiveStats:activeStats,"Active asks"+(steelActiveStats&&steelActiveStats.n>=2?` · ${esc(s.kf.steel||"")} only`:""))}`:""
     const noResults=!soldR.length&&!activeR.length?`<div style="padding:14px 12px;font-size:12px;color:var(--t3);text-align:center">No recent posts found for this knife.</div>`:"";
 
     const filterToggle=`<button onclick="S.priceFilter=S.priceFilter==='sold'?'all':'sold';render()" style="font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:20px;border:.5px solid var(--b2);background:${showAll?"var(--bluebg)":"var(--bg)"};color:${showAll?"var(--bluet)":"var(--t3)"};cursor:pointer;white-space:nowrap">${showAll?"All listings":"Sold only"}</button>`;
@@ -2564,10 +2571,10 @@ function kfFormHtml(){
       ${(f.comps||[]).length?`<div style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:11px;font-weight:600;color:var(--t3)">💾 Saved comps:</span>${(f.comps||[]).map((c,ci)=>`<span class="comp-chip" onclick="applyPriceFromResearch('$${esc(c.price)}')" style="cursor:pointer" title="Click to use">\$${esc(c.price)}<button onclick="event.stopPropagation();S.kf.comps=(S.kf.comps||[]).filter((_,i)=>i!==${ci});render()" style="background:none;border:none;cursor:pointer;padding:0;color:inherit;font-size:12px;opacity:.7;margin-left:2px">×</button></span>`).join("")}</div>`:""}
     </div>
     <div class="fr3"><div class="field"><label>Carried?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.carried===v?" on":""}" onclick="syncKF();S.kf.carried='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Used to cut?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.usedCut===v?" on":""}" onclick="syncKF();S.kf.usedCut='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Sharpened?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.sharpened===v?" on":""}" onclick="syncKF();S.kf.sharpened='${v}';render()">${v}</button>`).join("")}</div></div></div>
-    <div class="field" style="margin-top:10px"><label>Shipping <span style="font-weight:400;color:var(--t4);font-size:11px">— always w/ insurance</span></label><div class="chips" style="margin-top:4px">${["First Class","Priority"].map(v=>`<button class="chip sm${(f.shippingClass||"Priority")===v?" on":""}" onclick="syncKF();S.kf.shippingClass='${v}';render()">${v}</button>`).join("")}</div></div>
+    <div class="field" style="margin-top:10px"><label>Shipping <span style="font-weight:400;color:var(--t4);font-size:11px">(always w/ insurance)</span></label><div class="chips" style="margin-top:4px">${["First Class","Priority"].map(v=>`<button class="chip sm${(f.shippingClass||"Priority")===v?" on":""}" onclick="syncKF();S.kf.shippingClass='${v}';render()">${v}</button>`).join("")}</div></div>
     <button class="adv-btn" onclick="syncKF();S.adv=!S.adv;render()">${s.adv?"Hide":"Show"} advanced</button>${advHtml}
     <div class="field" id="kf-photos-field" style="margin-top:12px">
-      <label>Knife Photos <span style="font-weight:400;color:var(--t4);font-size:11px">(optional — 2+ photos auto-open as gallery)</span></label>
+      <label>Knife Photos <span style="font-weight:400;color:var(--t4);font-size:11px">(optional; 2+ auto-open as gallery)</span></label>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
         <button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload()" type="button">↑ Upload</button>
         <input type="text" id="kf-manual-url" placeholder="or paste any image URL (i.imgur.com/xxx.jpg)" style="flex:1;min-width:180px;font-size:12px;padding:6px 9px" onkeydown="if(event.key==='Enter'){event.preventDefault();addKnifePhotoUrl();}"/>
@@ -2628,7 +2635,7 @@ function renderList(){
   <button class="btn btn-sec btn-sm" onclick="cancelSoldFlow()">Cancel</button>
 </div>
 <div class="addr-form">
-  <div style="font-size:11px;font-weight:700;color:var(--greent);margin-bottom:1px">📦 Shipping Address <span style="font-weight:400;opacity:.7">(optional — saved for PirateShip)</span></div>
+  <div style="font-size:11px;font-weight:700;color:var(--greent);margin-bottom:1px">📦 Shipping Address <span style="font-weight:400;opacity:.7">(optional, saved for PirateShip)</span></div>
   <input id="ship-name" class="addr-form" type="text" placeholder="Full name" autocomplete="name"/>
   <input id="ship-line1" class="addr-form" type="text" placeholder="Street address" autocomplete="address-line1"/>
   <input id="ship-line2" class="addr-form" type="text" placeholder="Apt, suite, unit (optional)" autocomplete="address-line2"/>
@@ -2677,7 +2684,7 @@ function renderList(){
   });
   const activeCards=allCards.filter(c=>!c.allSold).map(c=>c.html).join("");
   const doneList=allCards.filter(c=>c.allSold);
-  const doneSection=doneList.length?`<div class="section-hdr"><span class="section-hdr-lbl">Completed</span><span class="section-hdr-count">${doneList.length}</span><span class="section-hdr-sub">All knives sold — see Sold tab for details</span></div>${doneList.map(c=>c.html).join("")}`:"";
+  const doneSection=doneList.length?`<div class="section-hdr"><span class="section-hdr-lbl">Completed</span><span class="section-hdr-count">${doneList.length}</span><span class="section-hdr-sub">All knives sold. See Sold tab for details.</span></div>${doneList.map(c=>c.html).join("")}`:"";
   return hdr+`<div class="main">${stats}${activeCards}${doneSection}</div>`;
 }
 
@@ -2777,7 +2784,7 @@ function renderShipping(){
     </div>
     <div style="border-top:.5px solid var(--b2);padding-top:8px;margin-top:2px">
       <button class="btn btn-sm${ccCopiedR?" btn-gn":" btn-sec"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopiedR?"✓ Copied!":"📋 Confirm Comment"}</button>
-      <span style="font-size:11px;color:var(--t3);margin-left:6px">For after delivery — post in the Confirmed Trade Thread</span>
+      <span style="font-size:11px;color:var(--t3);margin-left:6px">For after delivery: post in the Confirmed Trade Thread</span>
     </div>
   </div>`;}).join("");
 
@@ -2852,7 +2859,7 @@ function renderShipping(){
     ${statsBar}
     ${section("📦 Ready to Ship",readyCards,ready.length)}
     ${section("🚚 In Transit",shippedCards,shipped.length)}
-    ${section("✅ Delivered — Ready to Confirm",deliveredCards,delivered.length)}
+    ${section("✅ Delivered: Ready to Confirm",deliveredCards,delivered.length)}
     ${section("🤝 Confirmed",confirmedCards,confirmed.length)}
   </div>`;
 }
@@ -2973,57 +2980,57 @@ function _tourOpenKnife(s){
 
 const TOUR_STEPS=[
   {icon:"👋",title:"Welcome to KnifeSwap Post Generator",
-   body:"We've loaded 3 demo knives (Spyderco PM2 S30V, Benchmade Bugout S30V, CRK Sebenza 31 MagnaCut) and a sample listing. This 11-step tour walks through the whole workflow — adding knives, generating a post, and tracking shipping.",
+   body:"We've loaded 3 demo knives (Spyderco PM2 S30V, Benchmade Bugout S30V, CRK Sebenza 31 MagnaCut) and a sample listing. This 11-step tour walks through the whole workflow: adding knives, generating a post, and tracking shipping.",
    target:null,
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
-  {icon:"📋",title:"The Roll — Your Knife Locker",
+  {icon:"📋",title:"The Roll: Your Knife Locker",
    body:"The Roll is where you store all your knives. Each card shows brand, model, steel, condition, price, and listing status. Knives move from Available → Listed → Sold automatically as you use them.",
    target:'.lk-grid',
    nav:s=>{s.view='roll';s.kfOpen=false;s.modal=null;}},
 
   {icon:"✅",title:"Auto-Ticking Knife Checklist",
-   body:"The knife form has a live checklist at the bottom. Every field you fill in — Brand, Model, Steel, Price, and Knife Photos — ticks green instantly when you tab out. Advisory only; you can still save without completing every item.",
+   body:"The knife form has a live checklist at the bottom. Every field you fill in (Brand, Model, Steel, Price, and Knife Photos) ticks green instantly when you tab out. Advisory only; you can still save without completing every item.",
    target:'.cl',kfOpen:true,
    nav:s=>{s.view='roll';s.modal=null;_tourOpenKnife(s);}},
 
-  {icon:"📊",title:"Price Research — Real r/Knife_Swap Comps",
+  {icon:"📊",title:"Price Research: Real r/Knife_Swap Comps",
    body:"Hit 🔍 Search r/Knife_Swap while editing a knife to pull real sold listings. The tool scans up to 100 recent posts, filters by steel, and shows avg/median prices so you can price competitively.",
    target:'.pr-btn',kfOpen:true,
    nav:s=>{s.view='roll';s.modal=null;_tourOpenKnife(s);}},
 
   {icon:"📝",title:"Your Generated Listing",
-   body:"Here's the auto-generated Reddit post — every knife, price, payment method, and shipping note filled in automatically. Four templates available: Detailed, Compact, Minimal, and Table. Hit Switch to cycle between them anytime.",
+   body:"Here's the auto-generated Reddit post: every knife, price, payment method, and shipping note filled in automatically. Four templates available: Detailed, Compact, Minimal, and Table. Hit Switch to cycle between them anytime.",
    target:'.post-box',
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
   {icon:"🛡️",title:"Auto Rule Checker",
-   body:"These tags auto-validate your post against r/Knife_Swap rules: timestamp required, payment method compliance, pricing rules. A red ✗ tag blocks the post from being copied — fix the issue and it flips green.",
+   body:"These tags auto-validate your post against r/Knife_Swap rules: timestamp required, payment method compliance, pricing rules. A red ✗ tag blocks the post from being copied. Fix the issue and it flips green.",
    target:'.rule-tags',
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
-  {icon:"📸",title:"Knife Photos — Upload or Paste a URL",
+  {icon:"📸",title:"Knife Photos: Upload or Paste a URL",
    body:"Add photos to each knife while editing it. Hit ↑ Upload to upload a file directly, or paste any image URL (i.imgur.com links work great). Add 2+ photos and they auto-bundle into an Imgur gallery link in the post.",
    target:'#kf-photos-field',kfOpen:true,
    nav:s=>{s.view='roll';s.modal=null;_tourOpenKnife(s);}},
 
   {icon:"🚀",title:"Copy Post & Pre-flight Check",
-   body:"Clicking Copy Post opens the pre-flight checklist — every rule is validated and you must confirm you've read the subreddit rules before the post text unlocks. No more accidental rule violations.",
+   body:"Clicking Copy Post opens the pre-flight checklist. Every rule is validated and you must confirm you've read the subreddit rules before the post text unlocks. No more accidental rule violations.",
    target:'.pc-acts',
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
   {icon:"🔴",title:"Mark Sold & Capture Buyer Info",
-   body:"When a knife sells, hit 🔴 Sold on the knife row. A form captures the buyer's Reddit username and shipping address — just enter the ZIP and city/state auto-fills via the zippopotam.us API.",
+   body:"When a knife sells, hit 🔴 Sold on the knife row. A form captures the buyer's Reddit username and shipping address. Enter the ZIP and city/state auto-fills via the zippopotam.us API.",
    target:'.krow',
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
-  {icon:"📦",title:"Shipping Pipeline — Ready to Ship",
+  {icon:"📦",title:"Shipping Pipeline: Ready to Ship",
    body:"The Shipping tab organizes sold knives through 4 stages. The demo Bugout is sitting in Ready to Ship. Enter a tracking number → Mark Shipped, then copy the tracking link for your buyer or jump straight to PirateShip for a discounted label.",
    target:'.stats',
    nav:s=>{s.view='shipping';s.kfOpen=false;s.modal=null;}},
 
   {icon:"🎉",title:"You're all set!",
-   body:"That's the full lifecycle — from listing to shipped. Hit 'Remove Demo Data' to clean up, or keep exploring with the demo knives in place.",
+   body:"That's the full lifecycle, from listing to shipped. Hit 'Remove Demo Data' to clean up, or keep exploring with the demo knives in place.",
    target:null,
    nav:s=>{s.view='list';s.expanded=null;s.kfOpen=false;s.modal=null;},last:true},
 ];
@@ -3074,7 +3081,7 @@ function startTour(){
       payment:["PayPal G&S","Venmo"],
       paymentOther:"",noShip:[],noShipOther:"",
       repost:false,photos:[DEMO_TS_URL],  // demo timestamp so post text is visible
-      notes:"Demo listing — created by the interactive tour",
+      notes:"Demo listing created by the interactive tour",
       rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",
       tradeInterests:"Hinderer XM-18, Microtech Ultratech",
       shippingCarrier:"USPS",_tourDemo:true,
@@ -3205,7 +3212,7 @@ function composeChecklist(d){
   ];
   const allOk=items.every(i=>i.ok);
   const rows=items.map(it=>`<div class="cl-item${it.ok?" ok":""}"><span class="cl-check ${it.ok?"ok":"fail"}">${it.ok?"✓":"✗"}</span><span class="cl-label">${it.label}</span></div>`).join("");
-  const html=`<div class="cl"><div class="cl-hdr">Post checklist — all required to generate</div><div class="cl-items">${rows}</div>${allOk?`<div class="cl-all-good">✓ Ready to generate your post</div>`:""}</div>`;
+  const html=`<div class="cl"><div class="cl-hdr">Post checklist: all required to generate</div><div class="cl-items">${rows}</div>${allOk?`<div class="cl-all-good">✓ Ready to generate your post</div>`:""}</div>`;
   return{html,canPost:allOk};
 }
 
@@ -3243,7 +3250,7 @@ function renderCompose(){
         <div class="up-lbl">Drop photos here or click to upload</div>
         <div class="up-sub">${SETTINGS.cloudinaryCloud?"Uploads to Cloudinary · fast CDN · photos open in gallery viewer":"Set up Cloudinary in Settings → Photo Hosting to enable drag-and-drop uploads"}</div>
       </div>
-      ${!SETTINGS.cloudinaryCloud?`<div style="font-size:11px;color:var(--oranget);background:var(--orangebg);border-radius:var(--rxs);padding:6px 10px;margin-top:6px;line-height:1.5">No photo hosting configured — <button onclick="S.view='settings';render()" style="background:none;border:none;cursor:pointer;font-size:inherit;font-weight:700;color:var(--oranget);padding:0;font-family:var(--font)">Settings → Photo Hosting</button> to set up free Cloudinary uploads, or paste a URL below.</div>`:""}
+      ${!SETTINGS.cloudinaryCloud?`<div style="font-size:11px;color:var(--oranget);background:var(--orangebg);border-radius:var(--rxs);padding:6px 10px;margin-top:6px;line-height:1.5">No photo hosting configured. Go to <button onclick="S.view='settings';render()" style="background:none;border:none;cursor:pointer;font-size:inherit;font-weight:700;color:var(--oranget);padding:0;font-family:var(--font)">Settings → Photo Hosting</button> to set up free Cloudinary uploads, or paste a URL below.</div>`:""}
       ${upRows?`<div class="up-files">${upRows}</div>`:""}
       <div style="margin-top:8px;display:flex;align-items:center;gap:6px"><div style="flex:1;height:.5px;background:rgba(0,0,0,.1)"></div><span style="font-size:11px;color:var(--t4);white-space:nowrap">or paste any image URL</span><div style="flex:1;height:.5px;background:rgba(0,0,0,.1)"></div></div>
       <input type="text" id="d-manualUrl" placeholder="https://i.imgur.com/xxx.jpg · Cloudinary · Imgur · any direct image link" style="margin-top:8px" onchange="syncDraft()"/>
@@ -3283,7 +3290,7 @@ function renderCompose(){
       </div>`:""}
     </div>
     <div class="field" style="margin-bottom:12px"><label>Additional notes</label><input type="text" id="d-notes" value="${esc(d.notes)}" placeholder="Open to offers, prefer local pickup, etc."/></div>
-    ${d.postType.includes("WTT")?`<div class="field" style="margin-bottom:12px"><label>Trade Interests <span style="font-weight:400;color:var(--t4);font-size:11px">— what are you looking for?</span></label><input type="text" id="d-tradeInterests" value="${esc(d.tradeInterests||"")}" placeholder="Spyderco Para 3, Benchmade Bugout, CRK Sebenza..." oninput="syncDraft()"/><div class="field-hint">Will appear in the generated post under "Trade Interests:"</div></div>`:`<input type="hidden" id="d-tradeInterests" value="${esc(d.tradeInterests||"")}"/>`}
+    ${d.postType.includes("WTT")?`<div class="field" style="margin-bottom:12px"><label>Trade Interests <span style="font-weight:400;color:var(--t4);font-size:11px">(what are you looking for?)</span></label><input type="text" id="d-tradeInterests" value="${esc(d.tradeInterests||"")}" placeholder="Spyderco Para 3, Benchmade Bugout, CRK Sebenza..." oninput="syncDraft()"/><div class="field-hint">Will appear in the generated post under "Trade Interests:"</div></div>`:`<input type="hidden" id="d-tradeInterests" value="${esc(d.tradeInterests||"")}"/>`}
     ${d.knives.length>1?`<div class="bundle-box" style="margin-bottom:14px"><div class="bundle-box-top"><label class="cblk"><input type="checkbox" ${d.bundleEnabled?"checked":""} onchange="syncDraft();S.draft.bundleEnabled=this.checked;render()"/> Bundle pricing</label><span style="font-size:11px;color:var(--t3)">Offer one price for the entire lot</span></div>${d.bundleEnabled?`<div class="field" style="margin-top:8px"><label>Bundle price ($)</label><input type="number" id="d-bundlePrice" min="0" value="${esc(d.bundlePrice||"")}" placeholder="e.g. 350" oninput="syncDraft()"/></div>`:""}</div>`:""}
     <label class="cblk"><input type="checkbox" ${d.rulesConfirmed?"checked":""} onchange="S.draft.rulesConfirmed=this.checked;render()"/> I have read all r/Knife_Swap rules</label>
     ${(()=>{const cl=composeChecklist(d);return cl.html+(s.err&&d.knives.length>0?`<div class="err">${esc(s.err)}</div>`:"")+`<div class="gen-row"><button class="btn-gen"${cl.canPost?"":" disabled"} onclick="syncDraft();submitPost()">Generate Post</button><button class="btn btn-sec" onclick="cancelCompose()">Cancel</button></div>`;})()}
@@ -3304,7 +3311,7 @@ function renderSettings(){
   </div>
   <div class="settings-section-lbl">Post Defaults</div>
   <div class="sgroup">
-    <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px"><div><div class="srow-lbl">Custom Post Header</div><div class="srow-sub" style="line-height:1.5;max-width:380px">Personal intro text that appears at the top of every generated post — your rules, trade interests disclaimer, backstory, etc. Leave blank for no header.</div></div><textarea style="min-height:80px;font-size:13px" placeholder="e.g. * PayPal G&S only · Shipped CONUS&#10;* Yolo &gt; Chat · Only interested in CRK, Hinderer&#10;Letting go of some catch-and-releases..." onchange="SETTINGS.postHeader=this.value;saveSettings()">${esc(sv.postHeader||"")}</textarea></div>
+    <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px"><div><div class="srow-lbl">Custom Post Header</div><div class="srow-sub" style="line-height:1.5;max-width:380px">Personal intro text that appears at the top of every generated post. Your rules, trade interests disclaimer, backstory, etc. Leave blank for no header.</div></div><textarea style="min-height:80px;font-size:13px" placeholder="e.g. * PayPal G&S only · Shipped CONUS&#10;* Yolo &gt; Chat · Only interested in CRK, Hinderer&#10;Letting go of some catch-and-releases..." onchange="SETTINGS.postHeader=this.value;saveSettings()">${esc(sv.postHeader||"")}</textarea></div>
     <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px"><div><div class="srow-lbl">Default Trade Interests</div><div class="srow-sub" style="max-width:380px;line-height:1.5">Added to WTT/WTS+WTT posts under "Trade Interests:". Can be overridden per-post in compose.</div></div><input type="text" style="width:100%;font-size:13px;padding:7px 10px" value="${esc(sv.tradeInterests||"")}" placeholder="e.g. Spyderco Para 3, CRK Sebenza, Hinderer XM-18..." onchange="SETTINGS.tradeInterests=this.value;saveSettings()"/></div>
     <div class="srow"><div><div class="srow-lbl">Payment</div><div class="srow-sub">Default payment methods</div></div><div class="srow-ctrl"><div class="chips">${PAYS.map(p=>`<button class="chip sm mul${sv.payment.includes(p)?" on":""}" onclick="SETTINGS.payment=tm(SETTINGS.payment,'${p}').length?tm(SETTINGS.payment,'${p}'):SETTINGS.payment;saveSettings()">${p}</button>`).join("")}</div></div></div>
     <div class="srow" style="flex-direction:column;align-items:flex-start;gap:10px"><div><div class="srow-lbl">Payment Links</div><div class="srow-sub">Added to your dibs messages. Fill in whatever you use.</div></div><div style="width:100%;display:flex;flex-direction:column;gap:7px">${(()=>{const links=sv.paymentLinks||{};const cfgs=[{m:"PayPal G&S",ph:"paypal.me/yourname"},{m:"PayPal F&F",ph:"paypal.me/yourname"},{m:"Venmo",ph:"@yourhandle"},{m:"Zelle",ph:"email or phone number"},{m:"Cash App",ph:"$yourcashtag"},{m:"Apple Pay",ph:"phone number"}];return cfgs.map(({m,ph})=>`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:600;color:var(--t2);min-width:88px;flex-shrink:0">${m}</span><input type="text" style="flex:1;font-size:13px;padding:6px 10px" value="${esc(links[m]||"")}" placeholder="${ph}" onchange="if(!SETTINGS.paymentLinks)SETTINGS.paymentLinks={};SETTINGS.paymentLinks['${m}']=this.value.trim();saveSettings()"/></div>`).join("");})()}</div></div>
@@ -3337,8 +3344,8 @@ function renderSettings(){
   <div class="sgroup">
     <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.1 - ${BRANDS.length} brands, ${STEELS.length} steels</div></div>
     <div class="srow"><div class="srow-lbl">Help</div><div class="srow-ctrl" style="flex-wrap:wrap;gap:6px"><button class="btn btn-pri btn-sm" onclick="S.view='list';startTour()">🎬 Interactive Tour</button><button class="btn btn-am btn-sm" onclick="S.modal='tutorial';S.tutStep=0;render()">📖 Tutorial</button><button class="btn btn-sec btn-sm" onclick="S.modal='about';S.aboutTab='about';render()">ℹ️ FAQ</button><button class="btn btn-sec btn-sm" onclick="S.modal='feedback';S.feedbackTab='bug';render()">✉️ Feedback</button></div></div>
-    <div class="srow"><div><div class="srow-lbl">Built by</div><div class="srow-sub">u/smashedllama2 — free tool for the r/Knife_Swap community</div></div><div class="srow-ctrl"><a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#FFDD00;color:#000;font-size:12px;font-weight:700;padding:7px 13px;border-radius:8px;text-decoration:none;white-space:nowrap">☕ Buy me a coffee</a></div></div>
-    <div class="srow" style="flex-wrap:wrap;gap:10px"><div style="flex:1;min-width:200px"><div class="srow-lbl">Photo Hosting</div><div class="srow-sub">Drag-and-drop uploads via your own free <a href="https://cloudinary.com" target="_blank" style="color:var(--blue);text-decoration:none">Cloudinary</a> account. Photos go directly from your browser to your account — never through our servers. Stored with <strong>AES-256</strong> at rest, <strong>TLS 1.2+</strong> in transit.</div></div><div class="srow-ctrl" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${sv.cloudinaryCloud&&sv.cloudinaryPreset?`<span style="font-size:11px;font-weight:600;color:var(--greent);background:var(--greenbg);padding:4px 9px;border-radius:20px">✅ Connected</span>`:`<span style="font-size:11px;font-weight:600;color:var(--oranget);background:var(--orangebg);padding:4px 9px;border-radius:20px">Setup needed</span>`}<button class="btn btn-sec btn-sm" onclick="S.modal='cloudinary';render()">📖 Setup Guide</button></div></div>
+    <div class="srow"><div><div class="srow-lbl">Built by</div><div class="srow-sub">u/smashedllama2, a free tool for the r/Knife_Swap community</div></div><div class="srow-ctrl"><a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#FFDD00;color:#000;font-size:12px;font-weight:700;padding:7px 13px;border-radius:8px;text-decoration:none;white-space:nowrap">☕ Buy me a coffee</a></div></div>
+    <div class="srow" style="flex-wrap:wrap;gap:10px"><div style="flex:1;min-width:200px"><div class="srow-lbl">Photo Hosting</div><div class="srow-sub">Drag-and-drop uploads via your own free <a href="https://cloudinary.com" target="_blank" style="color:var(--blue);text-decoration:none">Cloudinary</a> account. Photos go directly from your browser to your account. Never through our servers. Stored with <strong>AES-256</strong> at rest, <strong>TLS 1.2+</strong> in transit.</div></div><div class="srow-ctrl" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${sv.cloudinaryCloud&&sv.cloudinaryPreset?`<span style="font-size:11px;font-weight:600;color:var(--greent);background:var(--greenbg);padding:4px 9px;border-radius:20px">✅ Connected</span>`:`<span style="font-size:11px;font-weight:600;color:var(--oranget);background:var(--orangebg);padding:4px 9px;border-radius:20px">Setup needed</span>`}<button class="btn btn-sec btn-sm" onclick="S.modal='cloudinary';render()">📖 Setup Guide</button></div></div>
     <div class="srow"><div><div class="srow-lbl">Cloud Name</div><div class="srow-sub">Your Cloudinary cloud name (dashboard, top-left).</div></div><div class="srow-ctrl"><input type="text" style="width:170px;min-width:170px;font-size:13px;padding:7px 10px" value="${esc(sv.cloudinaryCloud||"")}" placeholder="e.g. dxyz12abc" onchange="SETTINGS.cloudinaryCloud=this.value.trim();saveSettings()"/></div></div>
     <div class="srow"><div><div class="srow-lbl">Upload Preset</div><div class="srow-sub">Must be set to Unsigned in Cloudinary.</div></div><div class="srow-ctrl"><input type="text" style="width:170px;min-width:170px;font-size:13px;padding:7px 10px" value="${esc(sv.cloudinaryPreset||"")}" placeholder="e.g. knife-swap" onchange="SETTINGS.cloudinaryPreset=this.value.trim();saveSettings()"/></div></div>
   </div>
@@ -3348,7 +3355,7 @@ function renderSettings(){
     <div class="srow" style="flex-direction:column;align-items:flex-start;gap:12px">
       <div>
         <div class="srow-lbl" style="color:var(--redt)">Delete Account</div>
-        <div class="srow-sub">Permanently delete your account and all data — listings, inventory, and settings. This cannot be undone.</div>
+        <div class="srow-sub">Permanently delete your account and all data: listings, inventory, and settings. This cannot be undone.</div>
       </div>
       ${S.delFlowEmail!==null?`<div style="width:100%;background:var(--redbg);border:.5px solid rgba(255,59,48,.25);border-radius:10px;padding:14px 14px 12px">
         <div style="font-size:13px;font-weight:700;color:var(--redt);margin-bottom:4px">This is permanent and cannot be undone.</div>
@@ -3460,7 +3467,7 @@ window.reorderUpload=reorderUpload;window.reorderKnifeUpload=reorderKnifeUpload;
 
 // ─── AUTO CATBOX ALBUM ────────────────────────────────────
 async function createCatboxAlbum(){
-  if(!SETTINGS.catboxHash){alert("Catbox userhash required — add it in Settings to create albums.");return;}
+  if(!SETTINGS.catboxHash){alert("Catbox userhash required. Add it in Settings to create albums.");return;}
   const ready=S.uploadFiles.filter(f=>f.url&&!f.url.includes("catbox.moe/a/"));
   if(!ready.length){alert("Upload at least one file first.");return;}
   const files=ready.map(f=>f.url.split("/").pop()).join(" ");
