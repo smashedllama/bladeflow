@@ -1,4 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="108" fill="#1C1C1E"/>
-  <text x="256" y="338" font-family="-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif" font-weight="800" font-size="228" fill="white" text-anchor="middle" letter-spacing="-6">KS</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <title>BladeFlow</title>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2499FF"/>
+      <stop offset="100%" stop-color="#0052BF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100" height="100" rx="22" fill="url(#bg)"/>
+
+  <!-- Flow arcs sweeping around the blade tip -->
+  <path d="M 34 20 Q 66 5 88 32"
+        stroke="white" stroke-opacity="0.28" stroke-width="3.5"
+        fill="none" stroke-linecap="round"/>
+  <path d="M 44 28 Q 70 15 87 41"
+        stroke="white" stroke-opacity="0.17" stroke-width="2.5"
+        fill="none" stroke-linecap="round"/>
+
+  <!-- Grip -->
+  <rect x="12" y="72" width="17" height="17" rx="3.5"
+        fill="white" fill-opacity="0.42"/>
+
+  <!-- Guard / bolster -->
+  <rect x="10" y="63" width="23" height="10" rx="5"
+        fill="white"/>
+
+  <!-- Blade: drop-point profile pointing upper-right.
+       Spine: M(29,63) straight to tip(83,18).
+       Edge:  Q control(67,61) creates the belly, ends at ricasso(34,72). -->
+  <path d="M 29 63 L 83 18 Q 67 61 34 72 Z" fill="white"/>
 </svg>
