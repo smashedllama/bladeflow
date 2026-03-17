@@ -1682,7 +1682,10 @@ function confirmSoldFlow(){
     state:(g("ship-state")?.value||"").trim().toUpperCase(),
     zip:(g("ship-zip")?.value||"").trim()
   };
-  const hasAddr=addr.name&&addr.line1&&addr.city&&addr.state&&addr.zip;
+  // Save address if the user entered at least a street address or ZIP — don't require all 5 fields.
+  // Previously required name+line1+city+state+zip which silently dropped partial addresses,
+  // hiding the PirateShip button even when real data was entered.
+  const hasAddr=!!(addr.line1||addr.zip);
   up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldAt=new Date().toISOString();k.soldTo=buyer||null;k.shippingAddress=hasAddr?addr:null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="sold";}p.postText=buildPost(p);});
   saveInv();S.soldFlow=null;render();
 }
