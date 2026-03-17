@@ -716,7 +716,7 @@ function tm(a,v){return a.includes(v)?a.filter(x=>x!==v):[...a,v]}
 function tmx(a,v,ex){if(v===ex)return[ex];const r=a.filter(x=>x!==ex);return r.includes(v)?r.filter(x=>x!==v):[...r,v]}
 
 // ─── SETTINGS ─────────────────────────────────────────────────
-const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,catboxHash:"",imgbbKey:"",postHeader:"",tradeInterests:"",rollAnim:false,cloudinaryCloud:"",cloudinaryPreset:""});
+const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,catboxHash:"",imgbbKey:"",postHeader:"",tradeInterests:"",rollAnim:false,cloudinaryCloud:"",cloudinaryPreset:"",shippingCarrier:"USPS"});
 let SETTINGS=DS();
 async function loadSettings(){try{const r=await window.storage.get("ks_settings");if(r&&r.value)SETTINGS={...DS(),...JSON.parse(r.value)};}catch(e){}}
 async function saveSettings(){
@@ -726,9 +726,9 @@ async function saveSettings(){
 }
 
 // ─── STATE ────────────────────────────────────────────────────
-const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[]});
-const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[]});
-const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",tradeInterests:SETTINGS.tradeInterests||""});
+const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority"});
+const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority"});
+const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",tradeInterests:SETTINGS.tradeInterests||"",shippingCarrier:SETTINGS.shippingCarrier||"USPS"});
 let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug"};
 
 // ─── STORAGE ──────────────────────────────────────────────────
@@ -1153,6 +1153,7 @@ function buildPost(post,v){
   const ts=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
   const payList=post.payment.map(p=>p==="Other"&&post.paymentOther?post.paymentOther:p);
   const pay=payList.join(" | ");
+  const carrier=post.shippingCarrier||SETTINGS.shippingCarrier||"USPS";
   const noShipList=post.noShip.map(s=>s==="Other"&&post.noShipOther?post.noShipOther:s);
   const allPhotos=(post.photos?.length?post.photos:[]).filter(Boolean);
   const rp=post.repost?" *(Price Drop / Repost)*":"";
@@ -1179,11 +1180,13 @@ function buildPost(post,v){
       const hdr=k.sold
         ?`~~**${dot(k)} ${i+1}. ${nameLinked} [SOLD]**~~ | ~~${pl}~~`
         :`**${dot(k)} ${i+1}. ${nameLinked}${statusLabel?" "+statusLabel:""}** | **${pl}**`;
+      const sc=k.shippingClass||"Priority";
       const lines=[
         `- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}`,
         `- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut} | **Sharpened:** ${k.sharpened}`,
         `- **Centering:** ${k.centering} | **Lockup:** ${k.lockup}${k.lockupNotes?" - "+k.lockupNotes:""}`,
         `- **Issues:** ${iss} | **Accessories:** ${ac}`,
+        `- **Shipping:** ${carrier} ${sc} w/ insurance`,
       ];
       if(k.notes)lines.push(`- **Notes:** ${k.notes}`);
       return`${hdr}\n${lines.join("\n")}`;
@@ -1193,7 +1196,7 @@ function buildPost(post,v){
     const tradeFooter=isWTT?(ti?`\n**Trade Interests:** ${ti}`:""):"\n**No Trades**";
     const notesLine=post.notes?`\n**Notes:** ${post.notes}`:"";
     const sig=un?`*${un} - ${ts}*`:`*${ts}*`;
-    return`${type} ${title}${rp}${headerBlock}\n\n**Timestamp:** ${photoBlock}\n\n---\n\n${blocks}${bundleBlock}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** Included (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
+    return`${type} ${title}${rp}${headerBlock}\n\n**Timestamp:** ${photoBlock}\n\n---\n\n${blocks}${bundleBlock}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${carrier} w/ insurance | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
   }
 
   if(v===1){
@@ -1217,7 +1220,8 @@ function buildPost(post,v){
     const noshipLine=noShipList.length?` | No ship: ${noShipList.join(", ")}`:"";
     const tradeFooter=isWTT?(ti?`\nTrade Interests: ${ti}`:""):"\nNo Trades";
     const sig=un?`${un} - ${ts}`:ts;
-    return`${type} ${title} | ${ts}${rp}${headerBlock}\n\nTimestamp: ${photoLine}\n\n${lines}${bundleLine}\n\nPayment: ${pay} | Shipping included${noshipLine}${tradeFooter}${post.notes?"\nNotes: "+post.notes:""}\n${sig}`;
+    const shipSummary1=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
+    return`${type} ${title} | ${ts}${rp}${headerBlock}\n\nTimestamp: ${photoLine}\n\n${lines}${bundleLine}\n\nPayment: ${pay} | Shipping: ${shipSummary1}${noshipLine}${tradeFooter}${post.notes?"\nNotes: "+post.notes:""}\n${sig}`;
   }
 
   // TABLE (v=3) - Reddit markdown table
@@ -1253,7 +1257,8 @@ function buildPost(post,v){
       if(k.notes)parts.push(k.notes);
       return`| ${nameCell} | ${priceCell} | ${parts.join(". ")}${parts.length?".":""} |`;
     }).join("\n");
-    return`${type} ${title}${rp}${hdrBlock}\n\n**Timestamp:** ${photoBlock}\n\n---\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${bundleBlock}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** Included (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
+    const shipSummary3=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
+    return`${type} ${title}${rp}${hdrBlock}\n\n**Timestamp:** ${photoBlock}\n\n---\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${bundleBlock}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${shipSummary3} | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
   }
 
   // MINIMAL (v=2) - one line per knife
@@ -1263,7 +1268,8 @@ function buildPost(post,v){
   const noshipLine=noShipList.length?` | No ship: ${noShipList.join(", ")}`:"";
   const tradeFooter=isWTT?(ti?` | Trades: ${ti}`:""):" | No Trades";
   const sig=un?`${un} - ${ts}`:ts;
-  return`${type} ${title}${rp}\n${photoLine}${headerBlock}\n\n${post.knives.map((k,i)=>{const gu=(k.photos||[]).filter(Boolean).length?(buildPostGalleryUrl(post,i)||galleryUrl(k)):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);return`${dot(k)} ${nm}${k.sold?" [SOLD]":k.pending?" [PENDING]":""} | ${knifePrice(k)} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}\n\nPayment: ${pay} | Shipping included${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}\n${sig}`;
+  const shipSummary2=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ ins`:`${carrier} w/ ins`;
+  return`${type} ${title}${rp}\n${photoLine}${headerBlock}\n\n${post.knives.map((k,i)=>{const gu=(k.photos||[]).filter(Boolean).length?(buildPostGalleryUrl(post,i)||galleryUrl(k)):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);return`${dot(k)} ${nm}${k.sold?" [SOLD]":k.pending?" [PENDING]":""} | ${knifePrice(k)} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}\n\nPayment: ${pay} | Shipping: ${shipSummary2}${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}\n${sig}`;
 }
 
 // ─── UPLOAD ───────────────────────────────────────────────────
@@ -1804,7 +1810,7 @@ function renderFeedbackModal(){
       </div>
       ${isBug?bugFields:featureFields}
       <div style="display:flex;gap:8px;margin-top:18px">
-        <button class="btn btn-sec btn-sm" style="flex:1" onclick="S.modal=null;render()">Cancel</button>
+        <button class="btn btn-sec btn-sm" style="flex:1;justify-content:center" onclick="S.modal=null;render()">Cancel</button>
         <button class="btn btn-pri" style="flex:2;justify-content:center" onclick="
           var subj=encodeURIComponent('Knife Swap Post Tool \u2013 '+(S.feedbackTab==='bug'?'Bug Report':'Feature Request'));
           var body='';
@@ -2056,6 +2062,7 @@ function kfFormHtml(){
       ${(f.comps||[]).length?`<div style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:11px;font-weight:600;color:var(--t3)">💾 Saved comps:</span>${(f.comps||[]).map((c,ci)=>`<span class="comp-chip" onclick="applyPriceFromResearch('$${esc(c.price)}')" style="cursor:pointer" title="Click to use">\$${esc(c.price)}<button onclick="event.stopPropagation();S.kf.comps=(S.kf.comps||[]).filter((_,i)=>i!==${ci});render()" style="background:none;border:none;cursor:pointer;padding:0;color:inherit;font-size:12px;opacity:.7;margin-left:2px">×</button></span>`).join("")}</div>`:""}
     </div>
     <div class="fr3"><div class="field"><label>Carried?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.carried===v?" on":""}" onclick="syncKF();S.kf.carried='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Used to cut?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.usedCut===v?" on":""}" onclick="syncKF();S.kf.usedCut='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Sharpened?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.sharpened===v?" on":""}" onclick="syncKF();S.kf.sharpened='${v}';render()">${v}</button>`).join("")}</div></div></div>
+    <div class="field" style="margin-top:10px"><label>Shipping <span style="font-weight:400;color:var(--t4);font-size:11px">— always w/ insurance</span></label><div class="chips" style="margin-top:4px">${["First Class","Priority"].map(v=>`<button class="chip sm${(f.shippingClass||"Priority")===v?" on":""}" onclick="syncKF();S.kf.shippingClass='${v}';render()">${v}</button>`).join("")}</div></div>
     <button class="adv-btn" onclick="syncKF();S.adv=!S.adv;render()">${s.adv?"Hide":"Show"} advanced</button>${advHtml}
     <div class="field" style="margin-top:12px">
       <label>Knife Photos <span style="font-weight:400;color:var(--t4);font-size:11px">(optional — 2+ photos auto-open as gallery)</span></label>
@@ -2283,6 +2290,7 @@ function renderCompose(){
     </div>
     <div style="margin-bottom:12px"><div class="field"><label>Payment <button onclick="S.modal='rules';render()" style="background:none;border:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--blue);padding:0 0 0 6px;font-family:var(--font)">Rules &#8599;</button></label><div style="font-size:11px;color:var(--oranget);background:var(--orangebg);border-radius:var(--rxs);padding:6px 10px;margin:5px 0 8px;line-height:1.4">Venmo, Zelle, Cash App, Apple Pay &amp; Other require <strong>25+ confirmed swaps</strong>. PayPal G&amp;S is required until then.</div><div class="chips" style="margin-top:5px">${PAYS.map(p=>`<button class="chip sm mul${d.payment.includes(p)?" on":""}" onclick="syncDraft();S.draft.payment=tm(S.draft.payment,'${p}').length?tm(S.draft.payment,'${p}'):S.draft.payment;render()">${p}</button>`).join("")}</div>${d.payment.includes("Other")?`<input type="text" id="d-paymentOther" value="${esc(d.paymentOther)}" placeholder="Please specify payment method…" style="margin-top:8px" oninput="syncDraft()"/>`:""}
     </div></div>
+    <div style="margin-bottom:12px"><div class="field"><label>Shipping Carrier</label><div class="chips" style="margin-top:5px">${["USPS","UPS","FedEx","Other"].map(c=>`<button class="chip sm${(d.shippingCarrier||"USPS")===c?" on":""}" onclick="syncDraft();S.draft.shippingCarrier='${c}';render()">${c}</button>`).join("")}</div></div></div>
     <div style="margin-bottom:12px"><div class="field"><label>Will NOT ship to</label><div class="chips" style="margin-top:5px">${NO_SHIP.map(p=>`<button class="chip sm mul${d.noShip.includes(p)?" on":""}" onclick="syncDraft();S.draft.noShip=tm(S.draft.noShip,'${p}');render()">${p}</button>`).join("")}</div>${d.noShip.includes("Other")?`<input type="text" id="d-noShipOther" value="${esc(d.noShipOther)}" placeholder="Please specify location…" style="margin-top:8px" oninput="syncDraft()"/>`:""}
     </div></div>
     <div style="margin-bottom:12px">
@@ -2339,6 +2347,7 @@ function renderSettings(){
     <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px"><div><div class="srow-lbl">Default Trade Interests</div><div class="srow-sub" style="max-width:380px;line-height:1.5">Added to WTT/WTS+WTT posts under "Trade Interests:". Can be overridden per-post in compose.</div></div><input type="text" style="width:100%;font-size:13px;padding:7px 10px" value="${esc(sv.tradeInterests||"")}" placeholder="e.g. Spyderco Para 3, CRK Sebenza, Hinderer XM-18..." onchange="SETTINGS.tradeInterests=this.value;saveSettings()"/></div>
     <div class="srow"><div><div class="srow-lbl">Payment</div><div class="srow-sub">Default payment methods</div></div><div class="srow-ctrl"><div class="chips">${PAYS.map(p=>`<button class="chip sm mul${sv.payment.includes(p)?" on":""}" onclick="SETTINGS.payment=tm(SETTINGS.payment,'${p}').length?tm(SETTINGS.payment,'${p}'):SETTINGS.payment;saveSettings()">${p}</button>`).join("")}</div></div></div>
     <div class="srow"><div><div class="srow-lbl">No-Ship Defaults</div><div class="srow-sub">Pre-select restricted states</div></div><div class="srow-ctrl"><div class="chips">${NO_SHIP.map(p=>`<button class="chip sm mul${(sv.noShip||[]).includes(p)?" on":""}" onclick="SETTINGS.noShip=tm(SETTINGS.noShip||[],'${p}');saveSettings()">${p}</button>`).join("")}</div></div></div>
+    <div class="srow"><div><div class="srow-lbl">Shipping Carrier</div><div class="srow-sub">Default carrier shown on generated posts</div></div><div class="srow-ctrl"><div class="chips">${["USPS","UPS","FedEx","Other"].map(c=>`<button class="chip sm${(sv.shippingCarrier||"USPS")===c?" on":""}" onclick="SETTINGS.shippingCarrier='${c}';saveSettings()">${c}</button>`).join("")}</div></div></div>
   </div>
   <div class="settings-section-lbl">The Roll</div>
   <div class="sgroup">
