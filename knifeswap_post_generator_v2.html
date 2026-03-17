@@ -740,7 +740,7 @@ async function saveSettings(){
 const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",tradeInterests:SETTINGS.tradeInterests||"",shippingCarrier:SETTINGS.shippingCarrier||"USPS"});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold"};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -1737,12 +1737,84 @@ function render(){
   document.getElementById("root").innerHTML=view+(S.modal?renderModal(S.modal):"")+toastHtml+flairToastHtml;
   updateModelList();
 }
+function openPreflight(pid){S.preflight=pid;S.modal="preflight";render();}
+function closePreflight(){S.modal=null;S.preflight=null;render();}
+function addTimestampToPreflight(pid){
+  const url=(document.getElementById("pf-ts-input")?.value||"").trim();
+  if(!url||!url.startsWith("http")){alert("Please enter a valid URL starting with http");return;}
+  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;if(!p.photos.includes(url))p.photos.push(url);p.postText=buildPost(p);});
+  save();render();
+}
+async function copyFromPreflight(pid){
+  const p=S.posts.find(x=>x.id===pid);if(!p)return;
+  try{await navigator.clipboard.writeText(p.postText||"");}catch(e){}
+  localStorage.setItem("ks-rules-confirmed","1");
+  S.copied=pid;S.modal=null;S.preflight=null;render();
+  setTimeout(()=>{if(S.copied===pid){S.copied=null;render();}},2000);
+}
+async function openRedditFromPreflight(pid){
+  localStorage.setItem("ks-rules-confirmed","1");
+  S.modal=null;S.preflight=null;render();
+  await openRedditPost(pid);
+}
+function renderPreflightModal(){
+  const pid=S.preflight;if(!pid)return"";
+  const p=S.posts.find(x=>x.id===pid);if(!p)return"";
+  const rules=checkPostRules(pid);
+  const rulesConfirmed=localStorage.getItem("ks-rules-confirmed")==="1";
+  // Hard failures: everything except timestamp (index 0) which is a soft warning
+  const hardFails=rules.filter((r,i)=>i!==0&&!r.ok);
+  const canPost=hardFails.length===0&&rulesConfirmed;
+  const checkRows=rules.map((r,i)=>{
+    if(i===0){
+      return`<div style="padding:10px 0;border-bottom:.5px solid var(--b2)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:${!r.ok?"9px":"0"}">
+          <span style="font-size:17px">${r.ok?"✅":"⚠️"}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--t1);flex:1">${r.ok?`Timestamp linked (${p.photos.length} photo${p.photos.length!==1?"s":""})`:r.msg}</span>
+        </div>
+        ${!r.ok?`<div style="display:flex;gap:7px;margin-bottom:5px">
+          <input id="pf-ts-input" type="url" placeholder="Paste your timestamp photo URL here…" style="flex:1;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);font-family:var(--font);outline:none"/>
+          <button class="btn btn-sec btn-sm" onclick="addTimestampToPreflight('${pid}')">Add</button>
+        </div>
+        <div style="font-size:11px;color:var(--oranget);line-height:1.4">Posts without a timestamp get removed. Add one above, or skip and add it later.</div>`:""}
+      </div>`;
+    }
+    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--b2)">
+      <span style="font-size:17px">${r.ok?"✅":"❌"}</span>
+      <span style="font-size:13px;color:${r.ok?"var(--t2)":"var(--redt)"};flex:1">${esc(r.msg)}</span>
+    </div>`;
+  }).join("");
+  return`<div class="modal-overlay" onclick="closePreflight()">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="modal-hdr">
+      <div class="modal-title">📋 Pre-flight Check</div>
+      <button class="modal-close" onclick="closePreflight()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      ${checkRows}
+      <div style="padding:12px 0 4px">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+          <input type="checkbox" ${rulesConfirmed?"checked":""} onchange="localStorage.setItem('ks-rules-confirmed',this.checked?'1':'0');render()" style="width:16px;height:16px;margin-top:2px;flex-shrink:0;cursor:pointer"/>
+          <span style="font-size:13px;color:var(--t1);line-height:1.5">I've read the <a href="https://www.reddit.com/r/Knife_Swap/wiki/rules" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">r/Knife_Swap rules</a> and my post follows them</span>
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-sec btn-sm" style="flex:1" onclick="closePreflight()">Cancel</button>
+        <button class="btn btn-pri" style="flex:2;justify-content:center${canPost?"":"opacity:.45;cursor:not-allowed"}" onclick="${canPost?`copyFromPreflight('${pid}')`:""}"${canPost?"":" disabled"}>📋 Copy Post</button>
+        <button class="btn btn-gn btn-sm" style="${canPost?"":"opacity:.45;cursor:not-allowed"}" onclick="${canPost?`openRedditFromPreflight('${pid}')`:""}"${canPost?"":" disabled"}>Post to Reddit ↗</button>
+      </div>
+      ${hardFails.length?`<div style="font-size:11px;color:var(--redt);text-align:center;margin-top:8px">${hardFails.length} issue${hardFails.length!==1?"s":""} must be fixed first</div>`:!rulesConfirmed?`<div style="font-size:11px;color:var(--oranget);text-align:center;margin-top:8px">Check the box above to confirm rules</div>`:""}
+    </div>
+  </div>
+</div>`;
+}
 function renderModal(type){
   if(type==="auth")return renderAuthModal();
   if(type==="tutorial")return renderTutorialModal();
   if(type==="about")return renderAboutModal();
   if(type==="cloudinary")return renderCloudinaryModal();
   if(type==="feedback")return renderFeedbackModal();
+  if(type==="preflight")return renderPreflightModal();
   if(type!=="rules")return"";
   const rules=[
     {h:"Timestamp Required",b:"Every post must include a photo of <strong>all items for sale</strong> with a handwritten note showing your Reddit username and the full date (month, day, year). No timestamp = post removed."},
@@ -2125,8 +2197,9 @@ function kfFormHtml(){
     };
 
     // Split into Sold (historical comps) vs Active (current market)
-    const soldR=pr.results.filter(r=>r.isSold);
-    const activeR=pr.results.filter(r=>!r.isSold);
+    const showAll=s.priceFilter==="all";
+    const soldR=(showAll?pr.results.filter(r=>r.isSold):pr.results.filter(r=>r.isSold).slice(0,25));
+    const activeR=showAll?pr.results.filter(r=>!r.isSold):[];
 
     // Helper: compute avg, median, low, high from a result set's prices
     const priceStats=arr=>{
@@ -2150,7 +2223,8 @@ function kfFormHtml(){
     const activeSection=activeR.length?`<div style="padding:4px 12px 2px;font-size:10px;font-weight:700;color:var(--greent);text-transform:uppercase;letter-spacing:.07em;background:var(--greenbg);opacity:.85">🏷️ Currently Active — ${activeR.length} listing${activeR.length!==1?"s":""}</div>${activeR.map(makeRow).join("")}${statBar(steelActiveStats&&steelActiveStats.n>=2?steelActiveStats:activeStats,"Active asks"+(steelActiveStats&&steelActiveStats.n>=2?` · ${esc(s.kf.steel||"")} only`:""))}`:""
     const noResults=!soldR.length&&!activeR.length?`<div style="padding:14px 12px;font-size:12px;color:var(--t3);text-align:center">No recent posts found for this knife.</div>`:"";
 
-    prPanel=`<div class="pr-panel"><div class="pr-panel-hdr"><span>${hdrLabel} ${cacheAgo}</span><div style="display:flex;gap:6px;align-items:center"><button onclick="syncKF();doFetchPriceResearch(true)" style="background:none;border:none;cursor:pointer;color:var(--t4);font-size:11px;padding:0;white-space:nowrap" title="Force fresh search">🔄</button><button onclick="clearPriceResearch()" style="background:none;border:none;cursor:pointer;color:var(--t4);font-size:13px;padding:0">&#x2715;</button></div></div>${soldSection}${activeSection}${noResults}</div>`;
+    const filterToggle=`<button onclick="S.priceFilter=S.priceFilter==='sold'?'all':'sold';render()" style="font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:20px;border:.5px solid var(--b2);background:${showAll?"var(--bluebg)":"var(--bg)"};color:${showAll?"var(--bluet)":"var(--t3)"};cursor:pointer;white-space:nowrap">${showAll?"All listings":"Sold only"}</button>`;
+    prPanel=`<div class="pr-panel"><div class="pr-panel-hdr"><span>${hdrLabel} ${cacheAgo}</span><div style="display:flex;gap:6px;align-items:center">${filterToggle}<button onclick="syncKF();doFetchPriceResearch(true)" style="background:none;border:none;cursor:pointer;color:var(--t4);font-size:11px;padding:0;white-space:nowrap" title="Force fresh search">🔄</button><button onclick="clearPriceResearch()" style="background:none;border:none;cursor:pointer;color:var(--t4);font-size:13px;padding:0">&#x2715;</button></div></div>${soldSection}${activeSection}${noResults}</div>`;
   }else if(pr.status==="fallback"){
     prPanel=`<div class="pr-panel"><div style="padding:10px 12px;font-size:12px;color:var(--t3)">Couldn't load inline — opened Reddit search in a new tab.</div></div>`;
   }
@@ -2268,7 +2342,7 @@ function renderList(){
         :isRaw
           ?`<div class="post-box">${esc(p.postText||"")}</div>`
           :`<div class="post-box preview">${renderMd(p.postText||"")}</div>`;
-      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?" ⚠️":charLen>30000?" ⚡":""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No timestamp"}</span><span class="pmeta"> · ${TMPL[p.variant||0]}</span></div>${postBox}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="copyPost('${p.id}')"${!hasPhotos?" disabled title='Add a timestamp photo first'":s.copied===p.id?` style="background:var(--green)"`:""}>${s.copied===p.id?"Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openRedditPost('${p.id}')"${!hasPhotos?" disabled title='Add a timestamp photo first'":""}>Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[((p.variant||0)+1)%TMPL.length]}</button>${hasPhotos?`<button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')">${isRaw?"👁 Preview":"&lt;/&gt; Raw"}</button>`:""}<button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${checkPostRules(p.id).map(c=>`<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}</div>`;
+      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?" ⚠️":charLen>30000?" ⚡":""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No timestamp"}</span><span class="pmeta"> · ${TMPL[p.variant||0]}</span></div>${postBox}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="openPreflight('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""} title="${!hasPhotos?"Add your timestamp in the pre-flight check":"Copy post text"}">${s.copied===p.id?"✓ Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openPreflight('${p.id}')" title="Post to Reddit">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[((p.variant||0)+1)%TMPL.length]}</button>${hasPhotos?`<button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')">${isRaw?"👁 Preview":"&lt;/&gt; Raw"}</button>`:""}<button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${checkPostRules(p.id).map(c=>`<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}</div>`;
     }
     const da=daysAgo(p.createdAt);
     const ageBadge=!allSold?(da>=7?`<span class="repost-day-badge rdy">Repost ready</span>`:`<span class="repost-day-badge wait">${da}d old</span>`):"";
@@ -2725,7 +2799,7 @@ window.startCompose=startCompose;window.cancelCompose=cancelCompose;
 window.openKF=openKF;window.closeKF=closeKF;window.syncKF=syncKF;window.saveKF=saveKF;
 window.removeKnife=removeKnife;window.setPrevPrice=setPrevPrice;window.applyDropPrice=applyDropPrice;window.addFromLocker=addFromLocker;window.removeFromInventory=removeFromInventory;window.markInvSold=markInvSold;
 window.syncDraft=syncDraft;window.submitPost=submitPost;
-window.markSold=markSold;window.cycleTmpl=cycleTmpl;window.deletePost=deletePost;window.copyPost=copyPost;window.copyText=copyText;window.openRedditPost=openRedditPost;window.startPriceDropRepost=startPriceDropRepost;window.startSamePriceRepost=startSamePriceRepost;
+window.markSold=markSold;window.cycleTmpl=cycleTmpl;window.deletePost=deletePost;window.copyPost=copyPost;window.copyText=copyText;window.openRedditPost=openRedditPost;window.startPriceDropRepost=startPriceDropRepost;window.startSamePriceRepost=startSamePriceRepost;window.openPreflight=openPreflight;window.closePreflight=closePreflight;window.addTimestampToPreflight=addTimestampToPreflight;window.copyFromPreflight=copyFromPreflight;window.openRedditFromPreflight=openRedditFromPreflight;
 window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=executeMove;
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
