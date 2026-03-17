@@ -2451,7 +2451,8 @@ function renderGuide(){
   const warn=(txt)=>`<div style="background:var(--redbg);border:.5px solid rgba(255,59,48,.2);border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;color:var(--redt);line-height:1.6"><strong>Important:</strong> ${txt}</div>`;
   const tip=(txt)=>`<div style="background:var(--orangebg);border:.5px solid rgba(255,149,0,.3);border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;color:var(--oranget);line-height:1.6"><strong>Tip:</strong> ${txt}</div>`;
   const ul=(items)=>`<ul style="margin:6px 0 0;padding-left:18px;line-height:1.9">${items.map(i=>`<li>${i}</li>`).join("")}</ul>`;
-  return`<div class="main">
+  const hdr=`<div class="hdr"><div class="hdr-logo" onclick="S.view='list';render()"><img src="/bladeflow/icon.svg" width="30" height="30" style="border-radius:8px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.28)" alt="BladeFlow"/><div><div class="hdr-title">How-To Guide</div><div class="hdr-sub">Complete walkthrough</div></div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="S.view='list';render()">Done</button></div></div>`;
+  return`<div class="app">${hdr}<div class="main" style="overflow-y:auto">
   <div style="max-width:680px;margin:0 auto;padding:20px 16px 60px">
     <div style="margin-bottom:24px">
       <div style="font-size:22px;font-weight:700;color:var(--t1);margin-bottom:6px">How do I use this tool with r/Knife_Swap?</div>
@@ -2579,7 +2580,7 @@ function renderGuide(){
     `)}
 
   </div>
-</div>`;
+</div></div>`;
 }
 function renderAboutModal(){
   const tab=S.aboutTab||"about";
