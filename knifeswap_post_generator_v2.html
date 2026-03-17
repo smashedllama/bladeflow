@@ -2270,6 +2270,15 @@ function trackingUrl(carrier,num){
   if(carrier==="DHL")return`https://www.dhl.com/us-en/home/tracking.html?tracking-id=${n}`;
   return null;
 }
+async function copyTrackingLink(pid,ki){
+  const p=S.posts.find(x=>x.id===pid);
+  const k=p?.knives[ki];if(!k)return;
+  const url=trackingUrl(k.trackingCarrier||"USPS",k.trackingNumber);
+  if(!url)return;
+  try{await navigator.clipboard.writeText(url);}catch(e){}
+  S.copied=`trkurl_${pid}_${ki}`;render();
+  setTimeout(()=>{if(S.copied===`trkurl_${pid}_${ki}`){S.copied=null;render();}},2000);
+}
 function markShipped(pid,ki){
   const trk=(document.getElementById(`trk-${pid}-${ki}`)?.value||"").trim();
   const carr=document.getElementById(`carr-${pid}-${ki}`)?.value||"USPS";
@@ -2330,13 +2339,18 @@ function renderShipping(){
 
   const shippedCards=shipped.map(({p,k,i})=>{
     const url=trackingUrl(k.trackingCarrier||"USPS",k.trackingNumber);
+    const urlCopied=S.copied===`trkurl_${p.id}_${i}`;
     return`<div class="pc" style="padding:13px 14px;margin-bottom:8px">
       ${kHead({p,k,i})}
-      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
         <span style="font-size:12px;font-weight:600;background:var(--bluebg);color:var(--bluet);padding:4px 10px;border-radius:20px;font-family:monospace">${esc(k.trackingCarrier||"USPS")} · ${esc(k.trackingNumber)}</span>
         ${url?`<a href="${url}" target="_blank" rel="noopener" class="btn btn-sec btn-sm" style="text-decoration:none">🔗 Track Package</a>`:""}
         <button class="btn btn-gn btn-sm" onclick="markDelivered('${p.id}',${i})">✅ Mark Delivered</button>
       </div>
+      ${url?`<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-sm${urlCopied?" btn-gn":" btn-sec"}" onclick="copyTrackingLink('${p.id}',${i})">${urlCopied?"✓ Copied!":"📋 Copy Tracking Link for Buyer"}</button>
+        <span style="font-size:11px;color:var(--t3);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(url)}</span>
+      </div>`:""}
       ${k.shippedAt?`<div style="font-size:11px;color:var(--t3);margin-top:7px">Shipped ${fmtD(k.shippedAt)}</div>`:""}
     </div>`;
   }).join("");
@@ -2658,7 +2672,7 @@ window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=execu
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
 window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;
-window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;window.copyDibsMessage=copyDibsMessage;window.buildDibsMessage=buildDibsMessage;window.lookupZip=lookupZip;window.copyShippingAddress=copyShippingAddress;window.openPirateShip=openPirateShip;window.fmtAddress=fmtAddress;window.markShipped=markShipped;window.markDelivered=markDelivered;window.markConfirmedTrade=markConfirmedTrade;window.kShipStatus=kShipStatus;
+window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;window.copyDibsMessage=copyDibsMessage;window.buildDibsMessage=buildDibsMessage;window.lookupZip=lookupZip;window.copyShippingAddress=copyShippingAddress;window.openPirateShip=openPirateShip;window.fmtAddress=fmtAddress;window.markShipped=markShipped;window.markDelivered=markDelivered;window.markConfirmedTrade=markConfirmedTrade;window.kShipStatus=kShipStatus;window.copyTrackingLink=copyTrackingLink;
 window.markPending=markPending;window.markInvPending=markInvPending;
 window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
 window.renderTutorialModal=renderTutorialModal;window.renderAboutModal=renderAboutModal;window.renderCloudinaryModal=renderCloudinaryModal;window.renderCloudinaryStatus=renderCloudinaryStatus;
