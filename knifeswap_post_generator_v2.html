@@ -1762,21 +1762,21 @@ function renderPreflightModal(){
   const p=S.posts.find(x=>x.id===pid);if(!p)return"";
   const rules=checkPostRules(pid);
   const rulesConfirmed=localStorage.getItem("ks-rules-confirmed")==="1";
-  // Hard failures: everything except timestamp (index 0) which is a soft warning
-  const hardFails=rules.filter((r,i)=>i!==0&&!r.ok);
+  // All failures are hard — timestamp is required
+  const hardFails=rules.filter(r=>!r.ok);
   const canPost=hardFails.length===0&&rulesConfirmed;
   const checkRows=rules.map((r,i)=>{
     if(i===0){
       return`<div style="padding:10px 0;border-bottom:.5px solid var(--b2)">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:${!r.ok?"9px":"0"}">
-          <span style="font-size:17px">${r.ok?"✅":"⚠️"}</span>
-          <span style="font-size:13px;font-weight:600;color:var(--t1);flex:1">${r.ok?`Timestamp linked (${p.photos.length} photo${p.photos.length!==1?"s":""})`:r.msg}</span>
+          <span style="font-size:17px">${r.ok?"✅":"❌"}</span>
+          <span style="font-size:13px;font-weight:600;color:${r.ok?"var(--t1)":"var(--redt)"};flex:1">${r.ok?`Timestamp linked (${p.photos.length} photo${p.photos.length!==1?"s":""})`:r.msg}</span>
         </div>
         ${!r.ok?`<div style="display:flex;gap:7px;margin-bottom:5px">
           <input id="pf-ts-input" type="url" placeholder="Paste your timestamp photo URL here…" style="flex:1;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);font-family:var(--font);outline:none"/>
           <button class="btn btn-sec btn-sm" onclick="addTimestampToPreflight('${pid}')">Add</button>
         </div>
-        <div style="font-size:11px;color:var(--oranget);line-height:1.4">Posts without a timestamp get removed. Add one above, or skip and add it later.</div>`:""}
+        <div style="font-size:11px;color:var(--redt);line-height:1.4">Required — posts without a timestamp get removed by mods. Paste your photo URL above to unlock.</div>`:""}
       </div>`;
     }
     return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--b2)">
