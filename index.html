@@ -1655,6 +1655,22 @@ function fmtAddress(a,multiline=false){
   if(multiline)return[a.name,street,`${a.city}, ${a.state} ${a.zip}`].filter(Boolean).join("\n");
   return[a.name,street,`${a.city} ${a.state} ${a.zip}`].filter(Boolean).join(", ");
 }
+function fmtAddrNoName(a,multiline=false){
+  if(!a)return"";
+  const street=[a.line1,a.line2].filter(Boolean).join(", ");
+  if(multiline)return[street,a.city?`${a.city}, ${a.state} ${a.zip}`:a.zip].filter(Boolean).join("\n");
+  return[street,a.city?`${a.city} ${a.state} ${a.zip}`:a.zip].filter(Boolean).join(", ");
+}
+function addrDisplayHtml(pid,ki){
+  const p=S.posts.find(x=>x.id===pid);
+  const k=p?.knives[ki];
+  if(!k?.shippingAddress)return"";
+  const a=k.shippingAddress;
+  const nameCopied=S.copied===`name_${pid}_${ki}`;
+  const addrOnlyCopied=S.copied===`addronly_${pid}_${ki}`;
+  const nameHtml=a.name?`<div style="font-size:12px;font-weight:700;color:var(--t1);margin-bottom:2px">${esc(a.name)}</div>`:"";
+  return`<div class="addr-block">${nameHtml}<div class="addr-text">${esc(fmtAddrNoName(a,true))}</div><div class="addr-acts">${a.name?`<button class="btn btn-sm${nameCopied?" btn-gn":" btn-sec"}" onclick="copyShippingName('${pid}',${ki})">${nameCopied?"✓ Copied!":"Copy Name"}</button>`:""}<button class="btn btn-sm${addrOnlyCopied?" btn-gn":" btn-sec"}" onclick="copyShippingAddrOnly('${pid}',${ki})">${addrOnlyCopied?"✓ Copied!":"Copy Address"}</button><button class="btn btn-sm btn-pu" onclick="openPirateShip('${pid}',${ki})">🚢 PirateShip</button></div></div>`;
+}
 async function copyShippingAddress(pid,ki){
   const p=S.posts.find(x=>x.id===pid);
   const k=p?.knives[ki];if(!k?.shippingAddress)return;
@@ -1662,18 +1678,35 @@ async function copyShippingAddress(pid,ki){
   S.copied=`addr_${pid}_${ki}`;render();
   setTimeout(()=>{if(S.copied===`addr_${pid}_${ki}`){S.copied=null;render();}},2000);
 }
+async function copyShippingName(pid,ki){
+  const p=S.posts.find(x=>x.id===pid);
+  const k=p?.knives[ki];if(!k?.shippingAddress?.name)return;
+  try{await navigator.clipboard.writeText(k.shippingAddress.name);}catch(e){}
+  S.copied=`name_${pid}_${ki}`;render();
+  setTimeout(()=>{if(S.copied===`name_${pid}_${ki}`){S.copied=null;render();}},2000);
+}
+async function copyShippingAddrOnly(pid,ki){
+  const p=S.posts.find(x=>x.id===pid);
+  const k=p?.knives[ki];if(!k?.shippingAddress)return;
+  try{await navigator.clipboard.writeText(fmtAddrNoName(k.shippingAddress,true));}catch(e){}
+  S.copied=`addronly_${pid}_${ki}`;render();
+  setTimeout(()=>{if(S.copied===`addronly_${pid}_${ki}`){S.copied=null;render();}},2000);
+}
 function openPirateShip(pid,ki){
   const p=S.posts.find(x=>x.id===pid);
   const k=p?.knives[ki];
   if(k?.shippingAddress){
-    try{navigator.clipboard.writeText(fmtAddress(k.shippingAddress,true));}catch(e){}
+    try{navigator.clipboard.writeText(fmtAddrNoName(k.shippingAddress,true));}catch(e){}
   }
-  window.open("https://ship.pirateship.com/create","_blank","noopener");
+  window.open("https://pirateship.com","_blank","noopener");
 }
 function confirmSoldFlow(){
   const sf=S.soldFlow;if(!sf)return;
-  pushUndo("Knife marked sold");
-  const raw=(document.getElementById("sold-to-input")?.value||"").trim();
+  // Read ALL form values from the DOM BEFORE calling pushUndo.
+  // pushUndo() calls render() which destroys and recreates the entire DOM —
+  // any reads after that point return empty strings from brand-new elements.
+  const g=id=>document.getElementById(id);
+  const raw=(g("sold-to-input")?.value||"").trim();
   const buyer=raw.replace(/^@/,"").replace(/^\/?u\//i,"");
   const soldPrice=(g("sold-price-input")?.value||"").trim().replace(/^\$/,"");
   const addr={
@@ -1684,10 +1717,8 @@ function confirmSoldFlow(){
     state:(g("ship-state")?.value||"").trim().toUpperCase(),
     zip:(g("ship-zip")?.value||"").trim()
   };
-  // Save address if the user entered at least a street address or ZIP — don't require all 5 fields.
-  // Previously required name+line1+city+state+zip which silently dropped partial addresses,
-  // hiding the PirateShip button even when real data was entered.
   const hasAddr=!!(addr.line1||addr.zip);
+  pushUndo("Knife marked sold");
   up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldAt=new Date().toISOString();k.soldTo=buyer||null;k.soldPrice=soldPrice||null;k.shippingAddress=hasAddr?addr:null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="sold";}p.postText=buildPost(p);});
   saveInv();S.soldFlow=null;render();
 }
@@ -2611,8 +2642,7 @@ function renderList(){
 </div>`:"";
         const kDot=k.sold?"🔴":k.pending?"🟡":"🟢";
         const kRowClass=`krow${k.sold?" sold":k.pending?" pending-row":""}${isMoving?" moving":""}`;
-        const addrCopied=s.copied===`addr_${p.id}_${i}`;
-        const addrHtml=k.sold&&k.shippingAddress?`<div class="addr-block"><div class="addr-text">${esc(fmtAddress(k.shippingAddress,true))}</div><div class="addr-acts"><button class="btn btn-sm${addrCopied?" btn-gn":" btn-sec"}" onclick="copyShippingAddress('${p.id}',${i})">${addrCopied?"Copied!":"📋 Copy Address"}</button><button class="btn btn-sm btn-pu" onclick="openPirateShip('${p.id}',${i})">🚢 Ship on PirateShip</button></div></div>`:"";
+        const addrHtml=k.sold&&k.shippingAddress?addrDisplayHtml(p.id,i):"";
         return`<div class="${kRowClass}"><div class="krow-info"><div class="krow-name${k.sold?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">📷 ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${k.sold&&k.soldAt?" · Sold "+fmtD(k.soldAt):""}${soldToMeta}</div></div><span class="krow-price${k.sold?" s":""}">${knifePrice(k)}</span>${k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:`<button class="btn btn-sm${dibsCopied?" btn-gn":" btn-pu"}" onclick="copyDibsMessage('${p.id}',${i})" title="Copy payment confirmation message">${dibsCopied?"Copied!":"📬 Payment Info"}</button><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})">🟢→🔴 Sold</button>`}${!k.sold&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${addrHtml}${sfHtml}${picker}`;
       }).join("");
       const da2=daysAgo(p.createdAt);
@@ -2724,12 +2754,11 @@ function renderShipping(){
 
   const kHead=({p,k,i})=>{
     const buyer=k.soldTo?`<span style="color:var(--blue);font-weight:600">u/${esc(k.soldTo)}</span>`:`<span style="color:var(--t3);font-style:italic">No buyer recorded</span>`;
-    const addr=k.shippingAddress?` <span style="color:var(--t3)">· ${esc(fmtAddress(k.shippingAddress))}</span>`:"";
     return`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:5px">
       <div style="font-size:14px;font-weight:700;color:var(--t1)">${esc(k.brand)} ${esc(k.model)}</div>
       <div style="font-size:13px;font-weight:700;color:var(--greent);white-space:nowrap;flex-shrink:0">${knifePrice(k)}</div>
     </div>
-    <div style="font-size:12px;color:var(--t2);margin-bottom:10px">${buyer}${addr}</div>`;
+    <div style="font-size:12px;color:var(--t2);margin-bottom:${k.shippingAddress?4:10}px">${buyer}</div>`;
   };
 
   const CARRIERS=["USPS","UPS","FedEx","DHL","Other"];
@@ -2738,13 +2767,13 @@ function renderShipping(){
     const ccKeyR=`cc_${p.id}_${i}`;const ccCopiedR=S.copied===ccKeyR;
     return`<div class="pc" style="padding:13px 14px;margin-bottom:8px">
     ${kHead({p,k,i})}
-    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+    ${addrDisplayHtml(p.id,i)}
+    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:8px;${k.shippingAddress?"margin-top:10px":""}">
       <select id="carr-${p.id}-${i}" style="font-size:13px;padding:6px 9px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);font-family:var(--font)">
         ${CARRIERS.map(c=>`<option${(k.trackingCarrier||"USPS")===c?" selected":""}>${c}</option>`).join("")}
       </select>
       <input id="trk-${p.id}-${i}" type="text" placeholder="Tracking number" style="flex:1;min-width:150px;font-size:13px;padding:6px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);font-family:var(--font)"/>
       <button class="btn btn-pri btn-sm" onclick="markShipped('${p.id}',${i})">📬 Mark Shipped</button>
-      ${k.shippingAddress?`<button class="btn btn-pu btn-sm" onclick="openPirateShip('${p.id}',${i})">🚢 PirateShip</button>`:""}
     </div>
     <div style="border-top:.5px solid var(--b2);padding-top:8px;margin-top:2px">
       <button class="btn btn-sm${ccCopiedR?" btn-gn":" btn-sec"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopiedR?"✓ Copied!":"📋 Confirm Comment"}</button>
@@ -2758,7 +2787,8 @@ function renderShipping(){
     const urlCopied=S.copied===`trkurl_${p.id}_${i}`;
     return`<div class="pc" style="padding:13px 14px;margin-bottom:8px">
       ${kHead({p,k,i})}
-      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      ${addrDisplayHtml(p.id,i)}
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:8px;${k.shippingAddress?"margin-top:10px":""}">
         <span style="font-size:12px;font-weight:600;background:var(--bluebg);color:var(--bluet);padding:4px 10px;border-radius:20px;font-family:monospace">${esc(k.trackingCarrier||"USPS")} · ${esc(k.trackingNumber)}</span>
         ${url?`<a href="${url}" target="_blank" rel="noopener" class="btn btn-sec btn-sm" style="text-decoration:none">🔗 Track Package</a>`:""}
         <button class="btn btn-gn btn-sm" onclick="markDelivered('${p.id}',${i})">✅ Mark Delivered</button>
@@ -2901,8 +2931,7 @@ function renderSold(){
       const kRows=p.knives.map((k,i)=>{
         const ccKey="cc_"+p.id+"_"+i;
         const ccCopied=S.copied===ccKey;
-        const addrCopiedS=S.copied===`addr_${p.id}_${i}`;
-        const addrHtmlS=k.shippingAddress?`<div class="addr-block"><div class="addr-text">${esc(fmtAddress(k.shippingAddress,true))}</div><div class="addr-acts"><button class="btn btn-sm${addrCopiedS?" btn-gn":" btn-sec"}" onclick="copyShippingAddress('${p.id}',${i})">${addrCopiedS?"Copied!":"📋 Copy Address"}</button><button class="btn btn-sm btn-pu" onclick="openPirateShip('${p.id}',${i})">🚢 Ship on PirateShip</button></div></div>`:"";
+        const addrHtmlS=k.shippingAddress?addrDisplayHtml(p.id,i):"";
         const isTrackingFlow=S.trackingFlow?.pid===p.id&&S.trackingFlow?.ki===i;
         const tUrl=k.trackingNumber?trackingUrl(k.trackingCarrier||"USPS",k.trackingNumber):null;
         const urlCopiedS=S.copied===`trkurl_${p.id}_${i}`;
@@ -3348,7 +3377,7 @@ window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=execu
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
 window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;
-window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;window.copyDibsMessage=copyDibsMessage;window.buildDibsMessage=buildDibsMessage;window.lookupZip=lookupZip;window.copyShippingAddress=copyShippingAddress;window.openPirateShip=openPirateShip;window.fmtAddress=fmtAddress;window.markShipped=markShipped;window.markDelivered=markDelivered;window.markConfirmedTrade=markConfirmedTrade;window.kShipStatus=kShipStatus;window.copyTrackingLink=copyTrackingLink;window.startTracking=startTracking;window.cancelTracking=cancelTracking;window.saveTracking=saveTracking;
+window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;window.copyDibsMessage=copyDibsMessage;window.buildDibsMessage=buildDibsMessage;window.lookupZip=lookupZip;window.copyShippingAddress=copyShippingAddress;window.copyShippingName=copyShippingName;window.copyShippingAddrOnly=copyShippingAddrOnly;window.addrDisplayHtml=addrDisplayHtml;window.openPirateShip=openPirateShip;window.fmtAddress=fmtAddress;window.fmtAddrNoName=fmtAddrNoName;window.markShipped=markShipped;window.markDelivered=markDelivered;window.markConfirmedTrade=markConfirmedTrade;window.kShipStatus=kShipStatus;window.copyTrackingLink=copyTrackingLink;window.startTracking=startTracking;window.cancelTracking=cancelTracking;window.saveTracking=saveTracking;
 window.markPending=markPending;window.markInvPending=markInvPending;
 window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
 window.renderTutorialModal=renderTutorialModal;window.renderAboutModal=renderAboutModal;window.renderCloudinaryModal=renderCloudinaryModal;window.renderCloudinaryStatus=renderCloudinaryStatus;
