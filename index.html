@@ -150,7 +150,10 @@ textarea{resize:vertical;line-height:1.55}
 .ts-gate-title{font-size:13px;font-weight:700;color:var(--oranget);margin-bottom:8px}
 .ts-gate-body{font-size:12.5px;color:var(--t2);line-height:1.6;margin-bottom:8px}
 .ts-gate-stamp{display:inline-block;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--t1);background:var(--card);border:.5px solid var(--b1);border-radius:6px;padding:4px 12px;margin-top:5px;letter-spacing:.01em}
-.ts-gate-hint{font-size:11px;color:var(--t3)}
+.ts-gate-hint{font-size:11px;color:var(--t3);margin-bottom:10px}
+.ts-inline-row{display:flex;gap:8px;margin-top:4px}
+.ts-inline-input{flex:1;background:var(--card);border:.5px solid var(--b1);border-radius:7px;padding:7px 11px;font-size:12.5px;color:var(--t1);outline:none}
+.ts-inline-input:focus{border-color:var(--acc)}
 button:disabled{opacity:.35;cursor:not-allowed}
 .pc-meta{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap}
 .pmeta{font-size:11px;font-weight:500;color:var(--t4)}
@@ -1751,6 +1754,12 @@ function addTimestampToPreflight(pid){
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;if(!p.photos.includes(url))p.photos.push(url);p.postText=buildPost(p);});
   save();render();
 }
+function addTimestampInline(pid){
+  const url=(document.getElementById("ts-inline-"+pid)?.value||"").trim();
+  if(!url||!url.startsWith("http")){alert("Please enter a valid URL starting with http");return;}
+  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;if(!p.photos.includes(url))p.photos.push(url);p.postText=buildPost(p);});
+  save();render();
+}
 async function copyFromPreflight(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
   try{await navigator.clipboard.writeText(p.postText||"");}catch(e){}
@@ -2467,7 +2476,7 @@ function renderList(){
       const tsUser=SETTINGS.username||"yourusername";
       const tsLabel=`u/${tsUser} - ${today}`;
       const postBox=!hasPhotos
-        ?`<div class="ts-gate"><div class="ts-gate-icon">📸</div><div class="ts-gate-title">Timestamp required before posting</div><div class="ts-gate-body">Take a photo of all your knives with a handwritten note that reads:<br><span class="ts-gate-stamp">${esc(tsLabel)}</span></div><div class="ts-gate-hint">Upload or link it in the Photos &amp; Timestamp section when you scroll down</div></div>`
+        ?`<div class="ts-gate"><div class="ts-gate-icon">📸</div><div class="ts-gate-title">Timestamp required before posting</div><div class="ts-gate-body">Take a photo of all your knives with a handwritten note that reads:<br><span class="ts-gate-stamp">${esc(tsLabel)}</span></div><div class="ts-gate-hint">Already have your timestamp photo? Paste the URL below to unlock your post.</div><div class="ts-inline-row"><input id="ts-inline-${p.id}" type="url" class="ts-inline-input" placeholder="https://i.imgur.com/… or Cloudinary URL" /><button class="btn btn-pri btn-sm" onclick="addTimestampInline('${p.id}')">Add ↑</button></div></div>`
         :isRaw
           ?`<div class="post-box">${esc(p.postText||"")}</div>`
           :`<div class="post-box preview">${renderMd(p.postText||"")}</div>`;
