@@ -1861,9 +1861,18 @@ function render(){
           ring.id='__tour_ring__';
           ring.style.cssText=`position:fixed;top:${r.top-pad}px;left:${r.left-pad}px;width:${r.width+pad*2}px;height:${r.height+pad*2}px;border:2.5px solid #0a84ff;border-radius:10px;pointer-events:none;z-index:9998;box-shadow:0 0 0 5px rgba(10,132,255,.18),0 0 20px rgba(10,132,255,.25);animation:tourRing .3s ease`;
           document.body.appendChild(ring);
-          // Step 4 (price research): auto-run search so results are live for the demo
-          if(S.tour===3&&S.priceResearch?.status==='idle'&&S.kf?.brand&&S.kf?.model){
-            setTimeout(doFetchPriceResearch,300);
+          // Step 4 (price research): inject pre-baked demo results — no network call,
+          // so it always works regardless of Reddit rate limits or CORS from the host origin.
+          if(S.tour===3&&S.priceResearch?.status==='idle'){
+            const now=new Date();const yr=now.getFullYear();
+            const mo=now.toLocaleString('en-US',{month:'short'});
+            S.priceResearch={status:'done',query:'Spyderco Para Military 2',querySteel:'Spyderco "Para" S30V',searchedWithSteel:true,results:[
+              {title:'[WTS] Spyderco Para Military 2 S30V — sprint run',url:'https://www.reddit.com/r/Knife_Swap/comments/demo1/',author:'ExampleSeller1',date:mo+' 5, '+yr,prices:['$155','$140'],isSold:true,isWTT:false,isWTB:false,flair:'Sold/traded',steelMatch:true,isRelevant:true,mentionsAnchor:true,score:14,isRecent:true},
+              {title:'[WTS] Spyderco PM2 S30V — excellent condition',url:'https://www.reddit.com/r/Knife_Swap/comments/demo2/',author:'ExampleSeller2',date:mo+' 2, '+yr,prices:['$145'],isSold:true,isWTT:false,isWTB:false,flair:'Sold/traded',steelMatch:true,isRelevant:true,mentionsAnchor:true,score:14,isRecent:true},
+              {title:'[WTS] Spyderco Para Military 2 — lightly used',url:'https://www.reddit.com/r/Knife_Swap/comments/demo3/',author:'ExampleSeller3',date:mo+' 1, '+yr,prices:['$150','$130'],isSold:false,isWTT:false,isWTB:false,flair:'',steelMatch:true,isRelevant:true,mentionsAnchor:true,score:12,isRecent:true},
+              {title:'[WTS] Para Military 2 Maxamet — green handle',url:'https://www.reddit.com/r/Knife_Swap/comments/demo4/',author:'ExampleSeller4',date:'Feb 28, '+yr,prices:['$185'],isSold:true,isWTT:false,isWTB:false,flair:'Sold/traded',steelMatch:false,isRelevant:true,mentionsAnchor:true,score:10,isRecent:true},
+            ]};
+            render();
           }
         },delay);
       }
