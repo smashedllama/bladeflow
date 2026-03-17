@@ -180,8 +180,56 @@ textarea{resize:vertical;line-height:1.55}
 .tour-acts{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .tour-nav{display:flex;gap:8px}
 .tour-demo-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;background:var(--bluebg);color:var(--bluet);border-radius:20px;padding:3px 10px;margin-bottom:10px}
-/* spotlight ring applied to targeted elements */
-.tour-spotlight{outline:2.5px solid var(--acc)!important;outline-offset:3px;border-radius:6px;box-shadow:0 0 0 6px rgba(10,132,255,.12)!important;transition:outline .2s,box-shadow .2s}
+@keyframes tourRing{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+/* ─── App-wide animations ─── */
+/* View slide-up when switching tabs — class added via JS only on tab change */
+@keyframes viewIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+.main.view-entering{animation:viewIn .23s cubic-bezier(.25,.46,.45,.94) both}
+/* Modal entrance */
+@keyframes modalOverlayIn{from{opacity:0}to{opacity:1}}
+@keyframes modalPanelIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-overlay{animation:modalOverlayIn .18s ease both}
+.modal{animation:modalPanelIn .26s cubic-bezier(.34,1.56,.64,1) both}
+/* Post card body expand */
+@keyframes pcBodyIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.pc-body{animation:pcBodyIn .2s cubic-bezier(.25,.46,.45,.94) both}
+/* Price research rows stagger in */
+@keyframes prRowIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+.pr-row{animation:prRowIn .16s ease both}
+.pr-row:nth-child(2){animation-delay:22ms}
+.pr-row:nth-child(3){animation-delay:44ms}
+.pr-row:nth-child(4){animation-delay:66ms}
+.pr-row:nth-child(n+5){animation-delay:88ms}
+/* Locker (Roll) card entrance — transform-only so re-renders feel like a snap, not a flash */
+@keyframes lkCardIn{from{transform:scale(.97) translateY(5px)}to{transform:scale(1) translateY(0)}}
+.lk-card:nth-child(1){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) both}
+.lk-card:nth-child(2){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .04s both}
+.lk-card:nth-child(3){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .08s both}
+.lk-card:nth-child(4){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .12s both}
+.lk-card:nth-child(n+5){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .16s both}
+/* Post card entrance */
+@keyframes pcIn{from{transform:translateY(6px)}to{transform:translateY(0)}}
+.pc:nth-child(1){animation:pcIn .2s ease both}
+.pc:nth-child(2){animation:pcIn .2s ease .05s both}
+.pc:nth-child(3){animation:pcIn .2s ease .10s both}
+.pc:nth-child(n+4){animation:pcIn .2s ease .15s both}
+/* Knife row stagger inside listings */
+@keyframes krowIn{from{transform:translateY(4px)}to{transform:translateY(0)}}
+.krow:nth-child(1){animation:krowIn .16s ease both}
+.krow:nth-child(2){animation:krowIn .16s ease .04s both}
+.krow:nth-child(3){animation:krowIn .16s ease .08s both}
+.krow:nth-child(n+4){animation:krowIn .16s ease .12s both}
+/* Checklist items — opacity allowed here, form is opened intentionally */
+@keyframes clItemIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+.cl-item:nth-child(1){animation:clItemIn .16s ease both}
+.cl-item:nth-child(2){animation:clItemIn .16s ease .03s both}
+.cl-item:nth-child(3){animation:clItemIn .16s ease .06s both}
+.cl-item:nth-child(4){animation:clItemIn .16s ease .09s both}
+.cl-item:nth-child(n+5){animation:clItemIn .16s ease .12s both}
+/* Undo / flair toast slide-up */
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.undo-toast{animation:toastIn .22s cubic-bezier(.34,1.56,.64,1) both}
+.flair-toast{animation:toastIn .22s cubic-bezier(.34,1.56,.64,1) both}
 button:disabled{opacity:.35;cursor:not-allowed}
 .pc-meta{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap}
 .pmeta{font-size:11px;font-weight:500;color:var(--t4)}
@@ -1774,13 +1822,39 @@ function render(){
   const toastHtml=S.undoToast?`<div class="undo-toast">↩ ${esc(S.undoToast)} <button class="undo-toast-btn" onclick="undoLast()">Undo</button></div>`:"";
   const flairToastHtml=S.flairToast?`<div class="flair-toast">${esc(S.flairToast)}</div>`:"";
   document.getElementById("root").innerHTML=view+(S.modal?renderModal(S.modal):"")+toastHtml+flairToastHtml+(S.tour!=null?renderTourCard():"");
+  // Animate main content when switching views
+  if(S._prevView!==S.view){
+    const m=document.querySelector('.main');
+    if(m){m.classList.add('view-entering');setTimeout(()=>m.classList.remove('view-entering'),260);}
+    S._prevView=S.view;
+  }
   updateModelList();
-  // Apply spotlight to tour target element
+  // Tour spotlight: fixed-position ring overlay so overflow:hidden on parents never clips it
+  const oldRing=document.getElementById('__tour_ring__');if(oldRing)oldRing.remove();
   if(S.tour!=null){
     const step=TOUR_STEPS[S.tour];
     if(step&&step.target){
       const el=document.querySelector(step.target);
-      if(el){el.classList.add('tour-spotlight');el.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});}
+      if(el){
+        // Longer delay when knife form just opened (has a .44s unfurl animation)
+        const delay=step.kfOpen?520:250;
+        setTimeout(()=>{
+          const el2=document.querySelector(step.target);
+          if(!el2)return;
+          // Instant scroll is synchronous — measure right after, no nested timeout needed
+          el2.scrollIntoView({behavior:'instant',block:'center',inline:'nearest'});
+          const r=el2.getBoundingClientRect();
+          const pad=6;
+          const ring=document.createElement('div');
+          ring.id='__tour_ring__';
+          ring.style.cssText=`position:fixed;top:${r.top-pad}px;left:${r.left-pad}px;width:${r.width+pad*2}px;height:${r.height+pad*2}px;border:2.5px solid #0a84ff;border-radius:10px;pointer-events:none;z-index:9998;box-shadow:0 0 0 5px rgba(10,132,255,.18),0 0 20px rgba(10,132,255,.25);animation:tourRing .3s ease`;
+          document.body.appendChild(ring);
+          // Step 4 (price research): auto-run search so results are live for the demo
+          if(S.tour===3&&S.priceResearch?.status==='idle'&&S.kf?.brand&&S.kf?.model){
+            setTimeout(doFetchPriceResearch,300);
+          }
+        },delay);
+      }
     }
   }
 }
@@ -2844,12 +2918,12 @@ const TOUR_STEPS=[
 
   {icon:"✅",title:"Auto-Ticking Knife Checklist",
    body:"The knife form has a live checklist at the bottom. Every field you fill in — Brand, Model, Steel, Price, and Knife Photos — ticks green instantly when you tab out. Advisory only; you can still save without completing every item.",
-   target:'.cl',
+   target:'.cl',kfOpen:true,
    nav:s=>{s.view='roll';s.modal=null;_tourOpenKnife(s);}},
 
   {icon:"📊",title:"Price Research — Real r/Knife_Swap Comps",
    body:"Hit 🔍 Search r/Knife_Swap while editing a knife to pull real sold listings. The tool scans up to 100 recent posts, filters by steel, and shows avg/median prices so you can price competitively.",
-   target:'.pr-btn',
+   target:'.pr-btn',kfOpen:true,
    nav:s=>{s.view='roll';s.modal=null;_tourOpenKnife(s);}},
 
   {icon:"📝",title:"Your Generated Listing",
@@ -3395,7 +3469,7 @@ function checkPostRules(pid){
   const activeKnives=p.knives.filter(k=>!k.sold);
   const charLen=txt.length;
   return[
-    {ok:txt.includes("http"),msg:"Timestamp photo link in post"},
+    {ok:(p.photos||[]).filter(Boolean).length>0,msg:"Timestamp photo link in post"},
     {ok:activeKnives.filter(k=>k.knifeType!=="WTT").every(k=>k.price&&k.price.length>0),msg:"All WTS knives have a price"},
     {ok:p.payment&&p.payment.length>0,msg:"Payment method specified"},
     {ok:(p.postType||"").startsWith("["),msg:"Post type in title (e.g. [WTS])"},
