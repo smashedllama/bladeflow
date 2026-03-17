@@ -165,6 +165,23 @@ textarea{resize:vertical;line-height:1.55}
 .cl-label{flex:1;line-height:1.4}
 .cl-all-good{font-size:11.5px;color:var(--greent);font-weight:600;margin-top:8px;padding-top:8px;border-top:.5px solid var(--b2)}
 .btn-gen:disabled,.btn-gen[disabled]{opacity:.4;cursor:not-allowed;pointer-events:none}
+/* ─── Interactive Tour ─── */
+.tour-card{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);width:min(480px,92vw);background:var(--card);border:.5px solid var(--b1);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.22);padding:20px 22px 16px;z-index:9999;animation:tourIn .25s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes tourIn{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.tour-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.tour-steps{font-size:10.5px;font-weight:700;color:var(--t4);letter-spacing:.06em;text-transform:uppercase}
+.tour-end{font-size:11px;color:var(--t4);background:none;border:none;cursor:pointer;padding:0;font-family:var(--font)}
+.tour-end:hover{color:var(--redt)}
+.tour-progress{height:3px;background:var(--b2);border-radius:3px;margin-bottom:14px;overflow:hidden}
+.tour-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--blue));border-radius:3px;transition:width .3s ease}
+.tour-icon{font-size:26px;margin-bottom:6px}
+.tour-title{font-size:15px;font-weight:700;color:var(--t1);margin-bottom:8px;line-height:1.3}
+.tour-body{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:16px}
+.tour-acts{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tour-nav{display:flex;gap:8px}
+.tour-demo-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;background:var(--bluebg);color:var(--bluet);border-radius:20px;padding:3px 10px;margin-bottom:10px}
+/* spotlight ring applied to targeted elements */
+.tour-spotlight{outline:2.5px solid var(--acc)!important;outline-offset:3px;border-radius:6px;box-shadow:0 0 0 6px rgba(10,132,255,.12)!important;transition:outline .2s,box-shadow .2s}
 button:disabled{opacity:.35;cursor:not-allowed}
 .pc-meta{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap}
 .pmeta{font-size:11px;font-weight:500;color:var(--t4)}
@@ -760,7 +777,7 @@ async function saveSettings(){
 const EK=()=>({brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge, carried",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],accessories:["None"],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const ED=()=>({postType:"[WTS]",knives:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",tradeInterests:SETTINGS.tradeInterests||"",shippingCarrier:SETTINGS.shippingCarrier||"USPS"});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold"};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold",tour:null};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -1756,8 +1773,16 @@ function render(){
     renderList();
   const toastHtml=S.undoToast?`<div class="undo-toast">↩ ${esc(S.undoToast)} <button class="undo-toast-btn" onclick="undoLast()">Undo</button></div>`:"";
   const flairToastHtml=S.flairToast?`<div class="flair-toast">${esc(S.flairToast)}</div>`:"";
-  document.getElementById("root").innerHTML=view+(S.modal?renderModal(S.modal):"")+toastHtml+flairToastHtml;
+  document.getElementById("root").innerHTML=view+(S.modal?renderModal(S.modal):"")+toastHtml+flairToastHtml+(S.tour!=null?renderTourCard():"");
   updateModelList();
+  // Apply spotlight to tour target element
+  if(S.tour!=null){
+    const step=TOUR_STEPS[S.tour];
+    if(step&&step.target){
+      const el=document.querySelector(step.target);
+      if(el){el.classList.add('tour-spotlight');el.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});}
+    }
+  }
 }
 function openPreflight(pid){S.preflight=pid;S.modal="preflight";render();}
 function closePreflight(){S.modal=null;S.preflight=null;render();}
@@ -2227,6 +2252,13 @@ function renderTutorialModal(){
     :`<button class="btn btn-pri btn-sm" onclick="localStorage.setItem('ks-tutorial-done','1');S.modal=null;render()">Close</button>`;
   return`<div class="tut-overlay" onclick="event.stopPropagation()">
   <div class="tut-card" onclick="event.stopPropagation()">
+    <div style="background:linear-gradient(135deg,var(--acc),var(--blue));border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:3px">NEW — Click-Through Tour</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;line-height:1.3">Walk through the app with live demo data</div>
+      </div>
+      <button class="btn btn-sm" style="background:#fff;color:var(--acc);font-weight:700;white-space:nowrap;flex-shrink:0" onclick="S.modal=null;startTour()">🎬 Start Tour</button>
+    </div>
     <div class="tut-icon">${step.icon}</div>
     <div class="tut-body">
       <div class="tut-phase">${step.phase}</div>
@@ -2420,7 +2452,7 @@ function renderList(){
   const sk=s.posts.reduce((n,p)=>n+p.knives.filter(k=>k.sold).length,0);
   const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold).reduce((a,k)=>a+parseFloat(k.price||0),0),0);
   const hdr=mainHdr();
-  if(!s.posts.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">📋</div><div class="empty-h">No listings yet</div><div class="empty-p">Create your first r/Knife_Swap post. Add a single knife or bundle several into one listing.</div><button class="btn btn-pri" onclick="startCompose()">+ Create First Listing</button></div></div>`;
+  if(!s.posts.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">📋</div><div class="empty-h">No listings yet</div><div class="empty-p">Create your first r/Knife_Swap post. Add a single knife or bundle several into one listing.</div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn btn-pri" onclick="startCompose()">+ Create First Listing</button><button class="btn btn-sec" onclick="startTour()">🎬 Take the Tour</button></div></div></div>`;
   const stats=`<div class="stats"><div class="stat"><div class="stat-n blue">${ak}</div><div class="stat-l">Active</div></div><div class="stat"><div class="stat-n green">${sk}</div><div class="stat-l">Sold</div></div>${val>0?`<div class="stat"><div class="stat-n orange">$${Math.round(val)}</div><div class="stat-l">Listed</div></div>`:""}<div class="stat"><div class="stat-n">${s.posts.length}</div><div class="stat-l">Posts</div></div><div class="stat"><div class="stat-n purple">${s.inventory.length}</div><div class="stat-l">The Roll</div></div><div class="stats-acts"><button class="btn btn-pri btn-sm" onclick="startCompose()">+ New Listing</button></div></div>`;
   const moving=s.movingKnife;
   const allCards=s.posts.map(p=>{
@@ -2787,7 +2819,154 @@ function renderSold(){
   return hdr+`<div class="main">${stats}${completedSection}${historySection}</div>`;
 }
 
-/// ─── CHECKLISTS ───────────────────────────────────────────────
+// ─── INTERACTIVE TOUR ─────────────────────────────────────────
+const TOUR_DEMO_ID='__ks_tour__';
+const TOUR_STEPS=[
+  {icon:"👋",title:"Welcome to KnifeSwap Post Generator",
+   body:"We've loaded 3 demo knives and a sample listing so you can see the tool in action. This 10-step tour walks through the full workflow — from adding a knife to shipped.",
+   target:null,nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.modal=null;}},
+  {icon:"📋",title:"The Roll — Your Knife Locker",
+   body:"The Roll stores all your knives. These 3 demo knives are ready to list: a Spyderco PM2, Benchmade Bugout, and CRK Sebenza 31. Each card shows steel, price, condition, and listing status.",
+   target:'.lk-grid',nav:s=>{s.view='roll';s.kfOpen=false;s.modal=null;}},
+  {icon:"✅",title:"Auto-Ticking Knife Checklist",
+   body:"Tap Edit on any knife to see the live checklist: Brand, Model, Steel, Price, and Knife Photos. Items tick green as you fill them in. Advisory only — you can still save an incomplete knife.",
+   target:'.lk-card',nav:s=>{s.view='roll';s.kfOpen=false;s.modal=null;}},
+  {icon:"📊",title:"Price Research — r/Knife_Swap Comps",
+   body:"Inside the knife form, hit 🔍 Search r/Knife_Swap to pull real sold comps. The tool scans post titles and bodies, filters by steel, and shows avg/median prices from up to 100 recent listings.",
+   target:'.lk-card',nav:s=>{s.view='roll';s.kfOpen=false;s.modal=null;}},
+  {icon:"📝",title:"Your Generated Listing",
+   body:"Here's the demo listing with all 3 knives. Expand it to see the auto-generated post text. Four templates available: Detailed, Compact, Minimal, and Table — switch anytime.",
+   target:'.pc',nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.modal=null;}},
+  {icon:"🛡️",title:"Auto Rule Checker",
+   body:"These tags validate your post against r/Knife_Swap rules in real time: timestamp, payment method, pricing. A red ✗ tag blocks posting — fix the issue and it flips green automatically.",
+   target:'.rule-tags',nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.modal=null;}},
+  {icon:"📸",title:"Timestamp — Required by the Sub",
+   body:"Every r/Knife_Swap post needs a photo of your knives with your Reddit username + today's date handwritten. Paste the URL right here in the warning box — the listing unlocks instantly.",
+   target:'.ts-gate',nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.modal=null;}},
+  {icon:"🚀",title:"Pre-flight Check Before Posting",
+   body:"Clicking Copy Post opens the pre-flight checklist. Every rule is validated and you must confirm you've read the subreddit rules. Only then does the post text unlock for copying.",
+   target:'.pc-acts',nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.modal=null;}},
+  {icon:"🔴",title:"Mark Sold & Capture Shipping Info",
+   body:"When a knife sells, hit 🔴 Sold on the knife row. The sold form captures the buyer's Reddit username and shipping address — ZIP auto-fills city and state for quick entry.",
+   target:'.krow',nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.modal=null;}},
+  {icon:"📦",title:"Shipping Pipeline",
+   body:"The Shipping tab organizes sold knives into 4 stages: Ready to Ship → In Transit → Delivered → Confirmed. Add tracking numbers, copy buyer links, or jump to PirateShip for discounted labels.",
+   target:null,nav:s=>{s.view='shipping';s.modal=null;}},
+  {icon:"🎉",title:"You're all set!",
+   body:"That's the full lifecycle — from listing to shipped. Remove the demo data when you're ready, or start adding your real knives right now.",
+   target:null,nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.modal=null;},last:true},
+];
+
+function startTour(){
+  // Inject 3 demo knives into Roll (if not already there)
+  const hasDemoInv=S.inventory.some(k=>k._tourDemo);
+  let pm2Id,bugoutId,sebaId;
+  if(!hasDemoInv){
+    const now=new Date().toISOString();
+    pm2Id='__td_pm2__';bugoutId='__td_bugout__';sebaId='__td_seba__';
+    const demos=[
+      {...EI(),id:pm2Id,brand:"Spyderco",model:"Para Military 2",steel:"S30V",price:"145",knifeType:"WTS",bladeCondition:"Factory edge, carried",carried:"Yes",usedCut:"No",sharpened:"No",status:"available",createdAt:now,photos:["https://i.imgur.com/demo_pm2.jpg"],_tourDemo:true},
+      {...EI(),id:bugoutId,brand:"Benchmade",model:"Bugout 535",steel:"S30V",price:"110",knifeType:"WTS",bladeCondition:"Factory edge, carried",carried:"Yes",usedCut:"No",sharpened:"No",status:"available",createdAt:now,photos:["https://i.imgur.com/demo_bugout.jpg"],_tourDemo:true},
+      {...EI(),id:sebaId,brand:"Chris Reeve Knives",model:"Sebenza 31 Large",steel:"MagnaCut",price:"395",knifeType:"WTS/WTT",tradeValue:"395",bladeCondition:"Mint / uncarried",carried:"No",usedCut:"No",sharpened:"No",status:"available",createdAt:now,photos:["https://i.imgur.com/demo_seba.jpg"],_tourDemo:true},
+    ];
+    S.inventory=[...demos,...S.inventory];
+  }else{
+    pm2Id=S.inventory.find(k=>k._tourDemo&&k.model.includes("Para"))?.id||'__td_pm2__';
+    bugoutId=S.inventory.find(k=>k._tourDemo&&k.model.includes("Bugout"))?.id||'__td_bugout__';
+    sebaId=S.inventory.find(k=>k._tourDemo&&k.model.includes("Sebenza"))?.id||'__td_seba__';
+  }
+  // Inject demo listing (if not already there)
+  const hasDemoPost=S.posts.some(p=>p.id===TOUR_DEMO_ID);
+  if(!hasDemoPost){
+    const now2=new Date().toISOString();
+    const demoPm2=S.inventory.find(k=>k.id===pm2Id)||{brand:"Spyderco",model:"Para Military 2",steel:"S30V",price:"145",...EK()};
+    const demoBugout=S.inventory.find(k=>k.id===bugoutId)||{brand:"Benchmade",model:"Bugout 535",steel:"S30V",price:"110",...EK()};
+    const demoPm2K={...JSON.parse(JSON.stringify(demoPm2)),inventoryId:pm2Id,knifeType:"WTS",pending:false,sold:false};
+    const demoBugoutK={...JSON.parse(JSON.stringify(demoBugout)),inventoryId:bugoutId,knifeType:"WTS",pending:false,sold:false};
+    // Sebenza — add from inventory clone
+    const demaSeba=S.inventory.find(k=>k.id===sebaId)||{brand:"Chris Reeve Knives",model:"Sebenza 31 Large",steel:"MagnaCut",price:"395",...EK()};
+    const demoSebaK={...JSON.parse(JSON.stringify(demaSeba)),inventoryId:sebaId,knifeType:"WTS/WTT",tradeValue:"395",pending:false,sold:false};
+    const demoPost={
+      id:TOUR_DEMO_ID,createdAt:now2,variant:0,
+      postType:"[WTS/WTT]",
+      knives:[demoPm2K,demoBugoutK,demoSebaK],
+      payment:["PayPal G&S","Venmo"],
+      paymentOther:"",noShip:[],noShipOther:"",
+      repost:false,photos:[],  // no timestamp — to show the warning
+      notes:"Demo listing — created by the interactive tour",
+      rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",
+      tradeInterests:"Hinderer XM-18, Microtech Ultratech",
+      shippingCarrier:"USPS",_tourDemo:true,
+    };
+    demoPost.postText=buildPost(demoPost,0);
+    S.posts=[demoPost,...S.posts];
+  }
+  saveInv();save();
+  S.tour=0;
+  S.view='list';S.expanded=TOUR_DEMO_ID;S.modal=null;
+  render();
+}
+
+function tourNav(step){
+  if(!step)return;
+  Object.assign(S,{});
+  step.nav(S);
+}
+
+function nextTourStep(){
+  if(S.tour==null)return;
+  const next=S.tour+1;
+  if(next>=TOUR_STEPS.length){endTour(true);return;}
+  S.tour=next;
+  tourNav(TOUR_STEPS[next]);
+  render();
+}
+function prevTourStep(){
+  if(S.tour==null||S.tour===0)return;
+  S.tour--;
+  tourNav(TOUR_STEPS[S.tour]);
+  render();
+}
+function endTour(keepData){
+  if(!keepData){
+    S.inventory=S.inventory.filter(k=>!k._tourDemo);
+    S.posts=S.posts.filter(p=>!p._tourDemo);
+    if(S.expanded===TOUR_DEMO_ID)S.expanded=null;
+    saveInv();save();
+  }
+  S.tour=null;
+  render();
+}
+
+function renderTourCard(){
+  if(S.tour==null)return"";
+  const step=TOUR_STEPS[S.tour];
+  const total=TOUR_STEPS.length;
+  const pct=Math.round(((S.tour+1)/total)*100);
+  const isFirst=S.tour===0;
+  const isLast=!!step.last;
+  return`<div class="tour-card">
+    <div class="tour-bar">
+      <span class="tour-steps">Step ${S.tour+1} of ${total}</span>
+      <button class="tour-end" onclick="endTour(false)" title="End tour &amp; remove demo data">✕ End tour</button>
+    </div>
+    <div class="tour-progress"><div class="tour-fill" style="width:${pct}%"></div></div>
+    <div class="tour-demo-badge">🎬 Interactive Tour · Demo data loaded</div>
+    <div class="tour-icon">${step.icon}</div>
+    <div class="tour-title">${step.title}</div>
+    <div class="tour-body">${step.body}</div>
+    <div class="tour-acts">
+      <div class="tour-nav">
+        ${!isFirst?`<button class="btn btn-sec btn-sm" onclick="prevTourStep()">← Back</button>`:`<span></span>`}
+        ${!isLast
+          ?`<button class="btn btn-pri btn-sm" onclick="nextTourStep()">Next →</button>`
+          :`<div style="display:flex;gap:8px"><button class="btn btn-gn btn-sm" onclick="endTour(true)">Keep Exploring</button><button class="btn btn-sec btn-sm" onclick="endTour(false)">Remove Demo Data</button></div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── CHECKLISTS ───────────────────────────────────────────────
 function kfChecklist(f){
   const kt=f.knifeType||"WTS";
   const items=[
@@ -2954,7 +3133,7 @@ function renderSettings(){
   <div class="settings-section-lbl">About</div>
   <div class="sgroup">
     <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.1 - ${BRANDS.length} brands, ${STEELS.length} steels</div></div>
-    <div class="srow"><div class="srow-lbl">Help</div><div class="srow-ctrl"><button class="btn btn-am btn-sm" onclick="S.modal='tutorial';S.tutStep=0;render()">📖 View Tutorial</button><button class="btn btn-sec btn-sm" onclick="S.modal='about';S.aboutTab='about';render()">ℹ️ About &amp; FAQ</button><button class="btn btn-sec btn-sm" onclick="S.modal='feedback';S.feedbackTab='bug';render()">✉️ Feedback</button></div></div>
+    <div class="srow"><div class="srow-lbl">Help</div><div class="srow-ctrl" style="flex-wrap:wrap;gap:6px"><button class="btn btn-pri btn-sm" onclick="S.view='list';startTour()">🎬 Interactive Tour</button><button class="btn btn-am btn-sm" onclick="S.modal='tutorial';S.tutStep=0;render()">📖 Tutorial</button><button class="btn btn-sec btn-sm" onclick="S.modal='about';S.aboutTab='about';render()">ℹ️ FAQ</button><button class="btn btn-sec btn-sm" onclick="S.modal='feedback';S.feedbackTab='bug';render()">✉️ Feedback</button></div></div>
     <div class="srow"><div><div class="srow-lbl">Built by</div><div class="srow-sub">u/smashedllama2 — free tool for the r/Knife_Swap community</div></div><div class="srow-ctrl"><a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#FFDD00;color:#000;font-size:12px;font-weight:700;padding:7px 13px;border-radius:8px;text-decoration:none;white-space:nowrap">☕ Buy me a coffee</a></div></div>
     <div class="srow" style="flex-wrap:wrap;gap:10px"><div style="flex:1;min-width:200px"><div class="srow-lbl">Photo Hosting</div><div class="srow-sub">Drag-and-drop uploads via your own free <a href="https://cloudinary.com" target="_blank" style="color:var(--blue);text-decoration:none">Cloudinary</a> account. Photos go directly from your browser to your account — never through our servers. Stored with <strong>AES-256</strong> at rest, <strong>TLS 1.2+</strong> in transit.</div></div><div class="srow-ctrl" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${sv.cloudinaryCloud&&sv.cloudinaryPreset?`<span style="font-size:11px;font-weight:600;color:var(--greent);background:var(--greenbg);padding:4px 9px;border-radius:20px">✅ Connected</span>`:`<span style="font-size:11px;font-weight:600;color:var(--oranget);background:var(--orangebg);padding:4px 9px;border-radius:20px">Setup needed</span>`}<button class="btn btn-sec btn-sm" onclick="S.modal='cloudinary';render()">📖 Setup Guide</button></div></div>
     <div class="srow"><div><div class="srow-lbl">Cloud Name</div><div class="srow-sub">Your Cloudinary cloud name (dashboard, top-left).</div></div><div class="srow-ctrl"><input type="text" style="width:170px;min-width:170px;font-size:13px;padding:7px 10px" value="${esc(sv.cloudinaryCloud||"")}" placeholder="e.g. dxyz12abc" onchange="SETTINGS.cloudinaryCloud=this.value.trim();saveSettings()"/></div></div>
@@ -2999,6 +3178,7 @@ window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;wind
 window.markPending=markPending;window.markInvPending=markInvPending;
 window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
 window.renderTutorialModal=renderTutorialModal;window.renderAboutModal=renderAboutModal;window.renderCloudinaryModal=renderCloudinaryModal;window.renderCloudinaryStatus=renderCloudinaryStatus;
+window.startTour=startTour;window.nextTourStep=nextTourStep;window.prevTourStep=prevTourStep;window.endTour=endTour;
 window.autoPostType=autoPostType;window.buildTitleStr=buildTitleStr;window.doFetchPriceResearch=doFetchPriceResearch;window.clearPriceResearch=clearPriceResearch;window.applyPriceFromResearch=applyPriceFromResearch;
 
 // ─── KEYBOARD SHORTCUTS ───────────────────────────────────
