@@ -2217,7 +2217,7 @@ function renderTutorialModal(){
   const tip=(head,body)=>`<div class="tut-tip"><strong>${head}</strong>${body}</div>`;
   const steps=[
     // 0 — Welcome
-    {phase:"Welcome",icon:"🔪",title:"Welcome to BladeFlow",
+    {phase:"Welcome",icon:`<img src="/bladeflow/icon.svg" width="72" height="72" style="border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,.22)" alt="BladeFlow"/>`,title:"Welcome to BladeFlow",
      body:`A free tool built for <a href='https://www.reddit.com/r/Knife_Swap/' target='_blank' rel='noopener' style='color:var(--blue)'>r/Knife_Swap</a> by u/smashedllama2. It handles all the tedious parts of selling knives on Reddit so you can focus on the knives.<br><br>
      This walkthrough covers everything from first-time setup to closing a confirmed trade. Takes about 3 minutes.
      ${preview(`<strong style="color:var(--t1)">What we cover:</strong>
@@ -3476,6 +3476,11 @@ function renderSettings(){
   const hdr=`<div class="hdr"><div class="hdr-logo" onclick="S.view='list';render()"><img src="/bladeflow/icon.svg" width="30" height="30" style="border-radius:8px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.28)" alt="BladeFlow"/><div><div class="hdr-title">Settings</div><div class="hdr-sub">Defaults &amp; preferences</div></div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="S.view='list';render()">Done</button></div></div>`;
   return`<div class="app">${hdr}<div class="settings-main">
   <div class="save-notice${S.saveNotice?' on':''}">Settings saved</div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px 0 28px">
+    <img src="/bladeflow/icon.svg" width="92" height="92" style="border-radius:22px;box-shadow:0 4px 20px rgba(0,0,0,.22)" alt="BladeFlow"/>
+    <div style="font-size:18px;font-weight:700;letter-spacing:-.3px;color:var(--t1)">BladeFlow</div>
+    <div style="font-size:12px;color:var(--t3)">r/Knife_Swap post generator</div>
+  </div>
   <div class="settings-section-lbl">Your Profile</div>
   <div class="sgroup">
     <div class="srow"><div><div class="srow-lbl">Reddit Username</div><div class="srow-sub">Added to generated posts (optional)</div></div><div class="srow-ctrl"><input type="text" style="max-width:180px;font-size:13px;padding:7px 10px" value="${esc(sv.username)}" placeholder="u/yourname" onchange="SETTINGS.username=this.value;saveSettings()"/></div></div>
