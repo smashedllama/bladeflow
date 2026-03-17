@@ -716,7 +716,7 @@ function tm(a,v){return a.includes(v)?a.filter(x=>x!==v):[...a,v]}
 function tmx(a,v,ex){if(v===ex)return[ex];const r=a.filter(x=>x!==ex);return r.includes(v)?r.filter(x=>x!==v):[...r,v]}
 
 // ─── SETTINGS ─────────────────────────────────────────────────
-const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,catboxHash:"",imgbbKey:"",postHeader:"",tradeInterests:"",rollAnim:false,cloudinaryCloud:"",cloudinaryPreset:"",shippingCarrier:"USPS"});
+const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,catboxHash:"",imgbbKey:"",postHeader:"",tradeInterests:"",rollAnim:false,cloudinaryCloud:"",cloudinaryPreset:"",shippingCarrier:"USPS",paymentLinks:{}});
 let SETTINGS=DS();
 async function loadSettings(){try{const r=await window.storage.get("ks_settings");if(r&&r.value)SETTINGS={...DS(),...JSON.parse(r.value)};}catch(e){}}
 async function saveSettings(){
@@ -1519,6 +1519,25 @@ function buildConfirmComment(pid,ki){
   const price=k.price?` for $${k.price}`:"";
   return`u/ksbot sold ${seller} and ${buyer}\n\nSold ${kStr}${price} to ${buyer}. Smooth transaction, highly recommend!`;
 }
+function buildDibsMessage(pid,ki){
+  const p=S.posts.find(x=>x.id===pid);if(!p)return"";
+  const k=p.knives[ki];if(!k)return"";
+  const kName=`${k.brand} ${k.model}`.trim()||"the knife";
+  const price=k.price?`$${k.price}`:"[price]";
+  const methods=(p.payment||[]).map(m=>m==="Other"&&p.paymentOther?p.paymentOther:m);
+  const links=SETTINGS.paymentLinks||{};
+  const PAY_PH={"PayPal G&S":"paypal.me/","PayPal F&F":"paypal.me/","Venmo":"@","Zelle":"","Cash App":"$","Apple Pay":""};
+  const methodLines=methods.map(m=>{const l=links[m];return l?`• ${m}: ${l}`:`• ${m}`;}).join("\n")||"• [configure payment links in Settings]";
+  const noNotesServices=methods.filter(m=>["Venmo","PayPal F&F","Cash App","Zelle","Apple Pay"].some(s=>m.includes(s.split(" ")[0])));
+  const noNotesLine=noNotesServices.length?`\n⚠️ Please do NOT add any notes to your payment — mentioning goods/knives in payment notes can flag or ban accounts on ${noNotesServices.slice(0,2).join(" and ")}.\n`:"";
+  return`The ${kName} is yours! 🎉\n\nPlease send ${price} via:\n${methodLines}\n${noNotesLine}\nOnce payment clears I'll get it packed up and shipped out right away. Thanks! 🙌`;
+}
+async function copyDibsMessage(pid,ki){
+  const txt=buildDibsMessage(pid,ki);if(!txt)return;
+  try{await navigator.clipboard.writeText(txt);}catch(e){}
+  S.copied="dibs_"+pid+"_"+ki;render();
+  setTimeout(()=>{if(S.copied==="dibs_"+pid+"_"+ki){S.copied=null;render();}},2000);
+}
 async function copyConfirmComment(pid,ki){
   const txt=buildConfirmComment(pid,ki);if(!txt)return;
   try{await navigator.clipboard.writeText(txt);}catch(e){}
@@ -2110,11 +2129,13 @@ function renderList(){
         const isSF=s.soldFlow&&s.soldFlow.pid===p.id&&s.soldFlow.ki===i;
         const ccKey=`cc_${p.id}_${i}`;
         const ccCopied=s.copied===ccKey;
+        const dibsKey=`dibs_${p.id}_${i}`;
+        const dibsCopied=s.copied===dibsKey;
         const soldToMeta=k.sold&&k.soldTo?` · Buyer: u/${esc(k.soldTo)}`:"";
         const sfHtml=isSF?`<div class="sold-flow"><div style="font-size:12px;font-weight:700;color:var(--greent);margin-bottom:9px">Who bought it?</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input id="sold-to-input" type="text" placeholder="Buyer's Reddit username (optional)" style="flex:1;min-width:160px;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none"/><button class="btn btn-gn btn-sm" onclick="confirmSoldFlow()">Confirm Sold</button><button class="btn btn-sec btn-sm" onclick="cancelSoldFlow()">Cancel</button></div><div style="font-size:11px;color:var(--greent);opacity:.8;margin-top:8px;line-height:1.5">Add their username to generate a confirmation comment for the <a href="https://www.reddit.com/r/Knife_Swap/search/?q=Confirmed+Trade+Thread&restrict_sr=1&sort=new&type=link" target="_blank" rel="noopener" style="color:inherit;font-weight:700;text-decoration:underline">Confirmed Trade Thread</a></div></div>`:"";
         const kDot=k.sold?"🔴":k.pending?"🟡":"🟢";
         const kRowClass=`krow${k.sold?" sold":k.pending?" pending-row":""}${isMoving?" moving":""}`;
-        return`<div class="${kRowClass}"><div class="krow-info"><div class="krow-name${k.sold?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">📷 ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${k.sold&&k.soldAt?" · Sold "+fmtD(k.soldAt):""}${soldToMeta}</div></div><span class="krow-price${k.sold?" s":""}">${knifePrice(k)}</span>${k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:`<button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})">🟢→🔴 Sold</button>`}${!k.sold&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${sfHtml}${picker}`;
+        return`<div class="${kRowClass}"><div class="krow-info"><div class="krow-name${k.sold?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">📷 ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${k.sold&&k.soldAt?" · Sold "+fmtD(k.soldAt):""}${soldToMeta}</div></div><span class="krow-price${k.sold?" s":""}">${knifePrice(k)}</span>${k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:`<button class="btn btn-sm${dibsCopied?" btn-gn":" btn-pu"}" onclick="copyDibsMessage('${p.id}',${i})" title="Copy dibs message to clipboard">${dibsCopied?"Copied!":"📬 Dibs Msg"}</button><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})">🟢→🔴 Sold</button>`}${!k.sold&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${sfHtml}${picker}`;
       }).join("");
       const da2=daysAgo(p.createdAt);
       const repostSection=pA>0?`<div class="repost-track">
@@ -2346,6 +2367,7 @@ function renderSettings(){
     <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px"><div><div class="srow-lbl">Custom Post Header</div><div class="srow-sub" style="line-height:1.5;max-width:380px">Personal intro text that appears at the top of every generated post — your rules, trade interests disclaimer, backstory, etc. Leave blank for no header.</div></div><textarea style="min-height:80px;font-size:13px" placeholder="e.g. * PayPal G&S only · Shipped CONUS&#10;* Yolo &gt; Chat · Only interested in CRK, Hinderer&#10;Letting go of some catch-and-releases..." onchange="SETTINGS.postHeader=this.value;saveSettings()">${esc(sv.postHeader||"")}</textarea></div>
     <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px"><div><div class="srow-lbl">Default Trade Interests</div><div class="srow-sub" style="max-width:380px;line-height:1.5">Added to WTT/WTS+WTT posts under "Trade Interests:". Can be overridden per-post in compose.</div></div><input type="text" style="width:100%;font-size:13px;padding:7px 10px" value="${esc(sv.tradeInterests||"")}" placeholder="e.g. Spyderco Para 3, CRK Sebenza, Hinderer XM-18..." onchange="SETTINGS.tradeInterests=this.value;saveSettings()"/></div>
     <div class="srow"><div><div class="srow-lbl">Payment</div><div class="srow-sub">Default payment methods</div></div><div class="srow-ctrl"><div class="chips">${PAYS.map(p=>`<button class="chip sm mul${sv.payment.includes(p)?" on":""}" onclick="SETTINGS.payment=tm(SETTINGS.payment,'${p}').length?tm(SETTINGS.payment,'${p}'):SETTINGS.payment;saveSettings()">${p}</button>`).join("")}</div></div></div>
+    <div class="srow" style="flex-direction:column;align-items:flex-start;gap:10px"><div><div class="srow-lbl">Payment Links</div><div class="srow-sub">Added to your dibs messages. Fill in whatever you use.</div></div><div style="width:100%;display:flex;flex-direction:column;gap:7px">${(()=>{const links=sv.paymentLinks||{};const cfgs=[{m:"PayPal G&S",ph:"paypal.me/yourname"},{m:"PayPal F&F",ph:"paypal.me/yourname"},{m:"Venmo",ph:"@yourhandle"},{m:"Zelle",ph:"email or phone number"},{m:"Cash App",ph:"$yourcashtag"},{m:"Apple Pay",ph:"phone number"}];return cfgs.map(({m,ph})=>`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:600;color:var(--t2);min-width:88px;flex-shrink:0">${m}</span><input type="text" style="flex:1;font-size:13px;padding:6px 10px" value="${esc(links[m]||"")}" placeholder="${ph}" onchange="if(!SETTINGS.paymentLinks)SETTINGS.paymentLinks={};SETTINGS.paymentLinks['${m}']=this.value.trim();saveSettings()"/></div>`).join("");})()}</div></div>
     <div class="srow"><div><div class="srow-lbl">No-Ship Defaults</div><div class="srow-sub">Pre-select restricted states</div></div><div class="srow-ctrl"><div class="chips">${NO_SHIP.map(p=>`<button class="chip sm mul${(sv.noShip||[]).includes(p)?" on":""}" onclick="SETTINGS.noShip=tm(SETTINGS.noShip||[],'${p}');saveSettings()">${p}</button>`).join("")}</div></div></div>
     <div class="srow"><div><div class="srow-lbl">Shipping Carrier</div><div class="srow-sub">Default carrier shown on generated posts</div></div><div class="srow-ctrl"><div class="chips">${["USPS","UPS","FedEx","Other"].map(c=>`<button class="chip sm${(sv.shippingCarrier||"USPS")===c?" on":""}" onclick="SETTINGS.shippingCarrier='${c}';saveSettings()">${c}</button>`).join("")}</div></div></div>
   </div>
@@ -2415,7 +2437,7 @@ window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=execu
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
 window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;
-window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;
+window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;window.copyDibsMessage=copyDibsMessage;window.buildDibsMessage=buildDibsMessage;
 window.markPending=markPending;window.markInvPending=markInvPending;
 window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
 window.renderTutorialModal=renderTutorialModal;window.renderAboutModal=renderAboutModal;window.renderCloudinaryModal=renderCloudinaryModal;window.renderCloudinaryStatus=renderCloudinaryStatus;
