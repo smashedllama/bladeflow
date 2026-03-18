@@ -2074,7 +2074,6 @@ function autoFillInput(inputId,datalistId){
 
 // ─── RENDER HELPERS ───────────────────────────────────────────
 function render(){
-  S._skipRollAnim=false;
   const dlb=document.getElementById("dl-brands");
   if(dlb&&!dlb.childElementCount)dlb.innerHTML=BRANDS.map(b=>`<option value="${esc(b)}">`).join("");
   const dls=document.getElementById("dl-steels");
@@ -2090,6 +2089,7 @@ function render(){
   const toastHtml=S.undoToast?`<div class="undo-toast">↩ ${esc(S.undoToast)} <button class="undo-toast-btn" onclick="undoLast()">Undo</button></div>`:"";
   const flairToastHtml=S.flairToast?`<div class="flair-toast">${esc(S.flairToast)}</div>`:"";
   document.getElementById("root").innerHTML=view+(S.modal?renderModal(S.modal):"")+toastHtml+flairToastHtml+(S.tour!=null?renderTourCard():"");
+  S._skipRollAnim=false; // reset after DOM update so next non-chip render gets animation back
   // Animate main content when switching views
   if(S._prevView!==S.view){
     const m=document.querySelector('.main');
