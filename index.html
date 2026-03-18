@@ -2420,7 +2420,7 @@ function renderTutorialModal(){
      ${preview(`<strong style="color:var(--t1)">What we cover:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
        <li>⚙️ First-time setup: username, payments, photos</li>
-       <li>📋 The Roll: your knife inventory</li>
+       <li>📋 The Roll: knives + gear inventory</li>
        <li>📝 Building and posting a listing</li>
        <li>💬 When someone yolos: the dibs message</li>
        <li>📦 Marking sold and shipping tracking</li>
@@ -2455,31 +2455,33 @@ function renderTutorialModal(){
 * All prices shipped, insurance included</div>`)}
      ${tip("Tip","You can also set default trade interests here. They are added automatically to any WTT or WTS/WTT post you create.")}`},
     // 4 - The Roll
-    {phase:"The Roll",icon:"📋",title:"The Roll: Your Knife Inventory",
-     body:`The Roll is your personal knife inventory. Add a knife once with all its details and it's available to pull into any listing with one click. No re-entering info.
+    {phase:"The Roll",icon:"📋",title:"The Roll: Your Inventory",
+     body:`The Roll is your personal inventory. Add knives, watches, sunglasses, flashlights, bags, or anything else once, and it's available to pull into any listing with one click. No re-entering info.
      ${preview(`<strong style="color:var(--t1)">The Roll tracks:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
        <li>Days held: so you know when to drop price</li>
        <li>Price history: every price change is logged</li>
        <li>Status: Available, Listed, Pending, Sold</li>
-       <li>Photos: stored with the knife, ready to add to any post</li>
+       <li>Photos: stored with the item, ready to add to any post</li>
+       <li>Gear & Extras: non-knife items in their own section</li>
      </ul>`)}
      <div class="tut-cta-row"><button class="btn btn-pri btn-sm" onclick="${go('roll')}">📋 Go to The Roll</button></div>`},
-    // 5 - Adding a knife
-    {phase:"The Roll",icon:"🔪",title:"Adding a Knife",
-     body:`Click ${chip("+ Add First Knife")} or ${chip("+ New Knife")} to open the knife form. Fill in brand, model, steel, condition and price. The more detail you add, the more useful your listing becomes.
-     ${preview(`<strong style="color:var(--t1)">Key fields:</strong><br>
+    // 5 - Adding items
+    {phase:"The Roll",icon:"🔪",title:"Adding Knives & Gear",
+     body:`Use ${chip("+ Add Knife")} to add a knife with full details (brand, model, steel, condition, price). Use ${chip("+ Add Gear")} to add non-knife items like watches, sunglasses, flashlights, bags, and more.
+     ${preview(`<strong style="color:var(--t1)">Knife fields:</strong><br>
      <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:8px;font-size:12px">
        <span style="color:var(--t3)">Brand / Model</span><span>Spyderco / Para 3 LW</span>
        <span style="color:var(--t3)">Steel</span><span>CPM-S30V: affects pricing</span>
        <span style="color:var(--t3)">Condition</span><span>Factory edge, carried</span>
        <span style="color:var(--t3)">SV Price</span><span>Your asking price in USD</span>
        <span style="color:var(--t3)">Photos</span><span>Drag-and-drop or paste URL</span>
-     </div>`)}
+     </div>
+     <div style="margin-top:10px"><strong style="color:var(--t1)">Gear fields:</strong> Category, description, condition, sale type, price. Gear items appear in their own <strong>Gear & Extras</strong> section in the Roll and in your generated posts.</div>`)}
      ${tip("Price Research","After entering brand, model and steel, click Check Comps. It searches r/Knife_Swap for the 25 most recent sold listings of that exact model so you can price accurately.")}`},
     // 6 - Creating a listing
     {phase:"Listings",icon:"📝",title:"Creating a Post",
-     body:`Click ${chip("+ New Listing")} from the Listings tab. Add knives from The Roll with one click, or enter them manually. The tool generates the full Reddit post (title and body) automatically.
+     body:`Click ${chip("+ New Listing")} from the Listings tab. Add knives and gear from The Roll with one click, or enter them manually. The tool generates the full Reddit post (title and body) automatically.
      ${preview(`<strong style="color:var(--t1)">4 post templates available:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
        <li><strong>Detailed</strong>: full condition notes, issues, accessories</li>
@@ -2487,7 +2489,8 @@ function renderTutorialModal(){
        <li><strong>Table</strong>: markdown table layout</li>
        <li><strong>Minimal</strong>: bare essentials only</li>
      </ul>
-     Use the ${chip("Switch")} button on any listing to cycle between them anytime.`)}
+     Use the ${chip("Switch")} button on any listing to cycle between them anytime.
+     <div style="margin-top:10px;padding:8px 10px;background:var(--orangebg);border-radius:8px;font-size:12px;color:var(--oranget)"><strong>Gear & Extras auto-grouping:</strong> Any non-knife items you add (watches, sunglasses, etc.) are automatically grouped into a labeled <strong>Gear & Extras</strong> section at the bottom of your post.</div>`)}
      <div class="tut-cta-row"><button class="btn btn-pri btn-sm" onclick="tutDone();startCompose()">📝 Start a New Listing</button></div>`},
     // 7 - Timestamp
     {phase:"Listings",icon:"📷",title:"The Timestamp: Required",
@@ -2664,10 +2667,10 @@ function renderGuide(){
       ${step(4,"Set up photo uploads","Set up a free Cloudinary account and enter your Cloud Name and Upload Preset in Settings for drag-and-drop uploads directly from your browser. If you prefer, you can skip that and paste direct image URLs instead (i.imgur.com/xxx.jpg format).")}
     `)}
 
-    ${sec("🔪","Step 1: Add Your Knife to The Roll","rgba(52,199,89,.15)",`
-      <p style="font-size:13px;color:var(--t2);line-height:1.7;margin:0 0 12px">The Roll is your knife inventory. Add every knife you want to sell here first. You only fill in the details once, then pull it into any listing with a single tap.</p>
-      ${step(1,"Open The Roll tab and hit + New Knife","")}
-      ${step(2,"Fill in brand, model, steel, and condition","Be thorough. The more detail you add, the more your listing stands out. Note blade condition, whether it's been sharpened or used to cut, and any accessories included.")}
+    ${sec("🔪","Step 1: Add Items to The Roll","rgba(52,199,89,.15)",`
+      <p style="font-size:13px;color:var(--t2);line-height:1.7;margin:0 0 12px">The Roll is your inventory. Add every knife or other item you want to sell here first. You only fill in the details once, then pull it into any listing with a single tap.</p>
+      ${step(1,"Open The Roll tab and hit + Add Knife or + Add Gear","Use + Add Knife for knives. Use + Add Gear for anything else: watches, sunglasses, flashlights, multi-tools, bags, clothing, or other items.")}
+      ${step(2,"Fill in the details","For knives: brand, model, steel, and condition. Be thorough. For gear: category, description, condition, and price.")}
       ${step(3,"Add your own photos","Drag-and-drop or paste a direct image URL. Stock photos and manufacturer images are not allowed. Your own photos only.")}
       ${step(4,"Set type and price","WTS (selling), WTT (trading), or WTS/WTT (open to both). Enter your asking price in the SV field. For trades, also add a TV (trade value).")}
       ${tip("New to the sub? Users with 0 confirmed trades can only list one knife per post. Once you have flair you can list multiple knives in one post.")}
@@ -2694,10 +2697,11 @@ function renderGuide(){
     ${sec("📝","Step 4: Build Your Listing","rgba(0,122,255,.12)",`
       ${step(1,"Go to Listings → + New Listing","")}
       ${step(2,"Add knives from The Roll","Tap + Add from Roll and select your knife. Or add knives manually if you prefer.")}
-      ${step(3,"Paste your timestamp URL","Required before you can post.")}
-      ${step(4,"Pick a template","Detailed includes all condition notes. Compact is a clean one-liner. Minimal is bare essentials. Table is a markdown table layout. Hit Switch to cycle between them anytime.")}
-      ${step(5,"Review the generated title and body","The tool fills in everything: post type, knife details, prices, payment methods, and shipping. Check that it looks right.")}
-      ${step(6,"Add a custom header (optional)","A personal intro at the top of every post: your house rules, payment requirements, or trade interests. Set it once in Settings and it appears on every listing.")}
+      ${step(3,"Add gear items from The Roll (optional)","Tap From Roll: Gear to add watches, sunglasses, or other non-knife items. They are automatically grouped into a labeled Gear & Extras section at the bottom of your post.")}
+      ${step(4,"Paste your timestamp URL","Required before you can post.")}
+      ${step(5,"Pick a template","Detailed includes all condition notes. Compact is a clean one-liner. Minimal is bare essentials. Table is a markdown table layout. Hit Switch to cycle between them anytime.")}
+      ${step(6,"Review the generated title and body","The tool fills in everything: post type, knife details, gear items, prices, payment methods, and shipping. Check that it looks right.")}
+      ${step(7,"Add a custom header (optional)","A personal intro at the top of every post: your house rules, payment requirements, or trade interests. Set it once in Settings and it appears on every listing.")}
       ${tip("Common header example: PayPal G&S only · CONUS · Yolo &gt; Chat · Payment within 24 hours")}
     `)}
 
@@ -3383,7 +3387,7 @@ function _tourOpenKnife(s){
 
 const TOUR_STEPS=[
   {icon:"👋",title:"Welcome to BladeFlow",
-   body:"We've loaded 3 demo knives (Spyderco PM2 S30V, Benchmade Bugout S30V, CRK Sebenza 31 MagnaCut) and a sample listing. This 11-step tour walks through the whole workflow: adding knives, generating a post, and tracking shipping.",
+   body:"We've loaded 3 demo knives (Spyderco PM2 S30V, Benchmade Bugout S30V, CRK Sebenza 31 MagnaCut) plus a demo Casio G-Shock in Gear & Extras. This 11-step tour walks through the whole workflow: adding knives, generating a post, and tracking shipping.",
    target:null,
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
@@ -3439,22 +3443,24 @@ const TOUR_STEPS=[
 ];
 
 function startTour(){
-  // Inject 3 demo knives into Roll (if not already there)
+  // Inject demo inventory items into Roll (if not already there)
   const hasDemoInv=S.inventory.some(k=>k._tourDemo);
-  let pm2Id,bugoutId,sebaId;
+  let pm2Id,bugoutId,sebaId,watchId;
   if(!hasDemoInv){
     const now=new Date().toISOString();
-    pm2Id='__td_pm2__';bugoutId='__td_bugout__';sebaId='__td_seba__';
+    pm2Id='__td_pm2__';bugoutId='__td_bugout__';sebaId='__td_seba__';watchId='__td_watch__';
     const demos=[
       {...EI(),id:pm2Id,brand:"Spyderco",model:"Para Military 2",steel:"S30V",price:"145",knifeType:"WTS",bladeCondition:"Factory edge, carried",carried:"Yes",usedCut:"No",sharpened:"No",status:"available",createdAt:now,photos:["https://i.imgur.com/demo_pm2.jpg"],_tourDemo:true},
       {...EI(),id:bugoutId,brand:"Benchmade",model:"Bugout 535",steel:"S30V",price:"110",knifeType:"WTS",bladeCondition:"Factory edge, carried",carried:"Yes",usedCut:"No",sharpened:"No",status:"available",createdAt:now,photos:["https://i.imgur.com/demo_bugout.jpg"],_tourDemo:true},
       {...EI(),id:sebaId,brand:"Chris Reeve Knives",model:"Sebenza 31 Large",steel:"MagnaCut",price:"395",knifeType:"WTS/WTT",tradeValue:"395",bladeCondition:"Mint / uncarried",carried:"No",usedCut:"No",sharpened:"No",status:"available",createdAt:now,photos:["https://i.imgur.com/demo_seba.jpg"],_tourDemo:true},
+      {...ENI(),id:watchId,itemCategory:"watch",description:"Casio G-Shock DW5600 - black colorway, lightly worn, keeps perfect time.",condition:"Good",price:"45",saleType:"WTS",status:"available",addedAt:now,_tourDemo:true},
     ];
     S.inventory=[...demos,...S.inventory];
   }else{
-    pm2Id=S.inventory.find(k=>k._tourDemo&&k.model.includes("Para"))?.id||'__td_pm2__';
-    bugoutId=S.inventory.find(k=>k._tourDemo&&k.model.includes("Bugout"))?.id||'__td_bugout__';
-    sebaId=S.inventory.find(k=>k._tourDemo&&k.model.includes("Sebenza"))?.id||'__td_seba__';
+    pm2Id=S.inventory.find(k=>k._tourDemo&&k.model?.includes("Para"))?.id||'__td_pm2__';
+    bugoutId=S.inventory.find(k=>k._tourDemo&&k.model?.includes("Bugout"))?.id||'__td_bugout__';
+    sebaId=S.inventory.find(k=>k._tourDemo&&k.model?.includes("Sebenza"))?.id||'__td_seba__';
+    watchId=S.inventory.find(k=>k._tourDemo&&k.itemCategory==="watch")?.id||'__td_watch__';
   }
   // Demo timestamp - a real imgur image so the post text is visible (not blocked by gate)
   const DEMO_TS_URL="https://i.imgur.com/demo_timestamp.jpg";
@@ -3477,10 +3483,12 @@ function startTour(){
     // Sebenza - add from inventory clone
     const demaSeba=S.inventory.find(k=>k.id===sebaId)||{brand:"Chris Reeve Knives",model:"Sebenza 31 Large",steel:"MagnaCut",price:"395",...EK()};
     const demoSebaK={...JSON.parse(JSON.stringify(demaSeba)),inventoryId:sebaId,knifeType:"WTS/WTT",tradeValue:"395",pending:false,sold:false};
+    const demoWatch=S.inventory.find(k=>k.id===watchId);
     const demoPost={
       id:TOUR_DEMO_ID,createdAt:now2,variant:0,
       postType:"[WTS/WTT]",
       knives:[demoPm2K,demoBugoutK,demoSebaK],
+      items:demoWatch?[JSON.parse(JSON.stringify(demoWatch))]:[],
       payment:["PayPal G&S","Venmo"],
       paymentOther:"",noShip:[],noShipOther:"",
       repost:false,photos:[DEMO_TS_URL],  // demo timestamp so post text is visible
