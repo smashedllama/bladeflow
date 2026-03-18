@@ -2073,12 +2073,24 @@ function autoFillInput(inputId,datalistId){
 }
 
 // ─── RENDER HELPERS ───────────────────────────────────────────
+function renderLoading(){
+  const msg=S.authStatus==="signed_in"?"Syncing from cloud\u2026":"Loading\u2026";
+  return`<div class="app" style="display:flex;flex-direction:column">
+    <div class="hdr" style="grid-template-columns:1fr;justify-items:center">
+      <div class="hdr-logo" style="pointer-events:none"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 20px">
+      <div style="width:44px;height:44px;border:3px solid rgba(0,113,227,.15);border-top-color:var(--blue);border-radius:50%;animation:spin .75s linear infinite"></div>
+      <div style="font-size:14px;font-weight:600;color:var(--t3);letter-spacing:-.01em">${msg}</div>
+    </div>
+  </div>`;
+}
 function render(){
   const dlb=document.getElementById("dl-brands");
   if(dlb&&!dlb.childElementCount)dlb.innerHTML=BRANDS.map(b=>`<option value="${esc(b)}">`).join("");
   const dls=document.getElementById("dl-steels");
   if(dls&&!dls.childElementCount)dls.innerHTML=STEELS.map(s=>`<option value="${esc(s)}">`).join("");
-  const view=
+  const view=!S.loaded?renderLoading():
     S.view==="settings"?renderSettings():
     S.view==="shipping"?renderShipping():
     S.view==="compose"?renderCompose():
