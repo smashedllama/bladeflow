@@ -848,7 +848,7 @@ const NI_CATS=["watch","sunglasses","flashlight","multi-tool","bag","clothing","
 const NI_ICONS={watch:"⌚",sunglasses:"🕶️",flashlight:"🔦","multi-tool":"🔧","bag":"🎒",clothing:"👕",other:"📦"};
 const NI_LABELS={watch:"Watch",sunglasses:"Sunglasses",flashlight:"Flashlight","multi-tool":"Multi-tool",bag:"Bag / Case",clothing:"Clothing",other:"Other"};
 const ED=()=>({postType:"[WTS]",knives:[],items:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",bundles:[],groupAddons:false,tradeInterests:SETTINGS.tradeInterests||"",shippingCarrier:SETTINGS.shippingCarrier||"USPS"});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,gearPicker:false};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,gearPicker:false,_skipRollAnim:false,rollKnivesOpen:true,rollGearOpen:true};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -1747,9 +1747,9 @@ function removeNI(idx){if(!confirm("Remove this item from The Roll?"))return;con
 function markNISold(idx){upInv(s=>{const k=s.inventory[idx];k.status=k.status==="sold"?"available":"sold";k.soldAt=k.status==="sold"?new Date().toISOString():null;});}
 function renderNIForm(){
   const f=S.ni;if(!f)return"";
-  const catChips=NI_CATS.map(c=>`<button class="chip sm${f.itemCategory===c?" on":""}" onclick="S.ni.itemCategory='${c}';render()">${NI_ICONS[c]||"📦"} ${NI_LABELS[c]}</button>`).join("");
-  const condChips=["Mint","Excellent","Good","Fair"].map(c=>`<button class="chip sm${f.condition===c?" on":""}" onclick="S.ni.condition='${c}';render()">${c}</button>`).join("");
-  const stChips=["WTS","WTT","WTS/WTT"].map(c=>`<button class="chip sm${f.saleType===c?" on":""}" onclick="S.ni.saleType='${c}';render()">${c}</button>`).join("");
+  const catChips=NI_CATS.map(c=>`<button class="chip sm${f.itemCategory===c?" on":""}" onclick="S.ni.itemCategory='${c}';S._skipRollAnim=true;render()">${NI_ICONS[c]||"📦"} ${NI_LABELS[c]}</button>`).join("");
+  const condChips=["Mint","Excellent","Good","Fair"].map(c=>`<button class="chip sm${f.condition===c?" on":""}" onclick="S.ni.condition='${c}';S._skipRollAnim=true;render()">${c}</button>`).join("");
+  const stChips=["WTS","WTT","WTS/WTT"].map(c=>`<button class="chip sm${f.saleType===c?" on":""}" onclick="S.ni.saleType='${c}';S._skipRollAnim=true;render()">${c}</button>`).join("");
   const priceFields=(f.saleType!=="WTT"?`<div class="field" style="flex:1;min-width:120px"><label>Sale Price ($)</label><input type="number" min="0" value="${esc(String(f.price||""))}" placeholder="e.g. 150" oninput="S.ni.price=this.value"/></div>`:"")+
     (f.saleType!=="WTS"?`<div class="field" style="flex:1;min-width:120px"><label>Trade Value ($)</label><input type="number" min="0" value="${esc(String(f.tradeValue||""))}" placeholder="e.g. 150" oninput="S.ni.tradeValue=this.value"/></div>`:"");
   return`<div class="kf" style="margin-top:10px"><div class="kf-hdr"><div class="kf-title">${S.niIdx===-1?"Add Item":"Edit Item"}</div></div>
@@ -2053,6 +2053,7 @@ function autoFillInput(inputId,datalistId){
 
 // ─── RENDER HELPERS ───────────────────────────────────────────
 function render(){
+  S._skipRollAnim=false;
   const dlb=document.getElementById("dl-brands");
   if(dlb&&!dlb.childElementCount)dlb.innerHTML=BRANDS.map(b=>`<option value="${esc(b)}">`).join("");
   const dls=document.getElementById("dl-steels");
@@ -3266,7 +3267,8 @@ function renderRoll(){
     return 0; // "added" = insertion order (already correct)
   });
   const filterBar=`<div class="filter-bar"><div class="seg">${[["All","all"],["🟢 Available","available"],["In Listing","listed"],["🟡 Pending","pending"],["🔴 Sold","sold"]].map(([l,v])=>`<button class="seg-item${fil===v?" on":""}" onclick="S.lockerFilter='${v}';render()">${l}</button>`).join("")}</div><select class="sort-select" onchange="S.rollSort=this.value;render()"><option value="added"${srt==="added"?" selected":""}>Sort: Date Added</option><option value="price-asc"${srt==="price-asc"?" selected":""}>Price: Low → High</option><option value="price-desc"${srt==="price-desc"?" selected":""}>Price: High → Low</option><option value="days"${srt==="days"?" selected":""}>Oldest First</option><option value="brand"${srt==="brand"?" selected":""}>Brand A–Z</option></select></div>`;
-  const cards=sortedFiltered.length?`<div class="lk-grid${SETTINGS.rollAnim?' roll-spreading':''}">${sortedFiltered.map((k,i)=>{
+  const rollAnimActive=SETTINGS.rollAnim&&!S._skipRollAnim;
+  const cards=sortedFiltered.length?`<div class="lk-grid${rollAnimActive?' roll-spreading':''}">${sortedFiltered.map((k,i)=>{
     const realIdx=inv.indexOf(k);
     const statusDot=k.status==="sold"?"🔴":k.pending?"🟡":"🟢";
     const sb=k.status==="available"&&!k.pending?`<span class="lk-badge av">🟢 Available</span>`:k.pending&&k.status!=="sold"?`<span class="lk-badge pe">🟡 Pending</span>`:k.status==="listed"?`<span class="lk-badge li">In Listing</span>`:`<span class="lk-badge so">🔴 Sold</span>`;
@@ -3283,10 +3285,22 @@ function renderRoll(){
     const compsHtml=comps.length?`<div class="comps-row">${comps.slice(0,3).map((c,ci)=>`<span class="comp-chip" title="Comp price">$${esc(c.price)}<button onclick="removeRefComp('${esc(k.id)}',${ci})" style="background:none;border:none;cursor:pointer;padding:0;color:inherit;font-size:11px;opacity:.6;margin-left:2px" title="Remove">×</button></span>`).join("")}</div>`:"";
     const kt=k.knifeType||"WTS";
     const ktClass=kt==="WTS"?"wts":kt==="WTT"?"wtt":"wtstt";
-    return`<div class="lk-card${SETTINGS.rollAnim?' unfurl':''}"${SETTINGS.rollAnim?` style="animation-delay:${(Math.min(i*.055,.75)).toFixed(3)}s"`:''}>` + `<div class="lk-card-hdr"><span class="lk-brand">${esc(k.brand)}</span><div class="lk-card-tags">${dayBadge}<span class="ki-type-tag ${ktClass}">${kt}</span></div></div><div class="lk-model">${statusDot} ${esc(k.model)}${lkPc?` <span class="photo-tag">📷 ${lkPc}</span>`:""}</div><div class="lk-steel">${esc(k.steel||"Steel N/A")} · ${esc(k.bladeCondition)}</div><div class="lk-price">$${esc(k.price)}${k.obo?" OBO":""}</div>${phHtml}${compsHtml}${sb}<div class="lk-acts">${k.status!=="sold"?`<button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markInvPending(${realIdx})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button>`:""}${k.status!=="sold"?`<button class="btn btn-sm btn-gn" onclick="markInvSold(${realIdx})">🔴 Sold</button>`:`<button class="btn btn-sm btn-sec" onclick="markInvSold(${realIdx})">Relist</button>`}<button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">Remove</button></div></div>`;
+    return`<div class="lk-card${rollAnimActive?' unfurl':''}"${rollAnimActive?` style="animation-delay:${(Math.min(i*.055,.75)).toFixed(3)}s"`:''}>` + `<div class="lk-card-hdr"><span class="lk-brand">${esc(k.brand)}</span><div class="lk-card-tags">${dayBadge}<span class="ki-type-tag ${ktClass}">${kt}</span></div></div><div class="lk-model">${statusDot} ${esc(k.model)}${lkPc?` <span class="photo-tag">📷 ${lkPc}</span>`:""}</div><div class="lk-steel">${esc(k.steel||"Steel N/A")} · ${esc(k.bladeCondition)}</div><div class="lk-price">$${esc(k.price)}${k.obo?" OBO":""}</div>${phHtml}${compsHtml}${sb}<div class="lk-acts">${k.status!=="sold"?`<button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markInvPending(${realIdx})">${k.pending?"🟡 Pending":"🟡 Pending?"}</button>`:""}${k.status!=="sold"?`<button class="btn btn-sm btn-gn" onclick="markInvSold(${realIdx})">🔴 Sold</button>`:`<button class="btn btn-sm btn-sec" onclick="markInvSold(${realIdx})">Relist</button>`}<button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">Remove</button></div></div>`;
   }).join("")}</div>`:`<div style="text-align:center;padding:40px 0;color:var(--t4);font-size:13px">No ${fil==="all"?"":fil+" "}knives</div>`;
   const form=S.kfOpen&&S.kfMode==="locker"?kfFormHtml():"";
+  const chevron=(open)=>`<svg width="13" height="8" viewBox="0 0 13 8" fill="none" style="transition:transform .2s;transform:rotate(${open?'0':'180deg'})"><path d="M1 1L6.5 7L12 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const kniOpen=S.rollKnivesOpen!==false;
+  const kniCount=knifeInv.filter(k=>k.status!=="sold").length;
+  const knifeSection=`<div>
+    <button style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:10px 0 8px;width:100%;text-align:left;color:var(--t1)" onclick="S.rollKnivesOpen=!S.rollKnivesOpen;render()">
+      <span class="sec-lbl" style="margin:0">Knives</span>
+      ${kniCount>0?`<span style="font-size:11px;font-weight:700;background:rgba(0,0,0,.07);color:var(--t3);padding:1px 7px;border-radius:10px">${kniCount}</span>`:""}
+      <span style="margin-left:auto;color:var(--t4)">${chevron(kniOpen)}</span>
+    </button>
+    ${kniOpen?filterBar+form+cards:""}
+  </div>`;
   const niSection=(()=>{
+    const gearOpen=S.rollGearOpen!==false||S.niOpen;
     const niForm=S.niOpen&&!S.kfOpen?renderNIForm():"";
     const niCards=niItems.map((item)=>{
       const realIdx=inv.indexOf(item);
@@ -3302,18 +3316,20 @@ function renderRoll(){
       </div>`;
     }).join("");
     const emptyNI=!niItems.length&&!S.niOpen?`<div style="padding:16px;color:var(--t4);font-size:13px;border:1px dashed rgba(128,128,128,.2);border-radius:var(--rs)">Watches, sunglasses, flashlights, bags &amp; more. Use <strong style="color:var(--t3)">+ Add Gear</strong> above to add items.</div>`:"";
-
+    const niCount=niItems.filter(x=>x.status!=="sold").length;
     return`<div class="ni-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div class="sec-lbl" style="margin:0">Gear &amp; Extras</div>
-        ${!S.niOpen&&niItems.length?`<button class="btn btn-sec btn-sm" onclick="openNI(-1)">+ Add Item</button>`:""}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${gearOpen?10:0}px">
+        <button style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0;flex:1;text-align:left;color:var(--t1)" onclick="S.rollGearOpen=!S.rollGearOpen;render()">
+          <span class="sec-lbl" style="margin:0">Gear &amp; Extras</span>
+          ${niCount>0?`<span style="font-size:11px;font-weight:700;background:rgba(0,0,0,.07);color:var(--t3);padding:1px 7px;border-radius:10px">${niCount}</span>`:""}
+          <span style="margin-left:auto;color:var(--t4)">${chevron(gearOpen)}</span>
+        </button>
+        ${gearOpen&&!S.niOpen&&niItems.length?`<button class="btn btn-sec btn-sm" style="margin-left:8px" onclick="openNI(-1)">+ Add Item</button>`:""}
       </div>
-      ${emptyNI}
-      ${niForm}
-      ${niCards?`<div class="ni-grid">${niCards}</div>`:""}
+      ${gearOpen?emptyNI+niForm+(niCards?`<div class="ni-grid">${niCards}</div>`:""):""}
     </div>`;
   })();
-  return hdr+`<div class="main">${stats}${filterBar}${form}${cards}${niSection}</div>`;
+  return hdr+`<div class="main">${stats}${knifeSection}${niSection}</div>`;
 }
 
 // ─── RENDER: SOLD ─────────────────────────────────────────────
