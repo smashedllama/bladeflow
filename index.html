@@ -398,6 +398,12 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .dn-chart-bar-wrap{width:100%;height:60px;background:var(--b2);border-radius:2px;overflow:hidden;display:flex;align-items:flex-end}
 .dn-chart-bar{width:100%;background:var(--blue);border-radius:2px 2px 0 0;min-height:2px}
 .dn-chart-lbl{font-size:8px;color:var(--t4);margin-top:3px;text-align:center;white-space:nowrap;overflow:hidden}
+.dn-rec-list{display:flex;flex-direction:column}
+.dn-rec{display:flex;align-items:baseline;gap:8px;padding:7px 0;border-bottom:.5px solid var(--b2)}
+.dn-rec:last-child{border-bottom:none}
+.dn-rec-lbl{font-size:12px;color:var(--t3);flex:1}
+.dn-rec-val{font-size:13px;font-weight:700;color:var(--t1);white-space:nowrap}
+.dn-rec-sub{font-size:10.5px;color:var(--t4);white-space:nowrap}
 .modal-link{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:980px;font-size:12.5px;font-weight:600;text-decoration:none;transition:all var(--tr)}
 .modal-link.sub{background:var(--orangebg);color:var(--oranget)}
 .modal-link.sub:hover{background:#FFE5B4}
@@ -920,16 +926,18 @@ const NI_ICONS={watch:icon("watch",14),sunglasses:icon("glasses",14),flashlight:
 const NI_LABELS={watch:"Watch",sunglasses:"Sunglasses",flashlight:"Flashlight","multi-tool":"Multi-tool",bag:"Bag / Case",clothing:"Clothing",other:"Other"};
 const SYNC_SAYINGS=["Sharpening the sync edge…","Honing your data to a razor's edge…","Applying the Scary Sharp protocol…","Stropping your listings clean…","Deburring your inventory…","Heat treating your data for maximum retention…","Running a paper test on your posts…","Putting a hair-whittling edge on your backup…","Your collection is in good hands…","Checking the grind geometry…","Buffing out the data scratches…","No false edges on this backup…","Setting the bevel on your backup…","Full flat grind on your file transfer…","Convex-grinding your cloud storage…","Making sure your data has no microbevels…"];
 const ED=()=>({postType:"[WTS]",knives:[],items:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",bundles:[],groupAddons:false,tradeInterests:SETTINGS.tradeInterests||"",shippingCarrier:SETTINGS.shippingCarrier||"USPS"});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,gearPicker:false,_skipRollAnim:false,rollKnivesOpen:true,rollGearOpen:true,emailChangeOpen:false,emailChangeNotice:false,accountDeleted:false,migrateConfirm:null,syncingScreen:false,syncMsg:0};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,gearPicker:false,_skipRollAnim:false,rollKnivesOpen:true,rollGearOpen:true,emailChangeOpen:false,emailChangeNotice:false,accountDeleted:false,migrateConfirm:null,syncingScreen:false,syncMsg:0,_sessionStart:Date.now(),_renderCount:0,_loadTime:null};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
+  const _lt=performance.now();
   try{const r=await window.storage.get("ks_v4");if(r&&r.value)S.posts=JSON.parse(r.value);}catch(e){}
   try{const r=await window.storage.get("ks_inv_v1");if(r&&r.value)S.inventory=JSON.parse(r.value);}catch(e){}
   // Strip stale tour demo data — it's session-only and should never outlive a page load
   S.posts=S.posts.filter(p=>!p._tourDemo);
   S.inventory=S.inventory.filter(k=>!k._tourDemo);
   reconcileInventory();
+  S._loadTime=performance.now()-_lt;
   S.loaded=true;render();
 }
 // Debounced Supabase batch sync — fires 1.5s after the last save call.
@@ -1545,6 +1553,8 @@ function computeDataNerd(){
   const revenue=soldLK.reduce((s,k)=>s+parseFloat(k.soldPrice||k.price||0),0);
   const avgSold=soldLK.length?revenue/soldLK.length:null;
   const avgAsk=soldLK.length?soldLK.reduce((s,k)=>s+parseFloat(k.price||0),0)/soldLK.length:null;
+  const soldPrices=soldLK.map(k=>parseFloat(k.soldPrice||k.price||0)).filter(p=>p>0).sort((a,b)=>a-b);
+  const medianSold=soldPrices.length?soldPrices.length%2===0?(soldPrices[soldPrices.length/2-1]+soldPrices[soldPrices.length/2])/2:soldPrices[Math.floor(soldPrices.length/2)]:null;
   const discounts=soldLK.filter(k=>parseFloat(k.price||0)>0&&parseFloat(k.soldPrice||0)>0).map(k=>(parseFloat(k.price)-parseFloat(k.soldPrice))/parseFloat(k.price)*100);
   const avgDiscount=discounts.length?discounts.reduce((a,b)=>a+b,0)/discounts.length:null;
   const sellThrough=totalListed>0?soldLK.length/totalListed*100:null;
@@ -1576,6 +1586,8 @@ function computeDataNerd(){
   // Shipping
   const shippedK=allLK.filter(k=>k.shippedAt&&k.soldAt&&new Date(k.shippedAt)>new Date(k.soldAt));
   const avgShip=shippedK.length?shippedK.reduce((s,k)=>s+(new Date(k.shippedAt)-new Date(k.soldAt))/864e5,0)/shippedK.length:null;
+  const fastestShip=shippedK.length?Math.min(...shippedK.map(k=>(new Date(k.shippedAt)-new Date(k.soldAt))/864e5)):null;
+  const fastestShipK=fastestShip!=null?shippedK.find(k=>Math.abs((new Date(k.shippedAt)-new Date(k.soldAt))/864e5-fastestShip)<0.01):null;
   const delivK=allLK.filter(k=>k.deliveredAt&&k.shippedAt&&new Date(k.deliveredAt)>new Date(k.shippedAt));
   const avgDeliv=delivK.length?delivK.reduce((s,k)=>s+(new Date(k.deliveredAt)-new Date(k.shippedAt))/864e5,0)/delivK.length:null;
   const carrierCnt={};
@@ -1591,18 +1603,88 @@ function computeDataNerd(){
   S.posts.forEach(p=>fmts[fNames[p.variant||0]]++);
   const ktCnt={WTS:0,WTT:0,"WTS/WTT":0};
   allLK.forEach(k=>{const kt=k.knifeType||"WTS";if(ktCnt.hasOwnProperty(kt))ktCnt[kt]++;});
+  // Roll health — how long have unsold inv knives been sitting
+  const rollAgeDays=availKnives.filter(k=>k.addedAt).map(k=>(now-new Date(k.addedAt))/864e5);
+  const sitting30=rollAgeDays.filter(d=>d>=30).length;
+  const sitting60=rollAgeDays.filter(d=>d>=60).length;
+  const sitting90=rollAgeDays.filter(d=>d>=90).length;
+  const avgRollAge=rollAgeDays.length?rollAgeDays.reduce((a,b)=>a+b,0)/rollAgeDays.length:null;
+  const oldestRollK=availKnives.filter(k=>k.addedAt).sort((a,b)=>new Date(a.addedAt)-new Date(b.addedAt))[0]||null;
+  const oldestRollDays=oldestRollK?(now-new Date(oldestRollK.addedAt))/864e5:null;
+  // Pipeline
+  const readyToShip=allLK.filter(k=>(k.sold||k.soldElsewhere)&&!k.shippedAt).length;
+  const inTransit=allLK.filter(k=>k.shippedAt&&!k.deliveredAt).length;
+  const delivered=allLK.filter(k=>k.deliveredAt&&!k.confirmed).length;
+  const confirmed=allLK.filter(k=>k.confirmed).length;
+  const uniqueBuyers=new Set(allLK.filter(k=>k.buyerUsername).map(k=>k.buyerUsername.toLowerCase())).size;
+  const uniqueAddresses=new Set(allLK.filter(k=>k.shippingAddress).map(k=>k.shippingAddress.toLowerCase().trim())).size;
+  // Pricing intelligence
+  const soldWithBothPrices=soldLK.filter(k=>parseFloat(k.price||0)>0&&parseFloat(k.soldPrice||0)>0);
+  const soldAtAsking=soldWithBothPrices.length?soldWithBothPrices.filter(k=>parseFloat(k.soldPrice)>=parseFloat(k.price)).length/soldWithBothPrices.length*100:null;
+  const soldAfterDrop=soldLK.filter(k=>(k.priceHistory||[]).length>0).length;
+  const soldAfterDropPct=soldLK.length?soldAfterDrop/soldLK.length*100:null;
+  const totalDropsExecuted=allLK.reduce((s,k)=>s+(k.priceHistory||[]).length,0);
+  const leftOnTable=soldWithBothPrices.reduce((s,k)=>s+Math.max(0,parseFloat(k.price)-parseFloat(k.soldPrice)),0);
+  const biggestDiscount=discounts.length?Math.max(...discounts):null;
+  const biggestDiscK=biggestDiscount!=null?soldWithBothPrices.find(k=>Math.abs((parseFloat(k.price)-parseFloat(k.soldPrice))/parseFloat(k.price)*100-biggestDiscount)<0.01):null;
+  // Field completeness (% of inv knives with key fields filled)
+  const completenessFields=["brand","model","steel","price","bladeCondition"];
+  const completenessScore=allKnives.length?allKnives.reduce((s,k)=>s+completenessFields.filter(f=>k[f]&&String(k[f]).trim()).length,0)/(allKnives.length*completenessFields.length)*100:null;
+  // Personal records
+  const soldKWithPrices=soldLK.filter(k=>parseFloat(k.soldPrice||k.price||0)>0);
+  const maxSoldK=soldKWithPrices.length?soldKWithPrices.reduce((a,b)=>parseFloat(b.soldPrice||b.price)>parseFloat(a.soldPrice||a.price)?b:a,soldKWithPrices[0]):null;
+  const minSoldK=soldKWithPrices.length?soldKWithPrices.reduce((a,b)=>parseFloat(b.soldPrice||b.price)<parseFloat(a.soldPrice||a.price)?b:a,soldKWithPrices[0]):null;
+  const dtsKnives=soldLK.filter(k=>k.soldAt&&k.addedAt);
+  const fastestK=dtsKnives.length?dtsKnives.reduce((a,b)=>(new Date(b.soldAt)-new Date(b.addedAt))<(new Date(a.soldAt)-new Date(a.addedAt))?b:a,dtsKnives[0]):null;
+  const slowestK=dtsKnives.length?dtsKnives.reduce((a,b)=>(new Date(b.soldAt)-new Date(b.addedAt))>(new Date(a.soldAt)-new Date(a.addedAt))?b:a,dtsKnives[0]):null;
+  const mostPhotosK=[...inv,...allLK].filter(k=>k.photos?.length).reduce((a,b)=>(b.photos.length>((a&&a.photos)||[]).length?b:a),null);
+  const mostDropsK=allLK.filter(k=>(k.priceHistory||[]).length>0).reduce((a,b)=>b.priceHistory.length>(a?a.priceHistory.length:0)?b:a,null);
+  // Activity by day of week (0=Sun..6=Sat)
+  const DAY_NAMES=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const salesByDay=Array(7).fill(0);
+  const listsByDay=Array(7).fill(0);
+  soldLK.forEach(k=>{if(k.soldAt)salesByDay[new Date(k.soldAt).getDay()]++;});
+  S.posts.forEach(p=>{if(p.createdAt)listsByDay[new Date(p.createdAt).getDay()]++;});
+  // Owner count distribution
+  const ownerDist={"1":0,"2":0,"3":0,"4+":0};
+  allLK.forEach(k=>{const o=parseInt(k.owners)||1;const key=o>=4?"4+":String(o);ownerDist[key]++;});
+  // Listing depth
+  const postsWithNotes=S.posts.filter(p=>p.notes?.trim()).length;
+  const postsWithBundles=S.posts.filter(p=>p.bundleEnabled&&p.bundlePrice).length;
+  const postsRepost=S.posts.filter(p=>p.repost).length;
+  const noteTexts=S.posts.filter(p=>p.notes?.trim()).map(p=>p.notes.trim().length);
+  const avgNoteLen=noteTexts.length?noteTexts.reduce((a,b)=>a+b,0)/noteTexts.length:null;
+  const knivesWithNotes=allLK.filter(k=>k.notes?.trim()).length;
+  const knivesWithPhotos=allLK.filter(k=>(k.photos||[]).length>0).length;
+  // Data sizes
+  let postsSize=0,invSize=0,settingsSize=0;
+  try{postsSize=new Blob([JSON.stringify(S.posts)]).size;}catch(e){}
+  try{invSize=new Blob([JSON.stringify(S.inventory)]).size;}catch(e){}
+  try{settingsSize=new Blob([JSON.stringify(SETTINGS)]).size;}catch(e){}
+  const totalDBSize=postsSize+invSize+settingsSize;
+  // Unique brands/steels in DB
+  const uniqueBrands=Object.keys(bCnt).length;
+  const uniqueSteels=Object.keys(sCnt).length;
   return{
     totalListed,totalSold:soldLK.length,soldElsewhere:seLK.length,withdrawn:wdLK.length,active:activeLK.length,pending:pendingLK.length,
-    revenue,avgSold,avgAsk,avgDiscount,sellThrough,
+    revenue,avgSold,medianSold,avgAsk,avgDiscount,sellThrough,
     avgDTS,minDTS,maxDTS,
     rollValue,totalInvKnives:allKnives.length,availKnives:availKnives.length,soldInvKnives:soldInvKnives.length,totalGear:allGear.length,totalPhotos,avgDrops,dropsCount:hasDrops.length,
     topBrands,topSteels,bkts,cCnt,gCnt,
-    avgShip,avgDeliv,carrierCnt,scCnt,
+    avgShip,fastestShip,fastestShipK,avgDeliv,carrierCnt,scCnt,
     mKeys,mSales,mRev,
     totalPosts:S.posts.length,fmts,
     avgKPP:S.posts.length?S.posts.reduce((s,p)=>s+p.knives.length,0)/S.posts.length:0,
     postsWithPhotos:S.posts.filter(p=>(p.photos||[]).length>0).length,
     ktCnt,
+    sitting30,sitting60,sitting90,avgRollAge,oldestRollK,oldestRollDays,
+    readyToShip,inTransit,delivered,confirmed,uniqueBuyers,uniqueAddresses,
+    soldAtAsking,soldAfterDropPct,totalDropsExecuted,leftOnTable,biggestDiscount,biggestDiscK,completenessScore,
+    maxSoldK,minSoldK,fastestK,slowestK,mostPhotosK,mostDropsK,
+    salesByDay,listsByDay,
+    ownerDist,
+    postsWithNotes,postsWithBundles,postsRepost,avgNoteLen,knivesWithNotes,knivesWithPhotos,
+    postsSize,invSize,settingsSize,totalDBSize,uniqueBrands,uniqueSteels,
   };
 }
 function renderDataNerdModal(){
@@ -1610,6 +1692,8 @@ function renderDataNerdModal(){
   const f=(n,dec=0)=>n==null?"—":Number(n).toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g,",");
   const fUSD=n=>n==null?"—":"$"+f(n,0);
   const fPct=n=>n==null?"—":f(n,1)+"%";
+  const fBytes=n=>{if(n==null||n===0)return"0 B";const u=["B","KB","MB"];let i=0,v=n;while(v>=1024&&i<u.length-1){v/=1024;i++;}return v.toFixed(i===0?0:1)+" "+u[i];};
+  const fTime=s=>{if(s==null)return"—";s=Math.round(s);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return h?`${h}h ${m}m`:m?`${m}m ${ss}s`:`${ss}s`;};
   const stat=(lbl,val,sub="",col="")=>`<div class="dn-stat"><div class="dn-stat-val"${col?` style="color:${col}"`:""}>${val}</div><div class="dn-stat-lbl">${lbl}</div>${sub?`<div class="dn-stat-sub">${esc(sub)}</div>`:""}</div>`;
   const sec=(title,body)=>`<div class="dn-section"><div class="dn-sec-hdr">${title}</div>${body}</div>`;
   const bars=(entries,color="var(--blue)")=>{
@@ -1617,15 +1701,16 @@ function renderDataNerdModal(){
     const mx=Math.max(...entries.map(e=>e[1]));
     return entries.map(([lbl,v])=>`<div class="dn-bar-row"><span class="dn-bar-lbl" title="${esc(lbl)}">${esc(lbl)}</span><div class="dn-bar-track"><div class="dn-bar-fill" style="width:${mx?Math.round(v/mx*100):0}%;background:${color}"></div></div><span class="dn-bar-val">${v}</span></div>`).join("");
   };
-  // Monthly chart
-  const mxM=Math.max(...d.mKeys.map(k=>d.mSales[k]),1);
-  const monthChart=`<div class="dn-chart">${d.mKeys.map(k=>{const v=d.mSales[k];const h=v>0?Math.max(Math.round(v/mxM*100),6):0;return`<div class="dn-chart-col"><div class="dn-chart-val">${v||""}</div><div class="dn-chart-bar-wrap"><div class="dn-chart-bar" style="height:${h}%"></div></div><div class="dn-chart-lbl">${k.split(" ")[0]}</div></div>`;}).join("")}</div>`;
+  const chart=(vals,labels,color="var(--blue)")=>{const mx=Math.max(...vals,1);return`<div class="dn-chart">${vals.map((v,i)=>{const h=v>0?Math.max(Math.round(v/mx*100),6):0;return`<div class="dn-chart-col"><div class="dn-chart-val">${v||""}</div><div class="dn-chart-bar-wrap"><div class="dn-chart-bar" style="height:${h}%;background:${color}"></div></div><div class="dn-chart-lbl">${labels[i]}</div></div>`;}).join("")}</div>`;};
+  const recRow=(lbl,val,sub="")=>`<div class="dn-rec"><span class="dn-rec-lbl">${lbl}</span><span class="dn-rec-val">${val}</span>${sub?`<span class="dn-rec-sub">${esc(sub)}</span>`:""}</div>`;
   const fmtEntries=Object.entries(d.fmts).filter(([,v])=>v>0);
   const carrierEntries=Object.entries(d.carrierCnt).sort((a,b)=>b[1]-a[1]);
   const condEntries=Object.entries(d.cCnt).sort((a,b)=>b[1]-a[1]);
   const gearEntries=Object.entries(d.gCnt).sort((a,b)=>b[1]-a[1]);
   const ktEntries=Object.entries(d.ktCnt).filter(([,v])=>v>0);
   const scEntries=Object.entries(d.scCnt).sort((a,b)=>b[1]-a[1]);
+  const DAY_NAMES=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const sessionUptime=(Date.now()-(S._sessionStart||Date.now()))/1000;
   return`<div class="modal-overlay" onclick="S.modal=null;render()">
   <div class="modal" onclick="event.stopPropagation()" style="max-width:560px">
     <div class="modal-hdr"><div class="modal-title">📊 Data for Data Nerds</div><button class="modal-close" onclick="S.modal=null;render()">&#x2715;</button></div>
@@ -1636,6 +1721,7 @@ function renderDataNerdModal(){
         ${stat("Sell-Through",fPct(d.sellThrough),"listed → sold","var(--greent)")}
         ${stat("All-Time Revenue",fUSD(d.revenue),"","var(--greent)")}
         ${stat("Avg Sale Price",fUSD(d.avgSold),d.avgAsk?"asked "+fUSD(d.avgAsk):"")}
+        ${stat("Median Sale Price",fUSD(d.medianSold),"middle value")}
         ${stat("Avg Discount",fPct(d.avgDiscount),"asking → sold price")}
         ${stat("Avg Days to Sell",d.avgDTS!=null?f(d.avgDTS,1):"—",d.minDTS!=null?f(d.minDTS,0)+" min · "+f(d.maxDTS,0)+" max":"")}
         ${stat("Active",f(d.active),d.pending?f(d.pending)+" pending":"")}
@@ -1649,22 +1735,74 @@ function renderDataNerdModal(){
         ${stat("Photos Stored",f(d.totalPhotos),"across all knives")}
         ${stat("Avg Price Drops",d.avgDrops!=null?f(d.avgDrops,1):"—",d.dropsCount?"from "+f(d.dropsCount)+" knives":"")}
       </div>`)}
-      ${sec("Sales by Month",monthChart)}
+      ${sec("Roll Health",`<div class="dn-grid">
+        ${stat("Sitting 30+ Days",f(d.sitting30),d.totalInvKnives?"of "+f(d.availKnives)+" available","var(--orange)")}
+        ${stat("Sitting 60+ Days",f(d.sitting60),"getting stale","var(--orange)")}
+        ${stat("Sitting 90+ Days",f(d.sitting90),"consider a drop","var(--red,#e74c3c)")}
+        ${stat("Avg Age in Roll",d.avgRollAge!=null?f(d.avgRollAge,0)+" days":"—","available knives")}
+        ${stat("Oldest in Roll",d.oldestRollDays!=null?f(d.oldestRollDays,0)+" days":"—",d.oldestRollK?d.oldestRollK.brand+" "+d.oldestRollK.model:"")}
+      </div>`)}
+      ${sec("Pipeline Right Now",`<div class="dn-grid">
+        ${stat("Ready to Ship",f(d.readyToShip),"sold, not yet shipped","var(--orange)")}
+        ${stat("In Transit",f(d.inTransit),"shipped, not delivered")}
+        ${stat("Awaiting Confirm",f(d.delivered),"delivered, not confirmed")}
+        ${stat("Confirmed",f(d.confirmed),"buyer confirmed")}
+        ${stat("Unique Buyers",d.uniqueBuyers||"—","by username")}
+        ${stat("Unique Addresses",d.uniqueAddresses||"—","ships sent to")}
+      </div>`)}
+      ${sec("Sales by Month",chart(d.mKeys.map(k=>d.mSales[k]),d.mKeys.map(k=>k.split(" ")[0])))}
+      ${sec("Revenue by Month",chart(d.mKeys.map(k=>Math.round(d.mRev[k])),d.mKeys.map(k=>k.split(" ")[0]),"var(--greent)"))}
+      ${sec("Sales by Day of Week",chart(d.salesByDay,DAY_NAMES,"var(--purple)"))}
+      ${sec("Listings by Day of Week",chart(d.listsByDay,DAY_NAMES,"var(--orange)"))}
       ${d.topBrands.length?sec("Top Brands",bars(d.topBrands)):""}
       ${d.topSteels.length?sec("Top Steels",bars(d.topSteels,"var(--purple)")):""}
       ${Object.values(d.bkts).some(v=>v>0)?sec("Price Distribution",bars(Object.entries(d.bkts).filter(([,v])=>v>0),"var(--orange)")):""}
       ${condEntries.length?sec("Roll Condition Breakdown",bars(condEntries,"var(--greent)")):""}
+      ${sec("Owner Count Distribution",bars(Object.entries(d.ownerDist).filter(([,v])=>v>0),"var(--blue)"))}
       ${ktEntries.length?sec("Sale Type Mix",bars(ktEntries)):""}
+      ${sec("Pricing Intelligence",`<div class="dn-grid">
+        ${stat("Sold at Asking",fPct(d.soldAtAsking),"no discount needed","var(--greent)")}
+        ${stat("Sold After Drop",fPct(d.soldAfterDropPct),"had price history")}
+        ${stat("Total Drops Run",f(d.totalDropsExecuted),"across all listings")}
+        ${stat("$ Left on Table",fUSD(d.leftOnTable),"sum of discounts given")}
+        ${stat("Biggest Discount",fPct(d.biggestDiscount),d.biggestDiscK?d.biggestDiscK.brand+" "+d.biggestDiscK.model:"")}
+        ${stat("Data Completeness",fPct(d.completenessScore),"brand/model/steel/price/cond")}
+      </div>`)}
+      ${sec("Personal Records",`<div class="dn-rec-list">
+        ${recRow("💰 Most Expensive Sale",d.maxSoldK?fUSD(parseFloat(d.maxSoldK.soldPrice||d.maxSoldK.price)):"—",d.maxSoldK?d.maxSoldK.brand+" "+d.maxSoldK.model:"")}
+        ${recRow("🪙 Cheapest Sale",d.minSoldK?fUSD(parseFloat(d.minSoldK.soldPrice||d.minSoldK.price)):"—",d.minSoldK?d.minSoldK.brand+" "+d.minSoldK.model:"")}
+        ${recRow("⚡ Fastest Sale",d.fastestK?f((new Date(d.fastestK.soldAt)-new Date(d.fastestK.addedAt))/864e5,1)+" days":"—",d.fastestK?d.fastestK.brand+" "+d.fastestK.model:"")}
+        ${recRow("🐢 Longest to Sell",d.slowestK?f((new Date(d.slowestK.soldAt)-new Date(d.slowestK.addedAt))/864e5,0)+" days":"—",d.slowestK?d.slowestK.brand+" "+d.slowestK.model:"")}
+        ${recRow("🚀 Fastest Ship",d.fastestShipK?f(d.fastestShip,1)+" days after sale":"—",d.fastestShipK?d.fastestShipK.brand+" "+d.fastestShipK.model:"")}
+        ${recRow("📸 Most Photographed",d.mostPhotosK?""+d.mostPhotosK.photos.length+" photos":"—",d.mostPhotosK?d.mostPhotosK.brand+" "+d.mostPhotosK.model:"")}
+        ${recRow("📉 Most Price Drops",d.mostDropsK?""+d.mostDropsK.priceHistory.length+" drops":"—",d.mostDropsK?d.mostDropsK.brand+" "+d.mostDropsK.model:"")}
+      </div>`)}
       ${sec("Posts &amp; Formats",`<div class="dn-grid">
         ${stat("Total Posts",f(d.totalPosts))}
         ${stat("Avg Knives / Post",f(d.avgKPP,1))}
         ${stat("Posts w/ Photos",f(d.postsWithPhotos),d.totalPosts?f(d.postsWithPhotos/d.totalPosts*100,0)+"%":"")}
       </div>${fmtEntries.length?`<div style="margin-top:12px">${bars(fmtEntries)}</div>`:""}`)}
+      ${sec("Listing Depth",`<div class="dn-grid">
+        ${stat("Posts w/ Notes",f(d.postsWithNotes),d.totalPosts?fPct(d.postsWithNotes/d.totalPosts*100):"")}
+        ${stat("Posts w/ Bundles",f(d.postsWithBundles),"selective bundle prices")}
+        ${stat("Reposts",f(d.postsRepost),d.totalPosts?fPct(d.postsRepost/d.totalPosts*100):"")}
+        ${stat("Avg Post Note Len",d.avgNoteLen!=null?f(d.avgNoteLen,0)+" chars":"—","")}
+        ${stat("Knives w/ Notes",f(d.knivesWithNotes),d.totalListed?fPct(d.knivesWithNotes/d.totalListed*100):"")}
+        ${stat("Knives w/ Photos",f(d.knivesWithPhotos),d.totalListed?fPct(d.knivesWithPhotos/d.totalListed*100):"")}
+      </div>`)}
       ${sec("Shipping",`<div class="dn-grid">
         ${stat("Avg Days to Ship",d.avgShip!=null?f(d.avgShip,1):"—","sale → shipped")}
         ${stat("Avg Transit Time",d.avgDeliv!=null?f(d.avgDeliv,1):"—","shipped → delivered")}
       </div>${carrierEntries.length?`<div style="margin-top:12px">${bars(carrierEntries,"var(--orange)")}</div>`:""}${scEntries.length?`<div style="margin-top:10px">${bars(scEntries)}</div>`:""}`)}
       ${gearEntries.length?sec("Gear Categories",bars(gearEntries)):""}
+      ${sec("App &amp; Data",`<div class="dn-grid">
+        ${stat("Session Uptime",fTime(sessionUptime),"this session")}
+        ${stat("Renders This Session",f(S._renderCount||0),"reactive re-renders")}
+        ${stat("Data Load Time",S._loadTime!=null?f(S._loadTime,1)+" ms":"—","on app start")}
+        ${stat("Total Records",f(d.totalPosts+d.totalInvKnives+d.totalGear),"posts + inventory + gear")}
+        ${stat("Unique Brands",f(d.uniqueBrands),"across all listings")}
+        ${stat("Unique Steels",f(d.uniqueSteels),"across all listings")}
+      </div><div style="margin-top:12px">${bars([["Posts",d.postsSize],["Inventory",d.invSize],["Settings",d.settingsSize]].filter(([,v])=>v>0).map(([l,v])=>[l+" ("+fBytes(v)+")",v]),"var(--purple)")}</div><div style="font-size:10.5px;color:var(--t4);margin-top:8px">Total data: ${fBytes(d.totalDBSize)} stored locally${S.user?" + synced to cloud":""}</div>`)}
     </div>
   </div>
 </div>`;
@@ -2465,6 +2603,7 @@ function renderLoading(){
   </div>`;
 }
 function render(){
+  S._renderCount=(S._renderCount||0)+1;
   if(S.loaded&&_loadingMsgTid){clearInterval(_loadingMsgTid);_loadingMsgTid=null;}
   const dlb=document.getElementById("dl-brands");
   if(dlb&&!dlb.childElementCount)dlb.innerHTML=BRANDS.map(b=>`<option value="${esc(b)}">`).join("");
