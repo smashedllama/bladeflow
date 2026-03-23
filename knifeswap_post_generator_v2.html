@@ -262,7 +262,9 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .section-hdr-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t4)}
 .section-hdr-count{font-size:11px;color:var(--t4);background:rgba(0,0,0,.07);padding:1px 8px;border-radius:10px;font-weight:600}
 .section-hdr-sub{font-size:11px;color:var(--t3)}
-.krow{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:var(--rs);background:var(--bg);border:.5px solid var(--b1);margin-bottom:7px}
+.krow{display:flex;flex-direction:column;padding:10px 13px;border-radius:var(--rs);background:var(--bg);border:.5px solid var(--b1);margin-bottom:7px}
+.krow-top{display:flex;align-items:center;gap:8px}
+.krow-acts{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:.5px solid var(--b2)}
 .krow.sold{background:var(--greenbg);border-color:rgba(52,199,89,.2)}
 .krow.pending-row{background:var(--orangebg);border-color:rgba(255,149,0,.25)}
 .krow.withdrawn-row{background:var(--bg);border-color:var(--b2);opacity:.7}
@@ -778,9 +780,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
   .lk-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
   /* Post text box - less tall */
   .post-box{font-size:11px;max-height:220px}
-  /* Knife row - wrap actions onto new line */
-  .krow{flex-wrap:wrap;gap:6px}
-  .krow-info{min-width:0;flex:1 1 calc(100% - 80px)}
+  /* Knife row */
+  .krow-info{flex:1;min-width:0}
   .krow-price{font-size:13px}
   /* Settings srow - stack label+control */
   .srow{flex-direction:column;align-items:flex-start;gap:6px}
@@ -2450,12 +2451,12 @@ function buildConfirmComment(pid,ki){
   const k=p.knives[ki];if(!k||!k.sold)return"";
   const type=p.postType||"[WTS]";
   const kStr=`${k.brand} ${k.model}${k.steel?" ("+k.steel+")":""}`;
-  const buyer=k.soldTo?`u/${k.soldTo}`:"u/[buyer username]";
-  const seller=SETTINGS.username?`u/${SETTINGS.username}`:"u/[your username]";
+  const rawBuyer=(k.soldTo||"").trim().replace(/^@/,"").replace(/^\/?u\//i,"");
+  const buyer=rawBuyer?`u/${rawBuyer}`:"u/[buyer username]";
   const salePrice=k.soldPrice||k.price;
-  if(type==="[WTT]"){const tv=k.tradeValue?` (TV: $${k.tradeValue})`:"";return`u/ksbot traded ${seller} and ${buyer}\n\nTraded ${kStr}${tv} with ${buyer}.`;}
+  if(type==="[WTT]"){const tv=k.tradeValue?` (TV: $${k.tradeValue})`:"";return`u/ksbot traded ${kStr}${tv} with ${buyer}.`;}
   const priceStr=salePrice?` for $${salePrice}`:"";
-  return`u/ksbot sold ${seller} and ${buyer}\n\n${kStr} to ${buyer}${priceStr}.`;
+  return`u/ksbot sold ${kStr} to ${buyer}${priceStr}.`;
 }
 function buildDibsMessage(pid,ki){
   const p=S.posts.find(x=>x.id===pid);if(!p)return"";
@@ -3671,7 +3672,7 @@ function renderList(){
         const kDot=k.soldElsewhere?`<span class="sdot sdot-r"></span>`:k.withdrawn?`<span class="sdot sdot-x"></span>`:k.sold?`<span class="sdot sdot-r"></span>`:k.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
         const kRowClass=`krow${(k.sold||k.soldElsewhere)?" sold":k.withdrawn?" withdrawn-row":k.pending?" pending-row":""}${isMoving?" moving":""}`;
         const addrHtml=k.sold&&k.shippingAddress?addrDisplayHtml(p.id,i):"";
-        return`<div class="${kRowClass}"><div class="krow-info"><div class="krow-name${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold&&!k.soldElsewhere&&!k.withdrawn?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">${icon('camera',11)} ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${(k.sold||k.soldElsewhere)&&k.soldAt?" · "+(k.soldElsewhere?"Elsewhere":"Sold")+" "+fmtD(k.soldAt):""}${k.withdrawn?" · Withdrawn":""}${soldToMeta}</div></div><span class="krow-price${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${knifePrice(k)}</span>${k.soldElsewhere?`<span class="elsewhere-chip">Sold Elsewhere</span><button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:k.withdrawn?`<span class="withdrawn-chip">Withdrawn</span><button class="btn btn-sm btn-sec" onclick="readdKnife('${p.id}',${i})">Re-add</button>`:k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:`<button class="btn btn-sm${dibsCopied?" btn-gn":" btn-pu"}" onclick="copyDibsMessage('${p.id}',${i})" title="Copy payment confirmation message">${dibsCopied?"Copied!":"📬 Payment Info"}</button><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})"><span class="sdot sdot-g"></span>→<span class="sdot sdot-r"></span> Sold</button><button class="btn btn-sm btn-rd" onclick="markSoldElsewhere('${p.id}',${i})" title="Sold on eBay, FB Marketplace, etc.">Sold Elsewhere</button><button class="btn btn-sm btn-sec" onclick="markWithdrawn('${p.id}',${i})" title="Remove from listing, return to The Roll">Withdraw</button>`}${!k.sold&&!k.soldElsewhere&&!k.withdrawn&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${addrHtml}${sfHtml}${picker}`;
+        return`<div class="${kRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold&&!k.soldElsewhere&&!k.withdrawn?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">${icon('camera',11)} ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${(k.sold||k.soldElsewhere)&&k.soldAt?" · "+(k.soldElsewhere?"Elsewhere":"Sold")+" "+fmtD(k.soldAt):""}${k.withdrawn?" · Withdrawn":""}${soldToMeta}</div></div><span class="krow-price${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${knifePrice(k)}</span></div><div class="krow-acts">${k.soldElsewhere?`<span class="elsewhere-chip">Sold Elsewhere</span><button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:k.withdrawn?`<span class="withdrawn-chip">Withdrawn</span><button class="btn btn-sm btn-sec" onclick="readdKnife('${p.id}',${i})">Re-add</button>`:k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:`<button class="btn btn-sm${dibsCopied?" btn-gn":" btn-pu"}" onclick="copyDibsMessage('${p.id}',${i})" title="Copy payment confirmation message">${dibsCopied?"Copied!":"📬 Payment Info"}</button><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})"><span class="sdot sdot-g"></span>→<span class="sdot sdot-r"></span> Sold</button><button class="btn btn-sm btn-rd" onclick="markSoldElsewhere('${p.id}',${i})" title="Sold on eBay, FB Marketplace, etc.">Sold Elsewhere</button><button class="btn btn-sm btn-sec" onclick="markWithdrawn('${p.id}',${i})" title="Remove from listing, return to The Roll">Withdraw</button>`}${!k.sold&&!k.soldElsewhere&&!k.withdrawn&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${addrHtml}${sfHtml}${picker}`;
       }).join("");
       const da2=daysAgo(p.createdAt);
       const repostSection=pA>0?`<div class="repost-track">
@@ -3983,9 +3984,10 @@ function renderSold(){
   // Gather sold knives from posts (for history tally)
   const fromPosts=[];
   S.posts.forEach(p=>{p.knives.forEach((k,ki)=>{if(k.sold)fromPosts.push({...k,source:"post",postType:p.postType,postDate:p.createdAt,pid:p.id,ki});});});
-  // Gather sold knives from The Roll
+  // Gather sold knives from The Roll — exclude any that were sold via a post (already in fromPosts via inventoryId)
+  const _postSoldInvIds=new Set(fromPosts.map(k=>k.inventoryId).filter(Boolean));
   const fromRoll=[];
-  S.inventory.forEach(k=>{if(k.status==="sold")fromRoll.push({...k,source:"roll"});});
+  S.inventory.forEach(k=>{if(k.status==="sold"&&!_postSoldInvIds.has(k.id))fromRoll.push({...k,source:"roll"});});
   const all=[...fromPosts,...fromRoll].sort((a,b)=>(b.soldAt||"").localeCompare(a.soldAt||""));
   const totalVal=all.reduce((n,k)=>n+parseFloat(k.price||0),0);
   // Sell-through stats
