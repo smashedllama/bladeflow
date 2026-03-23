@@ -849,7 +849,7 @@ const NI_CATS=["watch","sunglasses","flashlight","multi-tool","bag","clothing","
 const NI_ICONS={watch:"⌚",sunglasses:"🕶️",flashlight:"🔦","multi-tool":"🔧","bag":"🎒",clothing:"👕",other:"📦"};
 const NI_LABELS={watch:"Watch",sunglasses:"Sunglasses",flashlight:"Flashlight","multi-tool":"Multi-tool",bag:"Bag / Case",clothing:"Clothing",other:"Other"};
 const ED=()=>({postType:"[WTS]",knives:[],items:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",bundles:[],groupAddons:false,tradeInterests:SETTINGS.tradeInterests||"",shippingCarrier:SETTINGS.shippingCarrier||"USPS"});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,gearPicker:false,_skipRollAnim:false,rollKnivesOpen:true,rollGearOpen:true};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,gearPicker:false,_skipRollAnim:false,rollKnivesOpen:true,rollGearOpen:true,emailChangeOpen:false,emailChangeNotice:false};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -1004,6 +1004,19 @@ async function signOut(){
   S.posts=[];S.inventory=[];
   if(_sb)await _sb.auth.signOut();
   currentUser=null;S.authStatus="guest";S.authEmail="";S.showMigrate=false;render();
+}
+async function changeEmail(){
+  if(!_sb||!currentUser)return;
+  const newEmail=(document.getElementById("change-email-input")?.value||"").trim().toLowerCase();
+  if(!newEmail){S.err="Please enter a new email address.";render();return;}
+  if(newEmail===S.authEmail.toLowerCase()){S.err="That's already your current address.";render();return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)){S.err="Please enter a valid email address.";render();return;}
+  S.err="";
+  try{
+    const {error}=await _sb.auth.updateUser({email:newEmail});
+    if(error)throw error;
+    S.emailChangeNotice=true;render();
+  }catch(e){S.err=e.message||"Failed to request address change.";render();}
 }
 async function deleteAccount(){
   if(!_sb||!currentUser)return;
@@ -2283,7 +2296,7 @@ function renderAuthModal(){
       </div>
       <p style="font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:16px">Your listings, inventory, and settings sync automatically across all your devices.</p>
       <button class="btn btn-sec" style="width:100%;margin-bottom:8px" onclick="signOut()">Sign Out</button>
-      <button class="btn" style="width:100%;background:var(--redbg);color:var(--redt);border:.5px solid rgba(255,59,48,.2);border-radius:980px;font-size:13px;font-weight:600;padding:9px 16px;cursor:pointer;font-family:var(--font)" onclick="S.modal=null;S.view='settings';S.delFlowEmail='';render()">Delete Account...</button>
+      <button class="btn" style="width:100%;background:var(--redbg);color:var(--redt);border:.5px solid rgba(255,59,48,.2);border-radius:980px;font-size:13px;font-weight:600;padding:9px 16px;cursor:pointer;font-family:var(--font)" onclick="S.modal=null;S.view='settings';S.delFlowEmail='step1';render()">Delete Account...</button>
     </div>`;
   } else if(S.authStatus==="pending"){
     inner=`${brand}<div style="padding:0 24px 28px;text-align:center">
@@ -3842,6 +3855,18 @@ function renderSettings(){
         :`<button class="btn btn-pri btn-sm" onclick="S.modal='auth';render()">&#9729; Sign In to Back Up Data</button>`
       }
     </div>
+    ${S.authStatus==="signed_in"?`<div class="srow" style="flex-direction:column;align-items:flex-start;gap:10px">
+      <div><div class="srow-lbl">Change Address</div><div class="srow-sub">Update the address used to sign in. A confirmation link will be sent to the new address.</div></div>
+      ${S.emailChangeOpen?`<div style="width:100%;display:flex;flex-direction:column;gap:8px">
+        <input id="change-email-input" type="email" placeholder="new@example.com" autocomplete="off" style="width:100%;font-size:13px;padding:7px 10px"/>
+        ${S.emailChangeNotice?`<div style="font-size:12px;color:var(--greent);background:var(--greenbg);border-radius:8px;padding:8px 12px;border:.5px solid rgba(52,199,89,.2)">✓ Confirmation link sent — check your new address and click the link to finish.</div>`:""}
+        ${S.err?`<div class="err">${esc(S.err)}</div>`:""}
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-pri btn-sm" onclick="changeEmail()">Send Confirmation</button>
+          <button class="btn btn-sec btn-sm" onclick="S.emailChangeOpen=false;S.emailChangeNotice=false;S.err='';render()">Cancel</button>
+        </div>
+      </div>`:`<button class="btn btn-sec btn-sm" onclick="S.emailChangeOpen=true;S.emailChangeNotice=false;S.err='';render()">Change Address…</button>`}
+    </div>`:""}
   </div>
   <div class="settings-section-lbl">About</div>
   <div class="sgroup">
@@ -3860,16 +3885,29 @@ function renderSettings(){
         <div class="srow-lbl" style="color:var(--redt)">Delete Account</div>
         <div class="srow-sub">Permanently delete your account and all data: listings, inventory, and settings. This cannot be undone.</div>
       </div>
-      ${S.delFlowEmail!==null?`<div style="width:100%;background:var(--redbg);border:.5px solid rgba(255,59,48,.25);border-radius:10px;padding:14px 14px 12px">
-        <div style="font-size:13px;font-weight:700;color:var(--redt);margin-bottom:4px">This is permanent and cannot be undone.</div>
-        <div style="font-size:12px;color:var(--redt);opacity:.85;margin-bottom:11px;line-height:1.5">Type your email address <strong>${esc(S.authEmail)}</strong> to confirm:</div>
+      ${S.delFlowEmail==='step1'?`<div style="width:100%;background:var(--redbg);border:.5px solid rgba(255,59,48,.25);border-radius:10px;padding:16px 16px 14px">
+        <div style="font-size:13px;font-weight:700;color:var(--redt);margin-bottom:10px">Everything below will be permanently deleted:</div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+          <tr><td style="font-size:12px;color:var(--t2);padding:4px 0;line-height:1.4">📄</td><td style="font-size:12px;color:var(--t2);padding:4px 0 4px 8px;line-height:1.4"><strong>${S.posts.length}</strong> post${S.posts.length!==1?"s":""} and draft${S.posts.length!==1?"s":""}</td></tr>
+          <tr><td style="font-size:12px;color:var(--t2);padding:4px 0;line-height:1.4">🗡️</td><td style="font-size:12px;color:var(--t2);padding:4px 0 4px 8px;line-height:1.4"><strong>${S.inventory.filter(k=>!isNI(k)).length}</strong> knife${S.inventory.filter(k=>!isNI(k)).length!==1?"s":""} in your inventory</td></tr>
+          <tr><td style="font-size:12px;color:var(--t2);padding:4px 0;line-height:1.4">🎒</td><td style="font-size:12px;color:var(--t2);padding:4px 0 4px 8px;line-height:1.4"><strong>${S.inventory.filter(isNI).length}</strong> other gear item${S.inventory.filter(isNI).length!==1?"s":""}</td></tr>
+          <tr><td style="font-size:12px;color:var(--t2);padding:4px 0;line-height:1.4">⚙️</td><td style="font-size:12px;color:var(--t2);padding:4px 0 4px 8px;line-height:1.4">All settings and preferences</td></tr>
+        </table>
+        <div style="font-size:12px;font-weight:700;color:var(--redt);margin-bottom:14px">There is no way to recover this data.</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-rd btn-sm" style="flex:1;justify-content:center" onclick="S.delFlowEmail='';S.err='';render()">Yes, delete everything →</button>
+          <button class="btn btn-sec btn-sm" onclick="S.delFlowEmail=null;S.err='';render()">Cancel</button>
+        </div>
+      </div>`:S.delFlowEmail!==null?`<div style="width:100%;background:var(--redbg);border:.5px solid rgba(255,59,48,.25);border-radius:10px;padding:14px 14px 12px">
+        <div style="font-size:13px;font-weight:700;color:var(--redt);margin-bottom:4px">Final confirmation</div>
+        <div style="font-size:12px;color:var(--redt);opacity:.85;margin-bottom:11px;line-height:1.5">Type <strong>${esc(S.authEmail)}</strong> to confirm:</div>
         <input id="del-confirm-input" type="email" placeholder="${esc(S.authEmail)}" autocomplete="off" style="width:100%;font-size:13px;padding:7px 10px;border:.5px solid rgba(255,59,48,.35);border-radius:8px;background:#fff;color:var(--t1);margin-bottom:10px;outline:none"/>
         ${S.err?`<div class="err" style="margin-bottom:10px">${esc(S.err)}</div>`:""}
         <div style="display:flex;gap:8px">
-          <button class="btn btn-rd" style="flex:1;justify-content:center" onclick="deleteAccount()">Permanently Delete</button>
+          <button class="btn btn-rd" style="flex:1;justify-content:center" onclick="deleteAccount()">Delete My Account</button>
           <button class="btn btn-sec" onclick="S.delFlowEmail=null;S.err='';render()">Cancel</button>
         </div>
-      </div>`:`<button class="btn btn-rd btn-sm" onclick="S.delFlowEmail='';S.err='';render()">Delete My Account</button>`}
+      </div>`:`<button class="btn btn-rd btn-sm" onclick="S.delFlowEmail='step1';S.err='';render()">Delete My Account</button>`}
     </div>
   </div>`:""}
 </div></div>`;
@@ -3891,7 +3929,7 @@ window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window
 window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;
 window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;window.copyDibsMessage=copyDibsMessage;window.buildDibsMessage=buildDibsMessage;window.lookupZip=lookupZip;window.copyShippingAddress=copyShippingAddress;window.copyShippingName=copyShippingName;window.copyShippingAddrOnly=copyShippingAddrOnly;window.addrDisplayHtml=addrDisplayHtml;window.openPirateShip=openPirateShip;window.fmtAddress=fmtAddress;window.fmtAddrNoName=fmtAddrNoName;window.markShipped=markShipped;window.markDelivered=markDelivered;window.markConfirmedTrade=markConfirmedTrade;window.kShipStatus=kShipStatus;window.copyTrackingLink=copyTrackingLink;window.startTracking=startTracking;window.cancelTracking=cancelTracking;window.saveTracking=saveTracking;
 window.markPending=markPending;window.markInvPending=markInvPending;
-window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
+window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.changeEmail=changeEmail;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.skipMigrate=skipMigrate;
 window.renderTutorialModal=renderTutorialModal;window.renderAboutModal=renderAboutModal;window.renderCloudinaryModal=renderCloudinaryModal;window.renderCloudinaryStatus=renderCloudinaryStatus;
 window.startTour=startTour;window.nextTourStep=nextTourStep;window.prevTourStep=prevTourStep;window.endTour=endTour;
 window.autoPostType=autoPostType;window.buildTitleStr=buildTitleStr;window.doFetchPriceResearch=doFetchPriceResearch;window.clearPriceResearch=clearPriceResearch;window.applyPriceFromResearch=applyPriceFromResearch;
