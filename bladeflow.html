@@ -4938,17 +4938,19 @@ if("serviceWorker" in navigator){
 
 // Save time-on-site to lifetime stats on tab close
 window.addEventListener('beforeunload',()=>{try{const _bfs=JSON.parse(localStorage.getItem('bf_stats')||'{}');_bfs.totalTimeMs=(_bfs.totalTimeMs||0)+(Date.now()-(S._sessionStart||Date.now()));localStorage.setItem('bf_stats',JSON.stringify(_bfs));}catch(e){}});
+// Capture desired view from hash/param BEFORE any async render() calls overwrite location.hash
+const _VALID_VIEWS=['list','roll','sold','shipping','guide','settings'];
+const _STARTUP_HASH=location.hash.replace('#','');
+const _STARTUP_VIEW=_VALID_VIEWS.includes(_STARTUP_HASH)?_STARTUP_HASH
+  :new URLSearchParams(location.search).has('guide')?'guide':null;
+
 render();
 (async()=>{
   await loadSettings();
   await initSupabase();
   if(!currentUser){await load();}
   if(!localStorage.getItem('ks-tutorial-done')){S.modal='tutorial';S.tutStep=0;}
-  // Restore view from URL hash (e.g. #roll, #guide) or legacy ?guide param
-  const _hv=['list','roll','sold','shipping','guide','settings'];
-  const _hashView=location.hash.replace('#','');
-  if(_hv.includes(_hashView))S.view=_hashView;
-  else if(new URLSearchParams(location.search).has('guide'))S.view='guide';
+  if(_STARTUP_VIEW)S.view=_STARTUP_VIEW;
   render();
 })();
 </script>
