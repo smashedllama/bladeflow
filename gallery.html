@@ -470,6 +470,9 @@ function gico(name, size=16) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 }
 
+// ─── HELPERS ────────────────────────────────────────────────────
+function cdnImg(url,w,h,fit){if(!url||!url.includes("res.cloudinary.com"))return url;const t=`w_${w}${h?",h_"+h:""},c_${fit||"limit"},q_auto,f_auto`;return url.replace("/upload/",`/upload/${t}/`)}
+
 // ─── STATE ──────────────────────────────────────────────────────
 // section: {label, ico, imgs, price, details, isTimestamp}
 let sections = [];
@@ -744,7 +747,7 @@ function loadSection(idx, animate) {
     slide.className = 'slide';
     slide.id = `slide-${i}`;
     const img = document.createElement('img');
-    img.src = url;
+    img.src = cdnImg(url, 1200, 0, 'limit');
     img.alt = `${s.label} photo ${i + 1}`;
     img.draggable = false;
     img.addEventListener('load', () => { if (i === curSlide) document.getElementById('spinner').style.display = 'none'; });
@@ -759,7 +762,7 @@ function loadSection(idx, animate) {
     if (s.imgs.length > 1) {
       const t = document.createElement('img');
       t.className = 'thumb' + (i === 0 ? ' active' : '');
-      t.src = url; t.alt = `Thumb ${i + 1}`; t.draggable = false;
+      t.src = cdnImg(url, 120, 80, 'fill'); t.alt = `Thumb ${i + 1}`; t.draggable = false;
       t.addEventListener('click', () => showSlide(i));
       thumbsEl.appendChild(t);
     }
