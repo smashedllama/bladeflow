@@ -878,7 +878,7 @@ function tm(a,v){return a.includes(v)?a.filter(x=>x!==v):[...a,v]}
 function tmx(a,v,ex){if(v===ex)return[ex];const r=a.filter(x=>x!==ex);return r.includes(v)?r.filter(x=>x!==v):[...r,v]}
 
 // ─── SETTINGS ─────────────────────────────────────────────────
-const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,postHeader:"",tradeInterests:"",rollAnim:false,cloudinaryCloud:"",cloudinaryPreset:"",cloudinaryApiKey:"",cloudinaryApiSecret:"",photoRetentionDays:90,shippingCarrier:"USPS",paymentLinks:{}});
+const DS=()=>({payment:["PayPal G&S"],noShip:[],username:"",saveNotice:false,postHeader:"",tradeInterests:"",rollAnim:false,cloudinaryCloud:"",cloudinaryPreset:"",shippingCarrier:"USPS",paymentLinks:{}});
 let SETTINGS=DS();
 async function loadSettings(){try{const r=await window.storage.get("ks_settings");if(r&&r.value)SETTINGS={...DS(),...JSON.parse(r.value)};}catch(e){}}
 async function saveSettings(){
@@ -2043,46 +2043,6 @@ function buildPost(post,v){
   const shipSummary2=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ ins`:`${carrier} w/ ins`;
   const itemsSection2=buildItemsSection(post);
   return`${type} ${title}${rp}\n${photoLine}${headerBlock}\n\n${post.knives.map((k,i)=>{const gu=(k.photos||[]).filter(Boolean).length?(buildPostGalleryUrl(post,i)||galleryUrl(k)):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);const inlineAddon2=k.addonEnabled&&k.addonPrice?` | Add-on: $${k.addonPrice}`:"";return`${dot(k)} ${nm}${k.soldElsewhere?(k.soldPrice?` [SOLD ELSEWHERE @ $${k.soldPrice}]`:" [SOLD ELSEWHERE]"):k.withdrawn?" [WITHDRAWN]":k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":""} | ${knifePrice(k)}${inlineAddon2} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}${selBundleLine2}${itemsSection2}\n\nPayment: ${pay} | Shipping: ${shipSummary2}${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}\n${sig}`;
-}
-
-// ─── CLOUDINARY CLEANUP ───────────────────────────────────────
-function cloudinaryPublicId(url){
-  const m=url.match(/\/upload\/(?:v\d+\/)?([^.?]+)/);return m?m[1]:null;
-}
-async function cloudinarySign(params,secret){
-  const str=Object.keys(params).sort().map(k=>`${k}=${params[k]}`).join("&")+secret;
-  const buf=await crypto.subtle.digest("SHA-1",new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-async function deleteCloudinaryPhoto(url){
-  const cloud=(SETTINGS.cloudinaryCloud||"").trim();
-  const key=(SETTINGS.cloudinaryApiKey||"").trim();
-  const secret=(SETTINGS.cloudinaryApiSecret||"").trim();
-  if(!cloud||!key||!secret||!url||!url.includes("res.cloudinary.com"))return false;
-  const pid=cloudinaryPublicId(url);if(!pid)return false;
-  const ts=Math.round(Date.now()/1000);
-  const sig=await cloudinarySign({public_id:pid,timestamp:ts},secret);
-  const fd=new FormData();fd.append("public_id",pid);fd.append("timestamp",ts);fd.append("api_key",key);fd.append("signature",sig);
-  try{const r=await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloud)}/image/destroy`,{method:"POST",body:fd});const d=await r.json();return d.result==="ok";}
-  catch{return false;}
-}
-async function cleanupOldPhotos(){
-  const days=parseInt(SETTINGS.photoRetentionDays||90);
-  const cutoff=new Date(Date.now()-days*864e5).toISOString();
-  // Collect unique Cloudinary URLs from confirmed+old knives
-  const urlSet=new Set();
-  S.inventory.forEach(k=>{if(k.confirmedAt&&k.confirmedAt<cutoff)(k.photos||[]).filter(u=>u&&u.includes("res.cloudinary.com")).forEach(u=>urlSet.add(u));});
-  S.posts.forEach(p=>p.knives.forEach(k=>{if(k.confirmedAt&&k.confirmedAt<cutoff)(k.photos||[]).filter(u=>u&&u.includes("res.cloudinary.com")).forEach(u=>urlSet.add(u));}));
-  const urls=[...urlSet];
-  if(!urls.length){alert(`No Cloudinary photos found on confirmed knives older than ${days} days.`);return;}
-  if(!confirm(`Delete ${urls.length} photo${urls.length!==1?"s":""} from confirmed knives older than ${days} days?\n\nThis permanently removes them from Cloudinary and cannot be undone.`))return;
-  S.cleanupRunning=true;render();
-  let done=0;for(const u of urls){if(await deleteCloudinaryPhoto(u))done++;}
-  // Clear photo arrays in state
-  upInv(s=>{s.inventory.forEach(k=>{if(k.confirmedAt&&k.confirmedAt<cutoff)k.photos=[];});});
-  up(s=>{s.posts.forEach(p=>p.knives.forEach(k=>{if(k.confirmedAt&&k.confirmedAt<cutoff)k.photos=[];}));});
-  saveInv();S.cleanupRunning=false;
-  alert(`Done — ${done} of ${urls.length} photos deleted from Cloudinary.`);render();
 }
 
 // ─── UPLOAD ───────────────────────────────────────────────────
@@ -4665,23 +4625,7 @@ function renderSettings(){
     <div class="srow" style="flex-wrap:wrap;gap:10px"><div style="flex:1;min-width:200px"><div class="srow-lbl">Photo Hosting</div><div class="srow-sub">Drag-and-drop uploads via your own free <a href="https://cloudinary.com" target="_blank" style="color:var(--blue);text-decoration:none">Cloudinary</a> account. Photos go directly from your browser to your account. Never through our servers. Stored with <strong>AES-256</strong> at rest, <strong>TLS 1.2+</strong> in transit.</div></div><div class="srow-ctrl" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${sv.cloudinaryCloud&&sv.cloudinaryPreset?`<span style="font-size:11px;font-weight:600;color:var(--greent);background:var(--greenbg);padding:4px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px">${icon("check-circle",12,'var(--greent)')} Connected</span>`:`<span style="font-size:11px;font-weight:600;color:var(--oranget);background:var(--orangebg);padding:4px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px">${icon("alert-circle",12,'var(--oranget)')} Setup needed</span>`}<button class="btn btn-sec btn-sm" onclick="S.modal='cloudinary';render()">📖 Setup Guide</button></div></div>
     <div class="srow"><div><div class="srow-lbl">Cloud Name</div><div class="srow-sub">Your Cloudinary cloud name (dashboard, top-left).</div></div><div class="srow-ctrl"><input type="text" style="width:170px;min-width:170px;font-size:13px;padding:7px 10px" value="${esc(sv.cloudinaryCloud||"")}" placeholder="e.g. dxyz12abc" onchange="SETTINGS.cloudinaryCloud=this.value.trim();saveSettings()"/></div></div>
     <div class="srow"><div><div class="srow-lbl">Upload Preset</div><div class="srow-sub">Must be set to Unsigned in Cloudinary.</div></div><div class="srow-ctrl"><input type="text" style="width:170px;min-width:170px;font-size:13px;padding:7px 10px" value="${esc(sv.cloudinaryPreset||"")}" placeholder="e.g. knife-swap" onchange="SETTINGS.cloudinaryPreset=this.value.trim();saveSettings()"/></div></div>
-    <div class="srow"><div><div class="srow-lbl">API Key</div><div class="srow-sub">Dashboard → Settings → Access Keys. Required for photo cleanup only.</div></div><div class="srow-ctrl"><input type="text" style="width:170px;min-width:170px;font-size:13px;padding:7px 10px" value="${esc(sv.cloudinaryApiKey||"")}" placeholder="123456789012345" onchange="SETTINGS.cloudinaryApiKey=this.value.trim();saveSettings()"/></div></div>
-    <div class="srow"><div><div class="srow-lbl">API Secret</div><div class="srow-sub">Stored in your browser only, never sent to our servers. Used to sign delete requests.</div></div><div class="srow-ctrl"><input type="password" style="width:170px;min-width:170px;font-size:13px;padding:7px 10px" value="${esc(sv.cloudinaryApiSecret||"")}" placeholder="••••••••••••••••" onchange="SETTINGS.cloudinaryApiSecret=this.value.trim();saveSettings()"/></div></div>
-  </div>
-  <div class="settings-section-lbl">Storage Cleanup</div>
-  <div class="sgroup">
-    <div class="srow" style="flex-direction:column;align-items:flex-start;gap:8px">
-      <div><div class="srow-lbl">Auto-delete old photos</div><div class="srow-sub" style="line-height:1.6;max-width:400px">Permanently deletes Cloudinary photos from confirmed knives older than the retention period. The knife record stays — only the hosted photos are removed. Requires API Key + Secret above.</div></div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-size:13px;color:var(--t2)">Keep photos for</span>
-        <select style="font-size:13px;padding:6px 9px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);font-family:var(--font)" onchange="SETTINGS.photoRetentionDays=parseInt(this.value);saveSettings()">${[30,60,90,180,365].map(d=>`<option value="${d}"${(sv.photoRetentionDays||90)===d?" selected":""}>${d} days</option>`).join("")}</select>
-        <span style="font-size:13px;color:var(--t2)">after confirmation</span>
-      </div>
-      ${sv.cloudinaryApiKey&&sv.cloudinaryApiSecret
-        ?`<button class="btn btn-sec btn-sm" onclick="cleanupOldPhotos()" ${S.cleanupRunning?"disabled":""} style="margin-top:2px">${S.cleanupRunning?`${icon('loader',13)} Deleting…`:`${icon('trash',13)} Clean Up Old Photos`}</button>`
-        :`<div style="font-size:12px;color:var(--t4);padding:6px 10px;background:var(--bg);border-radius:8px;border:.5px dashed var(--b2)">Enter API Key + Secret above to enable cleanup</div>`
-      }
-    </div>
+    <div class="srow"><div><div class="srow-lbl">Running low on storage?</div><div class="srow-sub" style="line-height:1.6">Open your <a href="https://console.cloudinary.com" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;text-decoration:none">Cloudinary Media Library ↗</a>, filter by upload date, and bulk-delete old photos from confirmed sales. The knife records in BladeFlow are unaffected.</div></div></div>
   </div>
   ${S.authStatus==="signed_in"?`
   <div class="settings-section-lbl" style="color:var(--redt);margin-top:8px">Danger Zone</div>
