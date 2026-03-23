@@ -6,11 +6,11 @@
 <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme:dark)">
 <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme:light)">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="KnifeSwap Post Generator">
+<meta property="og:site_name" content="BladeFlow">
 <meta id="og-title" property="og:title" content="Knife Photos">
 <meta id="og-image" property="og:image" content="">
-<meta id="og-desc" property="og:description" content="View knife photos on KnifeSwap Post Generator">
-<title>KnifeSwap Gallery</title>
+<meta id="og-desc" property="og:description" content="View knife photos on BladeFlow">
+<title>BladeFlow Gallery</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -74,7 +74,6 @@ body{
 .hdr-sub{font-size:11px;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hdr-user{font-size:12px;font-weight:500;color:var(--t2);white-space:nowrap;flex-shrink:0}
 
-/* Mobile menu button — hidden on desktop */
 .mob-menu-btn{
   display:none;
   align-items:center;gap:5px;
@@ -94,7 +93,7 @@ body{
 
 /* ── SIDEBAR NAV ── */
 .knife-nav{
-  width:200px;flex-shrink:0;
+  width:210px;flex-shrink:0;
   background:var(--surf);
   border-right:.5px solid var(--b1);
   overflow-y:auto;
@@ -107,10 +106,9 @@ body{
 .nav-section-lbl{
   font-size:10px;font-weight:600;color:var(--t3);
   letter-spacing:.06em;text-transform:uppercase;
-  padding:8px 10px 6px;
+  padding:10px 10px 5px;
 }
 
-/* Grid layout: [ico 20px] [body 1fr] [badge auto] — badge can never overlap */
 .nav-item{
   display:grid;
   grid-template-columns:22px 1fr auto;
@@ -139,6 +137,7 @@ body{
   font-size:11px;color:var(--t3);margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+.nav-item.active .nav-item-meta{color:var(--acc);opacity:.7}
 .nav-badge{
   font-size:10px;font-weight:700;
   background:var(--surf3);color:var(--t3);
@@ -175,7 +174,6 @@ body{
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Nav arrows */
 .nav-arrow{
   position:absolute;top:50%;transform:translateY(-50%);
   background:rgba(0,0,0,.45);
@@ -195,7 +193,6 @@ body{
 .nav-arrow.prev{left:14px}
 .nav-arrow.next{right:14px}
 
-/* Counter */
 .counter{
   position:absolute;top:12px;right:12px;
   background:rgba(0,0,0,.5);
@@ -224,6 +221,41 @@ body{
 .thumb:hover{opacity:.85;transform:scale(1.04)}
 .thumb.active{border-color:var(--acc);opacity:1}
 
+/* ── DETAILS BAR ── */
+.details-bar{
+  background:var(--surf);
+  border-top:.5px solid var(--b1);
+  flex-shrink:0;
+}
+.details-bar.hidden{display:none}
+.details-toggle{
+  width:100%;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;
+  background:none;border:none;cursor:pointer;
+  font-family:var(--font);color:var(--t2);
+  font-size:12px;font-weight:600;letter-spacing:.01em;
+  transition:background .12s;
+}
+.details-toggle:hover{background:var(--surf2)}
+.details-chevron{
+  font-size:10px;color:var(--t3);
+  transition:transform .2s ease;
+  display:inline-block;
+}
+.details-toggle.open .details-chevron{transform:rotate(180deg)}
+.details-content{
+  display:none;
+  padding:2px 14px 13px;
+  grid-template-columns:1fr 1fr;
+  gap:8px 20px;
+}
+.details-content.open{display:grid}
+.detail-row{display:flex;flex-direction:column;gap:2px}
+.detail-row.full{grid-column:1 / -1}
+.detail-lbl{font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em}
+.detail-val{font-size:12.5px;color:var(--t1);line-height:1.4}
+
 /* ── FOOTER ── */
 .footer{
   display:flex;align-items:center;justify-content:center;
@@ -235,19 +267,14 @@ body{
 .made-with a{color:var(--t2);text-decoration:none;font-weight:500}
 .made-with a:hover{color:var(--acc)}
 
-/* ── BOTTOM SHEET (mobile section picker) ── */
+/* ── BOTTOM SHEET ── */
 .sheet-backdrop{
-  display:none;
-  position:fixed;inset:0;
+  display:none;position:fixed;inset:0;
   background:rgba(0,0,0,.5);
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
-  z-index:50;
-  opacity:0;
-  transition:opacity .22s ease;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  z-index:50;opacity:0;transition:opacity .22s ease;
 }
 .sheet-backdrop.open{opacity:1}
-
 .sheet{
   position:fixed;bottom:0;left:0;right:0;
   background:var(--surf);
@@ -257,13 +284,11 @@ body{
   transform:translateY(100%);
   transition:transform .28s cubic-bezier(.32,.72,0,1);
   max-height:70dvh;
-  display:flex;flex-direction:column;
-  overflow:hidden;
+  display:flex;flex-direction:column;overflow:hidden;
 }
 .sheet.open{transform:translateY(0)}
 .sheet-handle{
-  width:36px;height:4px;
-  background:var(--b1);border-radius:2px;
+  width:36px;height:4px;background:var(--b1);border-radius:2px;
   margin:10px auto 4px;flex-shrink:0;
 }
 .sheet-hdr{
@@ -273,49 +298,42 @@ body{
 }
 .sheet-title{font-size:13px;font-weight:700;color:var(--t1);letter-spacing:-.01em}
 .sheet-close{
-  background:var(--surf3);border:none;
-  border-radius:50%;width:26px;height:26px;
-  color:var(--t3);font-size:16px;cursor:pointer;
+  background:var(--surf3);border:none;border-radius:50%;
+  width:26px;height:26px;color:var(--t3);font-size:16px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   font-family:var(--font);transition:background .12s;
 }
 .sheet-close:active{background:var(--b1)}
 .sheet-items{overflow-y:auto;padding:8px 10px 20px;scrollbar-width:none}
 .sheet-items::-webkit-scrollbar{display:none}
-
-/* Sheet nav items — same grid as sidebar */
+.sheet-section-lbl{
+  font-size:10px;font-weight:600;color:var(--t3);
+  letter-spacing:.06em;text-transform:uppercase;
+  padding:10px 10px 5px;display:block;
+}
 .sheet-item{
-  display:grid;
-  grid-template-columns:22px 1fr auto;
-  column-gap:10px;
-  align-items:center;
-  padding:11px 10px;border-radius:10px;
-  cursor:pointer;border:none;
-  background:transparent;text-align:left;
-  font-family:var(--font);width:100%;
-  transition:background .12s;
+  display:grid;grid-template-columns:22px 1fr auto;column-gap:10px;
+  align-items:center;padding:11px 10px;border-radius:10px;
+  cursor:pointer;border:none;background:transparent;text-align:left;
+  font-family:var(--font);width:100%;transition:background .12s;
 }
 .sheet-item:hover,.sheet-item:active{background:var(--surf3)}
 .sheet-item.active{background:var(--acc2)}
 .sheet-item-ico{font-size:18px;line-height:1;text-align:center}
 .sheet-item-body{min-width:0;overflow:hidden}
 .sheet-item-name{
-  display:block;
-  font-size:14px;font-weight:500;color:var(--t2);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  line-height:1.3;
+  display:block;font-size:14px;font-weight:500;color:var(--t2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;
 }
 .sheet-item.active .sheet-item-name{color:var(--acc);font-weight:600}
 .sheet-item-meta{
-  display:block;
-  font-size:12px;color:var(--t3);margin-top:2px;
+  display:block;font-size:12px;color:var(--t3);margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+.sheet-item.active .sheet-item-meta{color:var(--acc);opacity:.7}
 .sheet-badge{
-  font-size:11px;font-weight:700;
-  background:var(--surf3);color:var(--t3);
-  border-radius:20px;padding:3px 8px;
-  white-space:nowrap;
+  font-size:11px;font-weight:700;background:var(--surf3);color:var(--t3);
+  border-radius:20px;padding:3px 8px;white-space:nowrap;
 }
 .sheet-item.active .sheet-badge{background:var(--acc2);color:var(--acc)}
 
@@ -346,13 +364,12 @@ body{
 @media(max-width:640px){
   .knife-nav{display:none!important}
   .mob-menu-btn{display:flex}
-  /* Collapse brand to icon only — frees ~80px for the title */
   .brand-name,.brand-sub{display:none}
   .hdr-divider{display:none}
-  /* User is already shown in hdr-sub; hide the separate label */
   .hdr-user{display:none}
   .made-with{display:none}
   .nav-arrow{opacity:.7}
+  .details-content.open{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -360,20 +377,19 @@ body{
 
 <!-- HEADER -->
 <header class="hdr">
-  <a class="brand" href="https://smashedllama.github.io/knife-swap-tool/" target="_blank" title="KnifeSwap Post Generator">
+  <a class="brand" href="https://smashedllama.github.io/bladeflow/" target="_blank" title="BladeFlow">
     <div class="brand-icon">🔪</div>
     <div>
-      <div class="brand-name">KnifeSwap</div>
-      <div class="brand-sub">POST GENERATOR</div>
+      <div class="brand-name">BladeFlow</div>
+      <div class="brand-sub">r/KNIFE_SWAP</div>
     </div>
   </a>
   <div class="hdr-divider"></div>
   <div class="hdr-info">
-    <div class="hdr-title" id="hdr-title">Loading…</div>
+    <div class="hdr-title" id="hdr-title">Loading&hellip;</div>
     <div class="hdr-sub" id="hdr-sub"></div>
   </div>
   <span class="hdr-user" id="hdr-user"></span>
-  <!-- Mobile only: opens bottom sheet -->
   <button class="mob-menu-btn" id="mob-menu-btn" onclick="openSheet()">
     <span class="menu-ico">☰</span>
     <span id="mob-menu-lbl">Photos</span>
@@ -385,7 +401,6 @@ body{
 
   <!-- SIDEBAR NAV (desktop) -->
   <nav class="knife-nav" id="knife-nav">
-    <div class="nav-section-lbl">Photos</div>
     <div id="nav-items"></div>
   </nav>
 
@@ -397,26 +412,34 @@ body{
       ontouchend="onTouchEnd(event)">
       <div class="spinner" id="spinner"></div>
       <div id="slides"></div>
-      <button class="nav-arrow prev hidden" id="nav-prev" onclick="go(-1)" aria-label="Previous">‹</button>
-      <button class="nav-arrow next hidden" id="nav-next" onclick="go(1)" aria-label="Next">›</button>
+      <button class="nav-arrow prev hidden" id="nav-prev" onclick="go(-1)" aria-label="Previous">&#8249;</button>
+      <button class="nav-arrow next hidden" id="nav-next" onclick="go(1)" aria-label="Next">&#8250;</button>
       <div class="counter" id="counter" style="display:none"></div>
     </div>
     <div class="thumbs hidden" id="thumbs"></div>
+    <!-- DETAILS BAR -->
+    <div class="details-bar hidden" id="details-bar">
+      <button class="details-toggle" id="details-toggle" onclick="toggleDetails()">
+        <span id="details-toggle-lbl">Knife Details</span>
+        <span class="details-chevron" id="details-chevron">&#9660;</span>
+      </button>
+      <div class="details-content" id="details-content"></div>
+    </div>
   </div>
 </div>
 
 <!-- FOOTER -->
 <footer class="footer">
-  <div class="made-with">Built by <a href="https://www.reddit.com/user/smashedllama2" target="_blank" rel="noopener">u/smashedllama2</a> · <a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener">☕ Support</a> · <a href="https://smashedllama.github.io/knife-swap-tool/" target="_blank">KnifeSwap Tool</a></div>
+  <div class="made-with">Built by <a href="https://www.reddit.com/user/smashedllama2" target="_blank" rel="noopener">u/smashedllama2</a> &middot; <a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener">&#9749; Support</a> &middot; <a href="https://smashedllama.github.io/bladeflow/" target="_blank">BladeFlow</a></div>
 </footer>
 
-<!-- BOTTOM SHEET (mobile section picker) -->
+<!-- BOTTOM SHEET -->
 <div class="sheet-backdrop" id="sheet-backdrop" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-hdr">
-    <span class="sheet-title">Photos</span>
-    <button class="sheet-close" onclick="closeSheet()">×</button>
+    <span class="sheet-title">Gallery</span>
+    <button class="sheet-close" onclick="closeSheet()">&times;</button>
   </div>
   <div class="sheet-items" id="sheet-items"></div>
 </div>
@@ -425,10 +448,12 @@ body{
 
 <script>
 // ─── STATE ──────────────────────────────────────────────────────
-let sections = []; // [{label, ico, imgs, price}]
+// section: {label, ico, imgs, price, details, isTimestamp}
+let sections = [];
 let curSection = 0;
 let curSlide = 0;
 let galleryUser = "";
+let detailsOpen = false;
 let dragStartX = 0, touchStartX = 0;
 
 // ─── PARSE + INIT ───────────────────────────────────────────────
@@ -442,25 +467,25 @@ function init() {
     const data = JSON.parse(json);
 
     if (data.knives) {
-      // NEW FORMAT: {user, knives:[{name,price,imgs}], timestamp:[], startAt:N}
+      // Multi-knife format: {user, knives:[{name,price,imgs,details}], timestamp:[], startAt:N}
       galleryUser = data.user || "";
       const ts = (data.timestamp || []).filter(Boolean);
       if (ts.length) {
-        sections.push({ label: "Timestamp", ico: "📸", imgs: ts, price: "" });
+        sections.push({ label: "Timestamp", ico: "📸", imgs: ts, price: "", details: null, isTimestamp: true });
       }
       (data.knives || []).forEach(k => {
         const imgs = (k.imgs || []).filter(Boolean);
         if (imgs.length) {
-          sections.push({ label: k.name || "Knife", ico: "🔪", imgs, price: k.price || "" });
+          sections.push({ label: k.name || "Knife", ico: "🔪", imgs, price: k.price || "", details: k.details || null, isTimestamp: false });
         }
       });
       curSection = Math.max(0, Math.min(typeof data.startAt === 'number' ? data.startAt : 0, Math.max(0, sections.length - 1)));
     } else {
-      // OLD FORMAT: {knife, price, user, imgs}
+      // Single-knife format: {knife, price, user, imgs, details}
       galleryUser = data.user || "";
       const imgs = (data.imgs || []).filter(Boolean);
       if (!imgs.length) { showError('No photos in this gallery.'); return; }
-      sections.push({ label: data.knife || "Knife Photos", ico: "🔪", imgs, price: data.price || "" });
+      sections.push({ label: data.knife || "Knife Photos", ico: "🔪", imgs, price: data.price || "", details: data.details || null, isTimestamp: false });
     }
   } catch(e) {
     showError('Could not load gallery data.');
@@ -475,7 +500,7 @@ function init() {
   document.getElementById('og-image').content = firstSec.imgs[0] || '';
   const totalPhotos = sections.reduce((n, s) => n + s.imgs.length, 0);
   document.getElementById('og-desc').content = `${totalPhotos} photo${totalPhotos > 1 ? 's' : ''} — ${sections.map(s => s.label).join(', ')}`;
-  document.title = sections.map(s => s.label).join(' | ') + ' — KnifeSwap Gallery';
+  document.title = sections.map(s => s.label).join(' | ') + ' — BladeFlow Gallery';
 
   if (galleryUser) document.getElementById('hdr-user').textContent = 'u/' + galleryUser;
 
@@ -485,7 +510,7 @@ function init() {
   document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
-    if (e.key === 'Escape') { closeSheet(); }
+    if (e.key === 'Escape') { closeSheet(); if (detailsOpen) toggleDetails(); }
     if (e.key === 'Tab') { e.preventDefault(); selectSection((curSection + 1) % sections.length); }
     if (e.key === '[') selectSection(Math.max(0, curSection - 1));
     if (e.key === ']') selectSection(Math.min(sections.length - 1, curSection + 1));
@@ -503,65 +528,140 @@ function buildNav() {
     document.getElementById('mob-menu-btn').style.display = 'none';
   }
 
-  sections.forEach((s, i) => {
-    // ── Sidebar item ──
-    const btn = document.createElement('button');
-    btn.className = 'nav-item' + (i === curSection ? ' active' : '');
-    btn.id = `nav-item-${i}`;
-    btn.innerHTML =
-      `<span class="nav-item-ico">${s.ico}</span>` +
-      `<span class="nav-item-body">` +
-        `<span class="nav-item-name">${esc(s.label)}</span>` +
-        (s.price ? `<span class="nav-item-meta">${esc(s.price)}</span>` : '') +
-      `</span>` +
-      `<span class="nav-badge">${s.imgs.length}</span>`;
-    btn.onclick = () => selectSection(i);
-    navItemsEl.appendChild(btn);
+  // Group: timestamp sections first, then knives
+  const tsIdxs = sections.map((s,i) => s.isTimestamp ? i : -1).filter(i => i >= 0);
+  const knifeIdxs = sections.map((s,i) => !s.isTimestamp ? i : -1).filter(i => i >= 0);
 
-    // ── Sheet item ──
-    const si = document.createElement('button');
-    si.className = 'sheet-item' + (i === curSection ? ' active' : '');
-    si.id = `sheet-item-${i}`;
-    si.innerHTML =
-      `<span class="sheet-item-ico">${s.ico}</span>` +
-      `<span class="sheet-item-body">` +
-        `<span class="sheet-item-name">${esc(s.label)}</span>` +
-        (s.price ? `<span class="sheet-item-meta">${esc(s.price)}</span>` : '') +
-      `</span>` +
-      `<span class="sheet-badge">${s.imgs.length} photo${s.imgs.length !== 1 ? 's' : ''}</span>`;
-    si.onclick = () => { selectSection(i); closeSheet(); };
-    sheetItemsEl.appendChild(si);
-  });
+  function addLabel(el, text) {
+    const lbl = document.createElement('div');
+    lbl.className = 'nav-section-lbl';
+    lbl.textContent = text;
+    el.appendChild(lbl);
+  }
+  function addSheetLabel(el, text) {
+    const lbl = document.createElement('span');
+    lbl.className = 'sheet-section-lbl';
+    lbl.textContent = text;
+    el.appendChild(lbl);
+  }
+
+  if (!single) {
+    if (tsIdxs.length) addLabel(navItemsEl, 'Timestamp');
+    tsIdxs.forEach(i => addNavItem(navItemsEl, i));
+    if (knifeIdxs.length) addLabel(navItemsEl, knifeIdxs.length === 1 ? 'Knife' : 'Knives');
+    knifeIdxs.forEach(i => addNavItem(navItemsEl, i));
+
+    if (tsIdxs.length) addSheetLabel(sheetItemsEl, 'Timestamp');
+    tsIdxs.forEach(i => addSheetItem(sheetItemsEl, i));
+    if (knifeIdxs.length) addSheetLabel(sheetItemsEl, knifeIdxs.length === 1 ? 'Knife' : 'Knives');
+    knifeIdxs.forEach(i => addSheetItem(sheetItemsEl, i));
+  } else {
+    sections.forEach((_, i) => { addNavItem(navItemsEl, i); addSheetItem(sheetItemsEl, i); });
+  }
 
   updateMenuBtn();
+}
+
+function addNavItem(parent, i) {
+  const s = sections[i];
+  const btn = document.createElement('button');
+  btn.className = 'nav-item' + (i === curSection ? ' active' : '');
+  btn.id = `nav-item-${i}`;
+  btn.innerHTML =
+    `<span class="nav-item-ico">${s.ico}</span>` +
+    `<span class="nav-item-body">` +
+      `<span class="nav-item-name">${esc(s.label)}</span>` +
+      (s.price ? `<span class="nav-item-meta">${esc(s.price)}</span>` : '') +
+    `</span>` +
+    `<span class="nav-badge">${s.imgs.length}</span>`;
+  btn.onclick = () => selectSection(i);
+  parent.appendChild(btn);
+}
+
+function addSheetItem(parent, i) {
+  const s = sections[i];
+  const si = document.createElement('button');
+  si.className = 'sheet-item' + (i === curSection ? ' active' : '');
+  si.id = `sheet-item-${i}`;
+  si.innerHTML =
+    `<span class="sheet-item-ico">${s.ico}</span>` +
+    `<span class="sheet-item-body">` +
+      `<span class="sheet-item-name">${esc(s.label)}</span>` +
+      (s.price ? `<span class="sheet-item-meta">${esc(s.price)}</span>` : '') +
+    `</span>` +
+    `<span class="sheet-badge">${s.imgs.length} photo${s.imgs.length !== 1 ? 's' : ''}</span>`;
+  si.onclick = () => { selectSection(i); closeSheet(); };
+  parent.appendChild(si);
 }
 
 function updateMenuBtn() {
   const s = sections[curSection];
-  if (s) {
-    document.getElementById('mob-menu-lbl').textContent = s.label;
-  }
+  if (s) document.getElementById('mob-menu-lbl').textContent = s.label;
 }
 
 function selectSection(idx) {
   if (idx < 0 || idx >= sections.length) return;
-
-  // Deactivate old
   const prevNav = document.getElementById(`nav-item-${curSection}`);
   const prevSheet = document.getElementById(`sheet-item-${curSection}`);
   if (prevNav) prevNav.classList.remove('active');
   if (prevSheet) prevSheet.classList.remove('active');
-
   curSection = idx;
-
-  // Activate new
   const newNav = document.getElementById(`nav-item-${curSection}`);
   const newSheet = document.getElementById(`sheet-item-${curSection}`);
   if (newNav) { newNav.classList.add('active'); newNav.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
   if (newSheet) newSheet.classList.add('active');
-
   updateMenuBtn();
+  // Close details when switching sections
+  if (detailsOpen) { detailsOpen = false; syncDetailsUI(); }
   loadSection(curSection, true);
+}
+
+// ─── DETAILS BAR ────────────────────────────────────────────────
+function toggleDetails() {
+  detailsOpen = !detailsOpen;
+  syncDetailsUI();
+}
+
+function syncDetailsUI() {
+  const toggle = document.getElementById('details-toggle');
+  const content = document.getElementById('details-content');
+  if (detailsOpen) {
+    toggle.classList.add('open');
+    content.classList.add('open');
+  } else {
+    toggle.classList.remove('open');
+    content.classList.remove('open');
+  }
+}
+
+function buildDetailsContent(details) {
+  if (!details) return '';
+  const rows = [];
+  const row = (lbl, val, full) => val ? `<div class="detail-row${full?' full':''}"><span class="detail-lbl">${lbl}</span><span class="detail-val">${esc(val)}</span></div>` : '';
+  rows.push(row('Steel', details.steel));
+  rows.push(row('Condition', details.condition));
+  rows.push(row('Owners', details.owners));
+  const useVals = [details.carried==='Yes'?'Carried':null, details.cut==='Yes'?'Used to cut':null, details.sharpened==='Yes'?'Sharpened':null].filter(Boolean);
+  rows.push(row('Usage', useVals.length ? useVals.join(', ') : 'Not carried or used'));
+  rows.push(row('Centering', details.centering));
+  rows.push(row('Lockup', details.lockupNotes ? details.lockup + ' - ' + details.lockupNotes : details.lockup));
+  rows.push(row('Issues', details.issues));
+  rows.push(row('Accessories', details.accessories));
+  if (details.notes) rows.push(row('Notes', details.notes, true));
+  return rows.filter(Boolean).join('');
+}
+
+function updateDetailsBar(s) {
+  const bar = document.getElementById('details-bar');
+  const content = document.getElementById('details-content');
+  const lbl = document.getElementById('details-toggle-lbl');
+  if (!s || s.isTimestamp || !s.details) {
+    bar.classList.add('hidden');
+    return;
+  }
+  bar.classList.remove('hidden');
+  lbl.textContent = 'Knife Details' + (s.price ? ' - ' + s.price : '');
+  content.innerHTML = buildDetailsContent(s.details);
 }
 
 // ─── BOTTOM SHEET ────────────────────────────────────────────────
@@ -569,11 +669,7 @@ function openSheet() {
   const backdrop = document.getElementById('sheet-backdrop');
   const sheet = document.getElementById('sheet');
   backdrop.style.display = 'block';
-  // Force reflow then animate
-  requestAnimationFrame(() => {
-    backdrop.classList.add('open');
-    sheet.classList.add('open');
-  });
+  requestAnimationFrame(() => { backdrop.classList.add('open'); sheet.classList.add('open'); });
 }
 
 function closeSheet() {
@@ -591,19 +687,16 @@ function loadSection(idx, animate) {
   const s = sections[idx];
   if (!s) return;
 
-  // Update header
   document.getElementById('hdr-title').textContent = s.label;
   const subParts = [];
   if (s.price) subParts.push(s.price);
   if (galleryUser) subParts.push('u/' + galleryUser);
-  document.getElementById('hdr-sub').textContent = subParts.join(' · ');
+  document.getElementById('hdr-sub').textContent = subParts.join(' - ');
 
-  // Rebuild slides
   const slidesEl = document.getElementById('slides');
   slidesEl.innerHTML = '';
   slidesEl.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center';
 
-  // Rebuild thumbs
   const thumbsEl = document.getElementById('thumbs');
   thumbsEl.innerHTML = '';
   thumbsEl.classList.add('hidden');
@@ -616,11 +709,9 @@ function loadSection(idx, animate) {
     img.src = url;
     img.alt = `${s.label} photo ${i + 1}`;
     img.draggable = false;
-    img.addEventListener('load', () => {
-      if (i === curSlide) document.getElementById('spinner').style.display = 'none';
-    });
+    img.addEventListener('load', () => { if (i === curSlide) document.getElementById('spinner').style.display = 'none'; });
     img.addEventListener('error', () => {
-      img.alt = '⚠ Could not load photo';
+      img.alt = 'Could not load photo';
       img.style.cssText = 'width:80px;height:80px;opacity:.3';
       if (i === curSlide) document.getElementById('spinner').style.display = 'none';
     });
@@ -630,15 +721,14 @@ function loadSection(idx, animate) {
     if (s.imgs.length > 1) {
       const t = document.createElement('img');
       t.className = 'thumb' + (i === 0 ? ' active' : '');
-      t.src = url;
-      t.alt = `Thumb ${i + 1}`;
-      t.draggable = false;
+      t.src = url; t.alt = `Thumb ${i + 1}`; t.draggable = false;
       t.addEventListener('click', () => showSlide(i));
       thumbsEl.appendChild(t);
     }
   });
 
   if (s.imgs.length > 1) thumbsEl.classList.remove('hidden');
+  updateDetailsBar(s);
   showSlide(0, false);
 }
 
@@ -649,31 +739,18 @@ function showSlide(n, animate = true) {
   const prevThumb = document.querySelectorAll('.thumb')[curSlide];
   if (prev) prev.classList.remove('active');
   if (prevThumb) prevThumb.classList.remove('active');
-
   curSlide = Math.max(0, Math.min(n, imgs.length - 1));
   document.getElementById('spinner').style.display = 'flex';
-
   const next = document.getElementById(`slide-${curSlide}`);
   const nextThumb = document.querySelectorAll('.thumb')[curSlide];
   if (next) next.classList.add('active');
-  if (nextThumb) {
-    nextThumb.classList.add('active');
-    nextThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }
-
+  if (nextThumb) { nextThumb.classList.add('active'); nextThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }
   const img = next?.querySelector('img');
-  if (img?.complete && img?.naturalHeight) {
-    document.getElementById('spinner').style.display = 'none';
-  }
-
+  if (img?.complete && img?.naturalHeight) document.getElementById('spinner').style.display = 'none';
   updateArrows();
   const c = document.getElementById('counter');
-  if (imgs.length > 1) {
-    c.style.display = 'block';
-    c.textContent = `${curSlide + 1} / ${imgs.length}`;
-  } else {
-    c.style.display = 'none';
-  }
+  if (imgs.length > 1) { c.style.display = 'block'; c.textContent = `${curSlide + 1} / ${imgs.length}`; }
+  else { c.style.display = 'none'; }
 }
 
 function go(dir) {
@@ -688,15 +765,13 @@ function updateArrows() {
   const prev = document.getElementById('nav-prev');
   const next = document.getElementById('nav-next');
   if (imgs.length > 1) {
-    prev.classList.remove('hidden');
-    next.classList.remove('hidden');
+    prev.classList.remove('hidden'); next.classList.remove('hidden');
     prev.style.opacity = curSlide === 0 ? '.2' : '';
     next.style.opacity = curSlide === imgs.length - 1 ? '.2' : '';
     prev.style.pointerEvents = curSlide === 0 ? 'none' : '';
     next.style.pointerEvents = curSlide === imgs.length - 1 ? 'none' : '';
   } else {
-    prev.classList.add('hidden');
-    next.classList.add('hidden');
+    prev.classList.add('hidden'); next.classList.add('hidden');
   }
 }
 
@@ -731,8 +806,7 @@ function showError(msg) {
   document.getElementById('spinner').style.display = 'none';
   document.getElementById('knife-nav').classList.add('single');
   document.getElementById('mob-menu-btn').style.display = 'none';
-  const viewer = document.getElementById('viewer');
-  viewer.innerHTML = `
+  document.getElementById('viewer').innerHTML = `
     <div class="err-wrap">
       <div class="err-icon">📷</div>
       <div class="err-title">No Photos Found</div>
