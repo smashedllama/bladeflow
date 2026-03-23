@@ -2720,7 +2720,10 @@ function renderLoading(){
 }
 function render(){
   S._renderCount=(S._renderCount||0)+1;
-  if(S.loaded&&S._lastView!==S.view){S._viewChanges=(S._viewChanges||0)+1;S._lastView=S.view;}
+  if(S.loaded&&S._lastView!==S.view){S._viewChanges=(S._viewChanges||0)+1;S._lastView=S.view;
+    const _hv=['list','roll','sold','shipping','guide','settings'];
+    if(_hv.includes(S.view))history.replaceState(null,'',location.pathname+'#'+S.view);
+  }
   if(S.loaded&&_loadingMsgTid){clearInterval(_loadingMsgTid);_loadingMsgTid=null;}
   const dlb=document.getElementById("dl-brands");
   if(dlb&&!dlb.childElementCount)dlb.innerHTML=BRANDS.map(b=>`<option value="${esc(b)}">`).join("");
@@ -3331,7 +3334,7 @@ function renderGuide(){
   const warn=(txt)=>`<div style="background:var(--redbg);border:.5px solid rgba(255,59,48,.2);border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;color:var(--redt);line-height:1.6"><strong>Important:</strong> ${txt}</div>`;
   const tip=(txt)=>`<div style="background:var(--orangebg);border:.5px solid rgba(255,149,0,.3);border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;color:var(--oranget);line-height:1.6"><strong>Tip:</strong> ${txt}</div>`;
   const ul=(items)=>`<ul style="margin:6px 0 0;padding-left:18px;line-height:1.9">${items.map(i=>`<li>${i}</li>`).join("")}</ul>`;
-  const hdr=`<div class="hdr" style="grid-template-columns:auto 1fr auto;grid-template-rows:auto;height:52px;padding:0 12px"><button class="btn-hdr-ghost" style="display:flex;align-items:center;gap:4px;padding:7px 10px 7px 2px;font-size:14px;font-weight:500;color:var(--blue);flex-shrink:0" onclick="S.view='list';render()"><svg width="9" height="15" viewBox="0 0 9 15" fill="none" style="flex-shrink:0"><path d="M8 1L1 7.5L8 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Listings</button><div style="text-align:center;font-size:15px;font-weight:700;color:var(--t1);align-self:center">How-To Guide</div><button onclick="window.open(location.origin+'/bladeflow/?guide','_blank')" style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--blue);border:none;cursor:pointer;padding:6px 10px;border-radius:8px;background:var(--bluebg);white-space:nowrap;flex-shrink:0">↗ Open in New Tab</button></div>`;
+  const hdr=`<div class="hdr" style="grid-template-columns:auto 1fr auto;grid-template-rows:auto;height:52px;padding:0 12px"><button class="btn-hdr-ghost" style="display:flex;align-items:center;gap:4px;padding:7px 10px 7px 2px;font-size:14px;font-weight:500;color:var(--blue);flex-shrink:0" onclick="S.view='list';render()"><svg width="9" height="15" viewBox="0 0 9 15" fill="none" style="flex-shrink:0"><path d="M8 1L1 7.5L8 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Listings</button><div style="text-align:center;font-size:15px;font-weight:700;color:var(--t1);align-self:center">How-To Guide</div><button onclick="window.open(location.origin+'/bladeflow/#guide','_blank')" style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--blue);border:none;cursor:pointer;padding:6px 10px;border-radius:8px;background:var(--bluebg);white-space:nowrap;flex-shrink:0">↗ Open in New Tab</button></div>`;
   return`<div class="app">${hdr}<div class="main" style="overflow-y:auto">
   <div style="max-width:680px;margin:0 auto;padding:20px 16px 60px">
     <div style="margin-bottom:24px">
@@ -4923,8 +4926,11 @@ render();
   await initSupabase();
   if(!currentUser){await load();}
   if(!localStorage.getItem('ks-tutorial-done')){S.modal='tutorial';S.tutStep=0;}
-  // Always honour ?guide URL param regardless of auth state
-  if(new URLSearchParams(location.search).has('guide'))S.view='guide';
+  // Restore view from URL hash (e.g. #roll, #guide) or legacy ?guide param
+  const _hv=['list','roll','sold','shipping','guide','settings'];
+  const _hashView=location.hash.replace('#','');
+  if(_hv.includes(_hashView))S.view=_hashView;
+  else if(new URLSearchParams(location.search).has('guide'))S.view='guide';
   render();
 })();
 </script>
