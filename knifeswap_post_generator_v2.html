@@ -771,6 +771,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_Xlo2H3xYFNSDOLpTvEpiPQ_13XEITlJ";
 let _sb=null;       // supabase client instance
 let currentUser=null;
 let _sbSyncTid=null; // debounce timer for Supabase batch sync
+let _loadingMsgTid=null; // interval for cycling loading screen sayings
 
 // ─── DATABASE ────────────────────────────────────────────────
 const BRANDS=["Al Mar","Amare","Arcane Design","Artisan","Bark River","Bastinelli","Benchmade","Berg Blades","Bestech","Boker","Boker Plus","Boker Tree Brand","Bradford Guardian","Buck","Byrd","Case","Chris Reeve Knives","CJRB","Civivi","Cobratec","Cold Steel","Condor Tool & Knife","CRKT","Curtiss Knives","Daggerr","Damned Designs","Demko","Drop","DPx Gear","Emerson","ESEE","Extrema Ratio","Fallkniven","Fantoni","Ferrum Forge","Fox Knives","GEC","Gerber","GiantMouse","Grimsmo","Guardian Tactical","Helle","Heretic","Hinderer","Hogue","Honey Badger","Jack Wolf","Jake Hoback","James Brand","Kansept","Ka-Bar","Kershaw","Kizer","Koenig","Laconico","Leatherman","LionSteel","Maserin","Maxace","Mcusta","Medford","Microtech","Mission Knives","MKM","Morakniv","Ocaso","Olamic Cutlery","Ontario","Opinel","Pena Knives","Petrified Fish","Piranha Knives","Pro-Tech","QSP","Quiet Carry","Real Steel","Reate","Rike Knife","Rough Ryder","RUIKE","SENCUT","Smith & Wesson","SOG","Southern Grind","Spartan Blades","Spyderco","Steel Will","Strider","Tactile Knife Co.","Todd Begg","Toor","TOPS","TRM","Twosun","Victorinox","Viper Knives","Vosteed","Wander Tactical","WE Knife","White River","Winkler","Zero Tolerance"];
@@ -2235,18 +2236,24 @@ function renderDeletedAccount(){
   </div>`;
 }
 function renderLoading(){
-  const msg=S.authStatus==="signed_in"?"Syncing from cloud\u2026":"Loading\u2026";
+  const isCloud=S.authStatus==="signed_in";
+  if(isCloud&&!_loadingMsgTid){
+    S.syncMsg=Math.floor(Math.random()*SYNC_SAYINGS.length);
+    _loadingMsgTid=setInterval(()=>{S.syncMsg++;render();},10000);
+  }
+  const msg=isCloud?SYNC_SAYINGS[S.syncMsg%SYNC_SAYINGS.length]:"Loading\u2026";
   return`<div class="app" style="display:flex;flex-direction:column">
     <div class="hdr" style="grid-template-columns:1fr;justify-items:center">
       <div class="hdr-logo" style="pointer-events:none"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 20px">
       <div style="width:44px;height:44px;border:3px solid rgba(0,113,227,.15);border-top-color:var(--blue);border-radius:50%;animation:spin .75s linear infinite"></div>
-      <div style="font-size:14px;font-weight:600;color:var(--t3);letter-spacing:-.01em">${msg}</div>
+      <div style="font-size:14px;font-weight:600;color:var(--t3);letter-spacing:-.01em;text-align:center;max-width:260px">${msg}</div>
     </div>
   </div>`;
 }
 function render(){
+  if(S.loaded&&_loadingMsgTid){clearInterval(_loadingMsgTid);_loadingMsgTid=null;}
   const dlb=document.getElementById("dl-brands");
   if(dlb&&!dlb.childElementCount)dlb.innerHTML=BRANDS.map(b=>`<option value="${esc(b)}">`).join("");
   const dls=document.getElementById("dl-steels");
