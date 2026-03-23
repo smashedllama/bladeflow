@@ -4073,7 +4073,7 @@ function renderRoll(){
     const kt=k.knifeType||"WTS";
     const ktClass=kt==="WTS"?"wts":kt==="WTT"?"wtt":"wtstt";
     const _fp=(k.photos||[]).find(Boolean);
-    const _cov=_fp?`<div style="margin:-17px -17px 12px;border-radius:var(--r) var(--r) 0 0;overflow:hidden;background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:130px;max-height:220px" onclick="openKnifeDetail(null,null,'${k.id}')"><img src="${esc(cdnImg(_fp,600,600,'limit'))}" style="width:100%;height:auto;display:block;max-height:220px;object-fit:contain" loading="lazy"/></div>`:"";
+    const _cov=_fp?`<div style="border-radius:10px;overflow:hidden;background:var(--bg);margin-bottom:12px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="openKnifeDetail(null,null,'${k.id}')"><img src="${esc(cdnImg(_fp,500,375,'limit'))}" style="width:100%;height:100%;object-fit:contain;display:block" loading="lazy"/></div>`:"";
     const _pickIssues=k.status!=="sold"?knifePickerIssues(k):[];
     const _readyBadge=k.status!=="sold"?(_pickIssues.length===0?`<div style="font-size:11px;font-weight:600;color:var(--greent);margin:7px 0 4px">✓ Ready to list</div>`:`<div style="font-size:11px;color:var(--redt);margin:7px 0 4px;line-height:1.5"><strong>Incomplete:</strong> ${esc(_pickIssues.join(" · "))}</div>`):``;
 
