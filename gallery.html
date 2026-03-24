@@ -511,6 +511,32 @@ function galVidTimeUpdate(id){const v=document.getElementById(id);if(!v)return;c
 function galVidState(id,playing){const btn=document.getElementById(id+'-btn');if(btn)btn.textContent=playing?'⏸':'▶';}
 function galVidSeekStart(id){const v=document.getElementById(id);_galVidWasPlaying[id]=v&&!v.paused;if(v)v.pause();}
 function galVidSeekEnd(id,val){const v=document.getElementById(id);if(!v||!v.duration)return;v.currentTime=(val/100)*v.duration;if(_galVidWasPlaying[id])v.play();}
+function galVidActivate(vid_id,url,mp4,thumb){
+  const poster=document.getElementById(vid_id+'-poster');
+  const player=document.getElementById(vid_id+'-player');
+  if(!poster||!player)return;
+  player.innerHTML=`
+    <video id="${vid_id}"${thumb?` poster="${thumb}"`:''}
+      style="width:100%;max-height:calc(100vh - 180px);object-fit:contain;display:block"
+      playsinline preload="auto" autoplay
+      ontimeupdate="galVidTimeUpdate('${vid_id}')"
+      onplay="galVidState('${vid_id}',true)"
+      onpause="galVidState('${vid_id}',false)"
+      onended="galVidState('${vid_id}',false)">
+      <source src="${url}" type="video/webm">
+      ${mp4?`<source src="${mp4}" type="video/mp4">`:''}
+    </video>
+    <div class="vid-ctrl">
+      <button id="${vid_id}-btn" onclick="galVidPlayPause('${vid_id}')">▶</button>
+      <button onclick="galVidSkipBack('${vid_id}')">↩ 10s</button>
+      <input type="range" id="${vid_id}-prog" min="0" max="100" step="0.1" value="0"
+        onmousedown="galVidSeekStart('${vid_id}')" ontouchstart="galVidSeekStart('${vid_id}')"
+        onchange="galVidSeekEnd('${vid_id}',this.value)">
+      <span id="${vid_id}-time" class="vid-time">0:00</span>
+    </div>`;
+  poster.style.display='none';
+  player.style.display='block';
+}
 
 // ─── STATE ──────────────────────────────────────────────────────
 // section: {label, ico, imgs, price, details, isTimestamp}
@@ -790,30 +816,21 @@ function loadSection(idx, animate) {
     if (isVid) {
       const vid_id = `galvid-${curSection}-${i}`;
       const thumb = cdnVideoThumb(url, 900, 600);
+      const mp4 = cdnVideoMp4(url);
       const wrap = document.createElement('div');
       wrap.className = 'slide-video-wrap';
+      // Poster + play overlay — video bytes only fetched when viewer taps play
       wrap.innerHTML = `
-        <video id="${vid_id}"${thumb ? ` poster="${thumb}"` : ''}
-          style="width:100%;max-height:calc(100vh - 180px);object-fit:contain;display:block"
-          playsinline preload="auto"
-          ontimeupdate="galVidTimeUpdate('${vid_id}')"
-          onplay="galVidState('${vid_id}',true)"
-          onpause="galVidState('${vid_id}',false)"
-          onended="galVidState('${vid_id}',false)">
-          <source src="${url}" type="video/webm">
-          ${cdnVideoMp4(url) ? `<source src="${cdnVideoMp4(url)}" type="video/mp4">` : ''}
-        </video>
-        <div class="vid-ctrl">
-          <button id="${vid_id}-btn" onclick="galVidPlayPause('${vid_id}')">▶</button>
-          <button onclick="galVidSkipBack('${vid_id}')">↩ 10s</button>
-          <input type="range" id="${vid_id}-prog" min="0" max="100" step="0.1" value="0"
-            onmousedown="galVidSeekStart('${vid_id}')" ontouchstart="galVidSeekStart('${vid_id}')"
-            onchange="galVidSeekEnd('${vid_id}',this.value)">
-          <span id="${vid_id}-time" class="vid-time">0:00</span>
-        </div>`;
+        <div id="${vid_id}-poster" style="position:relative;cursor:pointer;background:#000;border-radius:8px;overflow:hidden" onclick="galVidActivate('${vid_id}','${url}','${mp4||''}','${thumb||''}')">
+          ${thumb ? `<img src="${thumb}" style="width:100%;max-height:calc(100vh - 180px);object-fit:contain;display:block" draggable="false">` : `<div style="height:240px;background:#111"></div>`}
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+            <div style="background:rgba(0,0,0,.62);backdrop-filter:blur(4px);border-radius:50%;width:68px;height:68px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.25)">
+              <span style="font-size:28px;color:#fff;margin-left:5px">▶</span>
+            </div>
+          </div>
+        </div>
+        <div id="${vid_id}-player" style="display:none"></div>`;
       slide.appendChild(wrap);
-      slide.addEventListener('load', () => { if (i === curSlide) document.getElementById('spinner').style.display = 'none'; }, {once:true});
-      // Hide spinner immediately for video slides
       if (i === curSlide) document.getElementById('spinner').style.display = 'none';
     } else {
       const img = document.createElement('img');

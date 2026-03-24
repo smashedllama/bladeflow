@@ -2299,7 +2299,7 @@ function activePhotoService(){
   return null;
 }
 // Compress a video file in-browser using canvas capture + MediaRecorder.
-// Scales to max 1280px wide, targets 1.5Mbps — turns 88MB 4K → ~6MB.
+// Scales to max 1280px wide, targets 1Mbps — turns 88MB 4K → ~4MB.
 // onProgress(0-1) is called each frame so the UI can show a live bar.
 async function compressVideoForUpload(file,onProgress){
   return new Promise((resolve,reject)=>{
@@ -2326,7 +2326,7 @@ async function compressVideoForUpload(file,onProgress){
                  MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')?'video/webm;codecs=vp8,opus':'video/webm';
       const chunks=[];
       let rec;
-      try{rec=new MediaRecorder(combined,{mimeType:mime,videoBitsPerSecond:1_500_000,audioBitsPerSecond:96_000});}
+      try{rec=new MediaRecorder(combined,{mimeType:mime,videoBitsPerSecond:1_000_000,audioBitsPerSecond:80_000});}
       catch(e){URL.revokeObjectURL(objUrl);reject(new Error('Video compression not supported in this browser. Try a shorter/smaller video or paste an Imgur link instead.'));return;}
       rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
       rec.onstop=()=>{URL.revokeObjectURL(objUrl);resolve(new Blob(chunks,{type:'video/webm'}));};
@@ -4188,7 +4188,7 @@ function kfFormHtml(){
             return`<div style="position:relative;margin-bottom:6px">
               ${u.uploading?`<div style="background:rgba(255,255,255,.7);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
                 <div style="display:flex;align-items:center;gap:8px"><span class="up-spin"></span><span style="font-size:12px;font-weight:700;color:#5b21b6">${isCompressing?'Compressing video…':'Uploading video…'}</span></div>
-                ${isCompressing?`<div style="font-size:10.5px;color:#6d28d9">Re-encoding to ~6MB — takes about as long as the clip. Don't close this tab.</div>`:''}
+                ${isCompressing?`<div style="font-size:10.5px;color:#6d28d9">Re-encoding to ~4MB — takes about as long as the clip. Don't close this tab.</div>`:''}
                 ${pct!==null?`<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:#ddd6fe;border-radius:3px;overflow:hidden"><div style="height:100%;background:#7c3aed;border-radius:3px;width:${pct}%;transition:width .25s"></div></div><span style="font-size:11px;font-weight:600;color:#7c3aed;flex-shrink:0">${pct}%</span></div>`:''}
               </div>`:
               u.error?`<div style="font-size:10px;color:var(--redt);padding:4px 0">${esc(u.error)}</div>`:
