@@ -64,6 +64,31 @@ body,html{background:var(--bg)}
 .sync-chip .sc-lbl{font-size:11px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ACCOUNT AVATAR BUTTON + RING */
+.acct-wrap{position:relative;display:inline-flex;align-items:center;flex-shrink:0}
+.acct-btn{position:relative;width:34px;height:34px;border-radius:50%;background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;transition:transform .15s;flex-shrink:0}
+.acct-btn:hover{transform:scale(1.1)}
+.acct-ring{position:absolute;inset:-3px;border-radius:50%;border:2.5px solid rgba(0,0,0,.18);pointer-events:none;transition:border-color .3s}
+.acct-ring.signed{border-color:var(--blue);opacity:.55}
+.acct-ring.synced{border-color:var(--greent)}
+.acct-ring.syncing{border-color:var(--blue);animation:ringPulse 1.1s ease-in-out infinite}
+.acct-ring.error{border-color:var(--redt)}
+.acct-ring.guest{border-color:rgba(0,0,0,.18);opacity:.55}
+@keyframes ringPulse{0%,100%{opacity:1}50%{opacity:.3}}
+.acct-avatar{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;line-height:1}
+.acct-avatar.guest{background:rgba(0,0,0,.1);color:var(--t3)}
+
+/* ACCOUNT POPOVER */
+.acct-popover{position:absolute;top:calc(100% + 10px);right:0;background:var(--card);border:.5px solid var(--b1);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.13),0 2px 8px rgba(0,0,0,.08);min-width:230px;z-index:200;overflow:hidden}
+.acct-pop-top{padding:13px 15px 11px}
+.acct-pop-email{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:210px}
+.acct-pop-status{font-size:11px;color:var(--t3);display:flex;align-items:center;gap:4px}
+.acct-pop-divider{height:.5px;background:var(--b1)}
+.acct-pop-row{display:flex;align-items:center;gap:9px;padding:10px 15px;font-size:13px;font-weight:500;color:var(--t2);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:var(--font);transition:background var(--tr)}
+.acct-pop-row:hover{background:rgba(0,0,0,.05)}
+.acct-pop-row.danger{color:var(--redt)}
+.acct-pop-row.danger:hover{background:var(--redbg)}
+
 /* BUTTONS */
 .btn{border:none;border-radius:980px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all var(--tr);display:inline-flex;align-items:center;gap:5px;line-height:1;white-space:nowrap;background:rgba(0,0,0,.07);color:var(--t1)}
 .btn-pri{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(0,113,227,.25)}
@@ -654,6 +679,13 @@ button:disabled{opacity:.35;cursor:not-allowed}
   .auth-btn{background:var(--card);border-color:var(--b1);color:var(--t2)}
   .auth-btn:hover{background:#3A3A3C}
   .auth-btn.signed{border-color:var(--blue)}
+  /* Account popover dark */
+  .acct-popover{background:#2C2C2E;border-color:rgba(255,255,255,.1);box-shadow:0 8px 32px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.25)}
+  .acct-pop-divider{background:rgba(255,255,255,.08)}
+  .acct-pop-row:hover{background:rgba(255,255,255,.07)}
+  .acct-pop-row.danger:hover{background:rgba(255,59,48,.15)}
+  .acct-avatar.guest{background:rgba(255,255,255,.12);color:var(--t3)}
+  .acct-ring.guest{border-color:rgba(255,255,255,.2);opacity:.6}
   /* Modal */
   .modal-overlay{background:rgba(0,0,0,.7)}
   .modal-close{background:rgba(255,255,255,.1)}
@@ -788,6 +820,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
   /* Auth button - hide email, show avatar/icon only */
   .auth-btn .auth-label,.auth-btn .btn-lbl{display:none}
   .auth-btn{padding:0 9px;gap:0;min-width:34px;justify-content:center}
+  /* Account popover mobile — clamp width & anchor to right edge */
+  .acct-popover{min-width:190px;right:-4px}
   /* Content */
   .main{padding:12px 12px 60px}
   .cmp-main{padding:12px 12px 60px}
@@ -1017,7 +1051,7 @@ const NI_ICONS={watch:icon("watch",14),sunglasses:icon("glasses",14),flashlight:
 const NI_LABELS={watch:"Watch",sunglasses:"Sunglasses",flashlight:"Flashlight","multi-tool":"Multi-tool",bag:"Bag / Case",clothing:"Clothing",other:"Other"};
 const SYNC_SAYINGS=["Sharpening the sync edge…","Honing your data to a razor's edge…","Applying the Scary Sharp protocol…","Stropping your listings clean…","Deburring your inventory…","Heat treating your data for maximum retention…","Running a paper test on your posts…","Putting a hair-whittling edge on your backup…","Your collection is in good hands…","Checking the grind geometry…","Buffing out the data scratches…","No false edges on this backup…","Setting the bevel on your backup…","Full flat grind on your file transfer…","Convex-grinding your cloud storage…","Making sure your data has no microbevels…"];
 const ED=()=>({postType:"[WTS]",knives:[],items:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",bundles:[],groupAddons:false,tradeInterests:SETTINGS.tradeInterests||"",shippingCarrier:SETTINGS.shippingCarrier||"USPS"});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],kfPhotoTag:"other",niUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,gearSoldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",soldFilter:"all",listFilter:"all",shipFilter:"all",soldExpanded:new Set(),tutStep:0,aboutTab:"about",feedbackTab:"bug",trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,gearPicker:false,_skipRollAnim:false,rollKnivesOpen:true,rollGearOpen:true,emailChangeOpen:false,emailChangeNotice:false,accountDeleted:false,migrateConfirm:null,syncingScreen:false,syncMsg:0,_sessionStart:Date.now(),_renderCount:0,_loadTime:null,_copyCount:0,_viewChanges:0,_lastView:""};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kf:EK(),kfMode:"draft",adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],kfPhotoTag:"other",niUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,gearSoldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",soldFilter:"all",listFilter:"all",shipFilter:"all",soldExpanded:new Set(),tutStep:0,aboutTab:"about",feedbackTab:"bug",acctPopover:false,trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,gearPicker:false,_skipRollAnim:false,rollKnivesOpen:true,rollGearOpen:true,emailChangeOpen:false,emailChangeNotice:false,accountDeleted:false,migrateConfirm:null,syncingScreen:false,syncMsg:0,_sessionStart:Date.now(),_renderCount:0,_loadTime:null,_copyCount:0,_viewChanges:0,_lastView:""};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -3839,33 +3873,65 @@ function renderAboutModal(){
 </div>`;
 }
 function mainHdr(){
-  const authBtn=S.authLoading
-    ?`<button class="auth-btn" style="opacity:.55;pointer-events:none;cursor:default" aria-label="Loading"><div class="auth-avatar" style="background:var(--t4);width:18px;height:18px;border-radius:50%;flex-shrink:0"></div><span class="auth-label" style="color:var(--t4)">···</span></button>`
-    :S.authStatus==="signed_in"
-      ?`<button class="auth-btn signed" onclick="S.modal='auth';render()" title="${esc(S.authEmail)}"><div class="auth-avatar">${S.authEmail[0].toUpperCase()}</div><span class="auth-label">${esc(S.authEmail)}</span></button>`
-      :`<button class="auth-btn" onclick="S.modal='auth';render()">&#9729;<span class="btn-lbl"> Sign In</span></button>`;
-  // Sync status chip — only shown when signed in
-  const syncChip=(()=>{
-    if(S.authStatus!=='signed_in'||!currentUser)return '';
-    if(_syncStatus==='syncing'||(_syncStatus==='pending'&&_sbSyncTid)){
-      return`<button class="sync-chip syncing" onclick="manualSync()" title="Syncing…"><span class="sc-ico">${icon('refresh-cw',12)}</span><span class="sc-lbl">Syncing</span></button>`;
-    }
-    if(_syncStatus==='error'){
-      return`<button class="sync-chip error" onclick="manualSync()" title="${esc(_syncErrMsg)}">${icon('alert-circle',12,'var(--redt)')}<span class="sc-lbl">Retry</span></button>`;
-    }
-    if(_syncStatus==='synced'&&_syncLastAt){
-      const _ms=Date.now()-_syncLastAt;
-      const _lbl=_ms<60000?'Just now':_ms<3600000?Math.floor(_ms/60000)+'m ago':'Synced';
-      return`<button class="sync-chip synced" onclick="manualSync()" title="Last synced · tap to sync now">${icon('check-circle',12,'var(--greent)')}<span class="sc-lbl">${_lbl}</span></button>`;
-    }
-    return`<button class="sync-chip" onclick="manualSync()" title="Tap to sync">${icon('cloud',12)}<span class="sc-lbl">Sync</span></button>`;
+  // Avatar ring colour reflects sync state (only meaningful when signed in)
+  const ringClass=(()=>{
+    if(S.authLoading||S.authStatus!=='signed_in')return 'guest';
+    if(_syncStatus==='syncing'||(_syncStatus==='pending'&&_sbSyncTid))return 'syncing';
+    if(_syncStatus==='error')return 'error';
+    if(_syncStatus==='synced')return 'synced';
+    return 'signed'; // signed in but not yet synced this session
   })();
+  // Avatar inner content
+  const avatarHtml=S.authLoading
+    ?`<div class="acct-avatar guest" style="opacity:.4">${icon('user',13)}</div>`
+    :S.authStatus==='signed_in'
+      ?`<div class="acct-avatar">${S.authEmail[0].toUpperCase()}</div>`
+      :`<div class="acct-avatar guest">${icon('user',13)}</div>`;
+  // Sync status line shown inside popover
+  const syncLine=(()=>{
+    if(S.authStatus!=='signed_in')return '';
+    if(_syncStatus==='syncing'||(_syncStatus==='pending'&&_sbSyncTid))return `<span style="color:var(--blue);display:flex;align-items:center;gap:4px">${icon('refresh-cw',11)} Syncing…</span>`;
+    if(_syncStatus==='error')return `<span style="color:var(--redt);display:flex;align-items:center;gap:4px">${icon('alert-circle',11)} ${esc(_syncErrMsg||'Sync error')}</span>`;
+    if(_syncStatus==='synced'&&_syncLastAt){const ms=Date.now()-_syncLastAt;const lbl=ms<60000?'Just now':ms<3600000?Math.floor(ms/60000)+'m ago':'Synced';return`<span style="color:var(--greent);display:flex;align-items:center;gap:4px">${icon('check-circle',11)} ${lbl}</span>`;}
+    return `<span style="color:var(--t3);display:flex;align-items:center;gap:4px">${icon('cloud',11)} Not yet synced</span>`;
+  })();
+  // Account popover
+  const popoverHtml=S.acctPopover?`<div class="acct-popover" id="acct-popover">
+    <div class="acct-pop-top">
+      ${S.authStatus==='signed_in'
+        ?`<div class="acct-pop-email" title="${esc(S.authEmail)}">${esc(S.authEmail)}</div><div class="acct-pop-status">${syncLine}</div>`
+        :`<div class="acct-pop-email" style="color:var(--t2)">Not signed in</div><div class="acct-pop-status" style="color:var(--t3)">Data is local only</div>`
+      }
+    </div>
+    <div class="acct-pop-divider"></div>
+    ${S.authStatus==='signed_in'
+      ?`<button class="acct-pop-row" onclick="manualSync();S.acctPopover=false;render()">${icon('refresh-cw',14)} Sync now</button>
+        <div class="acct-pop-divider"></div>
+        <button class="acct-pop-row danger" onclick="S.acctPopover=false;signOut()">${icon('log-out',14)} Sign Out</button>`
+      :`<button class="acct-pop-row" onclick="S.modal='auth';S.acctPopover=false;render()">${icon('cloud',14)} &#9729; Sign In to Back Up Data</button>`
+    }
+  </div>`:'';
   const hasDemoData=S.tour==null&&(S.inventory.some(k=>k._tourDemo)||S.posts.some(p=>p._tourDemo));
   const demoBanner=hasDemoData?`<div class="demo-banner">${icon('film',14)} Demo data is active <button class="demo-rm-btn" onclick="endTour(false)">Remove Demo Data</button></div>`:"";
   return`<div class="hdr">
     <div class="hdr-logo" onclick="S.view='list';render()"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
-    <div class="hdr-tabs"><div class="tab-seg"><button class="tab-item${S.view==='list'?' on':''}" onclick="S.view='list';render()">Listings</button><button class="tab-item${S.view==='roll'?' on':''}" onclick="S.view='roll';render()">The Roll</button><button class="tab-item${S.view==='sold'?' on':''}" onclick="S.view='sold';render()">Sold</button><button class="tab-item${S.view==='shipping'?' on':''}" onclick="S.view='shipping';render()" style="position:relative">${icon('truck',13)} Shipping${(()=>{const n=S.posts.reduce((a,p)=>a+p.knives.filter(k=>{const s=kShipStatus(k);return s==='ready'||s==='shipped'||s==='delivered';}).length,0);return n?`<span style="position:absolute;top:3px;right:3px;background:var(--oranget);color:#fff;font-size:9px;font-weight:700;border-radius:10px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1">${n}</span>`:"";})()}</button><button class="tab-item${S.view==='guide'?' on':''}" onclick="S.view='guide';render()">${icon('book',13)} How-To</button></div></div>
-    <div class="hdr-r">${syncChip}<button class="hdr-ico-btn" onclick="S.view='settings';render()"><span class="ico">${icon("settings",18)}</span><span class="btn-lbl">Settings</span></button><a class="hdr-ico-btn" href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" title="Support the developer"><span class="ico">☕</span><span class="btn-lbl">Support</span></a>${authBtn}</div>
+    <div class="hdr-tabs"><div class="tab-seg">
+      <button class="tab-item${S.view==='list'?' on':''}" onclick="S.view='list';render()">Listings</button>
+      <button class="tab-item${S.view==='roll'?' on':''}" onclick="S.view='roll';render()">The Roll</button>
+      <button class="tab-item${S.view==='sold'?' on':''}" onclick="S.view='sold';render()">Sold</button>
+      <button class="tab-item${S.view==='shipping'?' on':''}" onclick="S.view='shipping';render()" style="position:relative">${icon('truck',13)} Shipping${(()=>{const n=S.posts.reduce((a,p)=>a+p.knives.filter(k=>{const s=kShipStatus(k);return s==='ready'||s==='shipped'||s==='delivered';}).length,0);return n?`<span style="position:absolute;top:3px;right:3px;background:var(--oranget);color:#fff;font-size:9px;font-weight:700;border-radius:10px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1">${n}</span>`:"";})()} </button>
+    </div></div>
+    <div class="hdr-r">
+      <a class="hdr-ico-btn" href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" title="Support the developer"><span class="ico">☕</span><span class="btn-lbl">Support</span></a>
+      <div class="acct-wrap">
+        <button class="acct-btn" onclick="S.acctPopover=!S.acctPopover;render()" title="${S.authStatus==='signed_in'?esc(S.authEmail):'Account'}">
+          <div class="acct-ring ${ringClass}"></div>
+          ${avatarHtml}
+        </button>
+        ${popoverHtml}
+      </div>
+      <button class="hdr-ico-btn" onclick="S.view='settings';S.acctPopover=false;render()" title="Settings"><span class="ico">${icon('settings',16)}</span></button>
+    </div>
   </div>${demoBanner}`;
 }
 function kfFormHtml(){
@@ -5125,6 +5191,7 @@ function renderSettings(){
   <div class="sgroup">
     <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.1 - ${BRANDS.length} brands, ${STEELS.length} steels</div></div>
     <div class="srow"><div><div class="srow-lbl">${icon('bar-chart',13)} Data for Data Nerds</div><div class="srow-sub">Deep analytics on your selling history, pricing, pipeline, and more</div></div><div class="srow-ctrl"><button class="btn btn-pu btn-sm" onclick="S.modal='datanerds';render()">Open Analytics</button></div></div>
+    <div class="srow"><div><div class="srow-lbl">${icon('book',13)} How-To Guide</div><div class="srow-sub">Step-by-step guide to getting the most out of BladeFlow</div></div><div class="srow-ctrl"><button class="btn btn-sec btn-sm" onclick="S.view='guide';render()">${icon('book',14)} Open Guide</button></div></div>
     <div class="srow"><div class="srow-lbl">Help</div><div class="srow-ctrl" style="flex-wrap:wrap;gap:6px"><button class="btn btn-pri btn-sm" onclick="S.view='list';startTour()">${icon("play-circle",14)} Interactive Tour</button><button class="btn btn-am btn-sm" onclick="S.modal='tutorial';S.tutStep=0;render()">${icon("book",14)} Tutorial</button><button class="btn btn-sec btn-sm" onclick="S.modal='about';S.aboutTab='about';render()">${icon("info",14)} FAQ</button><button class="btn btn-sec btn-sm" onclick="S.modal='feedback';S.feedbackTab='bug';render()">${icon("mail",14)} Feedback</button></div></div>
     <div class="srow"><div><div class="srow-lbl">Built by</div><div class="srow-sub">u/smashedllama2, a free tool for the r/Knife_Swap community</div></div><div class="srow-ctrl"><a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#FFDD00;color:#000;font-size:12px;font-weight:700;padding:7px 13px;border-radius:8px;text-decoration:none;white-space:nowrap">☕ Buy me a coffee</a></div></div>
     <div class="srow" style="flex-wrap:wrap;gap:10px"><div style="flex:1;min-width:200px"><div class="srow-lbl">Photo Hosting</div><div class="srow-sub">Drag-and-drop uploads via your own free <a href="https://cloudinary.com" target="_blank" style="color:var(--blue);text-decoration:none">Cloudinary</a> account. Photos go directly from your browser to your account. Never through our servers. Stored with <strong>AES-256</strong> at rest, <strong>TLS 1.2+</strong> in transit.</div></div><div class="srow-ctrl" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${sv.cloudinaryCloud&&sv.cloudinaryPreset?`<span style="font-size:11px;font-weight:600;color:var(--greent);background:var(--greenbg);padding:4px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px">${icon("check-circle",12,'var(--greent)')} Connected</span>`:`<span style="font-size:11px;font-weight:600;color:var(--oranget);background:var(--orangebg);padding:4px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px">${icon("alert-circle",12,'var(--oranget)')} Setup needed</span>`}<button class="btn btn-sec btn-sm" onclick="S.modal='cloudinary';render()">${icon('book',13)} Setup Guide</button></div></div>
@@ -5191,11 +5258,17 @@ window.renderTutorialModal=renderTutorialModal;window.renderAboutModal=renderAbo
 window.startTour=startTour;window.nextTourStep=nextTourStep;window.prevTourStep=prevTourStep;window.endTour=endTour;
 window.autoPostType=autoPostType;window.buildTitleStr=buildTitleStr;window.doFetchPriceResearch=doFetchPriceResearch;window.clearPriceResearch=clearPriceResearch;window.applyPriceFromResearch=applyPriceFromResearch;
 
+// ─── CLOSE ACCOUNT POPOVER ON OUTSIDE CLICK ──────────────
+document.addEventListener("click",e=>{
+  if(S.acctPopover&&!e.target.closest('.acct-wrap')){S.acctPopover=false;render();}
+});
+
 // ─── KEYBOARD SHORTCUTS ───────────────────────────────────
 document.addEventListener("keydown",e=>{
   const inInput=["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName);
-  // Escape - close things in order: modal → knife form → sold flow → settings
+  // Escape - close things in order: acctPopover → modal → knife form → sold flow → settings
   if(e.key==="Escape"&&!e.metaKey&&!e.ctrlKey){
+    if(S.acctPopover){S.acctPopover=false;render();return;}
     if(S.modal){S.modal=null;render();return;}
     if(S.soldFlow){cancelSoldFlow();return;}
     if(S.gearSoldFlow){cancelGearSoldFlow();return;}
