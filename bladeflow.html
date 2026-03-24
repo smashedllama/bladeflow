@@ -4192,7 +4192,28 @@ function kfFormHtml(){
                 ${pct!==null?`<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:#ddd6fe;border-radius:3px;overflow:hidden"><div style="height:100%;background:#7c3aed;border-radius:3px;width:${pct}%;transition:width .25s"></div></div><span style="font-size:11px;font-weight:600;color:#7c3aed;flex-shrink:0">${pct}%</span></div>`:''}
               </div>`:
               u.error?`<div style="font-size:10px;color:var(--redt);padding:4px 0">${esc(u.error)}</div>`:
-              u.url?`<div style="position:relative;border-radius:8px;overflow:hidden;background:#000;max-height:220px"><video src="${esc(cdnVideo(u.url,1280))}"${thumb?` poster="${esc(thumb)}"`:''}  style="width:100%;max-height:220px;object-fit:contain;display:block" playsinline controls preload="none"></video></div>`:''}
+              u.url?(()=>{const vid_uid=u.uid;return`<div style="border-radius:8px;overflow:hidden;background:#000">
+                <video id="kfvid-${vid_uid}"${thumb?` poster="${esc(thumb)}"`:''}
+                  style="width:100%;max-height:220px;object-fit:contain;display:block"
+                  playsinline preload="metadata"
+                  ontimeupdate="kfVidTimeUpdate('${vid_uid}')"
+                  onplay="kfVidState('${vid_uid}',true)"
+                  onpause="kfVidState('${vid_uid}',false)"
+                  onended="kfVidState('${vid_uid}',false)">
+                  <source src="${esc(u.url)}" type="video/webm">
+                  <source src="${esc(cdnVideo(u.url,1280))}" type="video/mp4">
+                </video>
+                <div style="background:rgba(0,0,0,.82);padding:7px 10px;display:flex;align-items:center;gap:8px">
+                  <button id="kfvid-btn-${vid_uid}" onclick="kfVidPlayPause('${vid_uid}')" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;line-height:1;flex-shrink:0"><span style="font-size:14px">▶</span></button>
+                  <button onclick="kfVidSkipBack('${vid_uid}')" title="Back 10s" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:10px;padding:0;line-height:1;flex-shrink:0;white-space:nowrap">↩ 10s</button>
+                  <input type="range" id="kfvid-prog-${vid_uid}" min="0" max="100" step="0.1" value="0"
+                    style="flex:1;cursor:pointer;accent-color:#fff;height:3px;min-width:0"
+                    onmousedown="kfVidSeekStart('${vid_uid}')" ontouchstart="kfVidSeekStart('${vid_uid}')"
+                    onchange="kfVidSeekEnd('${vid_uid}',this.value)">
+                  <span id="kfvid-time-${vid_uid}" style="font-size:10px;color:#ccc;flex-shrink:0;min-width:32px;text-align:right">0:00</span>
+                </div>
+              </div>`;})():''}
+
               ${u.url&&!u.uploading?`<button onclick="removeKnifeUpload('${u.uid}')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:13px;padding:0;line-height:1;display:flex;align-items:center;justify-content:center">&times;</button>`:''}
             </div>`;
           }).join('')}
@@ -5417,6 +5438,14 @@ window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=execu
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;window.imgFallback=imgFallback;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
 window.triggerKnifeUpload=triggerKnifeUpload;window.triggerKnifeVideoUpload=triggerKnifeVideoUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.handleKnifeVideoInput=handleKnifeVideoInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;
+const _kfVidWasPlaying={};
+function kfVidPlayPause(uid){const v=document.getElementById('kfvid-'+uid);if(!v)return;v.paused?v.play():v.pause();}
+function kfVidSkipBack(uid){const v=document.getElementById('kfvid-'+uid);if(!v)return;v.currentTime=Math.max(0,v.currentTime-10);}
+function kfVidTimeUpdate(uid){const v=document.getElementById('kfvid-'+uid);if(!v)return;const prog=document.getElementById('kfvid-prog-'+uid);const time=document.getElementById('kfvid-time-'+uid);if(prog&&v.duration)prog.value=(v.currentTime/v.duration)*100;if(time){const s=Math.floor(v.currentTime);time.textContent=Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}}
+function kfVidState(uid,playing){const btn=document.getElementById('kfvid-btn-'+uid);if(btn)btn.innerHTML=playing?'<span style="font-size:14px">⏸</span>':'<span style="font-size:14px">▶</span>';}
+function kfVidSeekStart(uid){const v=document.getElementById('kfvid-'+uid);_kfVidWasPlaying[uid]=v&&!v.paused;if(v)v.pause();}
+function kfVidSeekEnd(uid,val){const v=document.getElementById('kfvid-'+uid);if(!v||!v.duration)return;v.currentTime=(val/100)*v.duration;if(_kfVidWasPlaying[uid])v.play();}
+window.kfVidPlayPause=kfVidPlayPause;window.kfVidSkipBack=kfVidSkipBack;window.kfVidTimeUpdate=kfVidTimeUpdate;window.kfVidState=kfVidState;window.kfVidSeekStart=kfVidSeekStart;window.kfVidSeekEnd=kfVidSeekEnd;
 window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;window.copyDibsMessage=copyDibsMessage;window.buildDibsMessage=buildDibsMessage;window.lookupZip=lookupZip;window.addrDisplayHtml=addrDisplayHtml;window.openPirateShip=openPirateShip;window.fmtAddress=fmtAddress;window.fmtAddrNoName=fmtAddrNoName;window.markShipped=markShipped;window.markDelivered=markDelivered;window.markConfirmedTrade=markConfirmedTrade;window.kShipStatus=kShipStatus;window.copyTrackingLink=copyTrackingLink;window.startTracking=startTracking;window.cancelTracking=cancelTracking;window.saveTracking=saveTracking;
 window.markPending=markPending;window.markInvPending=markInvPending;
 window.markSoldElsewhere=markSoldElsewhere;window.confirmSoldElsewhere=confirmSoldElsewhere;window.markWithdrawn=markWithdrawn;window.readdKnife=readdKnife;
