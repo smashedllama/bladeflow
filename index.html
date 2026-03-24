@@ -2789,7 +2789,7 @@ function saveGearTracking(pid,gi){
   const carr=document.getElementById(`gcarr-${pid}-${gi}`)?.value||"USPS";
   if(!trk){alert("Please enter a tracking number.");return;}
   pushUndo("Gear tracking added");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=it.shippedAt||new Date().toISOString();});
+  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=it.shippedAt||new Date().toISOString();it.shippingAddress=null;});
   saveInv();S.trackingFlow=null;render();
 }
 function markGearShipped(pid,gi){
@@ -2797,7 +2797,7 @@ function markGearShipped(pid,gi){
   const carr=document.getElementById(`gcarr-${pid}-${gi}`)?.value||"USPS";
   if(!trk){alert("Please enter a tracking number first.");return;}
   pushUndo("Gear marked shipped");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=new Date().toISOString();});
+  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=new Date().toISOString();it.shippingAddress=null;});
   saveInv();render();
 }
 function markGearDelivered(pid,gi){
@@ -4310,7 +4310,7 @@ function saveTracking(pid,ki){
   const carr=document.getElementById(`st-carr-${pid}-${ki}`)?.value||"USPS";
   if(!trk){alert("Please enter a tracking number.");return;}
   pushUndo("Tracking added");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=k.shippedAt||new Date().toISOString();});
+  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=k.shippedAt||new Date().toISOString();k.shippingAddress=null;});
   saveInv();S.trackingFlow=null;render();
 }
 async function copyTrackingLink(pid,ki){
@@ -4327,7 +4327,7 @@ function markShipped(pid,ki){
   const carr=document.getElementById(`carr-${pid}-${ki}`)?.value||"USPS";
   if(!trk){alert("Please enter a tracking number first.");return;}
   pushUndo("Knife marked shipped");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=new Date().toISOString();});
+  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=new Date().toISOString();k.shippingAddress=null;});
   saveInv();render();
 }
 function markDelivered(pid,ki){
