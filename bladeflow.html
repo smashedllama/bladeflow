@@ -55,6 +55,14 @@ body,html{background:var(--bg)}
 .hdr-ico-btn{height:32px;border-radius:8px;background:rgba(0,0,0,.06);border:none;cursor:pointer;font-size:12px;font-weight:500;font-family:var(--font);display:inline-flex;align-items:center;gap:5px;padding:0 10px;color:var(--t2);transition:background var(--tr);white-space:nowrap}
 .hdr-ico-btn:hover{background:rgba(0,0,0,.1)}
 .hdr-ico-btn .ico{font-size:14px;line-height:1}
+.sync-chip{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--font);border:.5px solid var(--b2);background:var(--card);color:var(--t3);cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.sync-chip:hover{border-color:var(--blue);color:var(--blue)}
+.sync-chip.syncing{color:var(--blue);border-color:rgba(0,113,227,.3);background:var(--bluebg)}
+.sync-chip.syncing .sc-ico{animation:spin .9s linear infinite;display:flex}
+.sync-chip.synced{color:var(--greent);border-color:rgba(52,199,89,.3);background:var(--greenbg)}
+.sync-chip.error{color:var(--redt);border-color:rgba(255,59,48,.3);background:var(--redbg)}
+.sync-chip .sc-lbl{font-size:11px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* BUTTONS */
 .btn{border:none;border-radius:980px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all var(--tr);display:inline-flex;align-items:center;gap:5px;line-height:1;white-space:nowrap;background:rgba(0,0,0,.07);color:var(--t1)}
@@ -628,6 +636,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
   .hdr{background:rgba(28,28,30,.9);border-bottom-color:rgba(255,255,255,.1)}
   .hdr-ico-btn{background:rgba(255,255,255,.1);color:var(--t2)}
   .hdr-ico-btn:hover{background:rgba(255,255,255,.16)}
+  .sync-chip{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12)}
   .btn-hdr-ghost{color:var(--t2)}
   .btn-hdr-ghost:hover{background:rgba(255,255,255,.08)}
   /* Tabs & segmented controls */
@@ -823,6 +832,10 @@ let _sb=null;       // supabase client instance
 let currentUser=null;
 let _sbSyncTid=null; // debounce timer for Supabase batch sync
 let _loadingMsgTid=null; // interval for cycling loading screen sayings
+// Sync status (module-level so it survives renders without polluting S/undo)
+let _syncStatus='idle'; // 'idle' | 'pending' | 'syncing' | 'synced' | 'error'
+let _syncLastAt=null;   // Date.now() of last successful sync
+let _syncErrMsg='';     // last error message
 
 // ─── DATABASE ────────────────────────────────────────────────
 const BRANDS=["Al Mar","Amare","Arcane Design","Artisan","Bark River","Bastinelli","Benchmade","Berg Blades","Bestech","Boker","Boker Plus","Boker Tree Brand","Bradford Guardian","Buck","Byrd","Case","Chris Reeve Knives","CJRB","Civivi","Cobratec","Cold Steel","Condor Tool & Knife","CRKT","Curtiss Knives","Daggerr","Damned Designs","Demko","Drop","DPx Gear","Emerson","ESEE","Extrema Ratio","Fallkniven","Fantoni","Ferrum Forge","Fox Knives","GEC","Gerber","GiantMouse","Grimsmo","Guardian Tactical","Helle","Heretic","Hinderer","Hogue","Honey Badger","Jack Wolf","Jake Hoback","James Brand","Kansept","Ka-Bar","Kershaw","Kizer","Koenig","Laconico","Leatherman","LionSteel","Maserin","Maxace","Mcusta","Medford","Microtech","Mission Knives","MKM","Morakniv","Ocaso","Olamic Cutlery","Ontario","Opinel","Pena Knives","Petrified Fish","Piranha Knives","Pro-Tech","QSP","Quiet Carry","Real Steel","Reate","Rike Knife","Rough Ryder","RUIKE","SENCUT","Smith & Wesson","SOG","Southern Grind","Spartan Blades","Spyderco","Steel Will","Strider","Tactile Knife Co.","Todd Begg","Toor","TOPS","TRM","Twosun","Victorinox","Viper Knives","Vosteed","Wander Tactical","WE Knife","White River","Winkler","Zero Tolerance"];
@@ -976,18 +989,48 @@ async function load(){
 }
 // Debounced Supabase batch sync — fires 1.5s after the last save call.
 // Replaces the old per-item sequential upsert loop (N round-trips → 2 round-trips).
+async function _doSbSync(){
+  const posts=S.posts.filter(p=>!p._tourDemo);
+  const inv=S.inventory.filter(k=>!k._tourDemo);
+  const now=new Date().toISOString();
+  if(posts.length)await _sb.from("posts").upsert(posts.map(p=>({id:p.id,user_id:currentUser.id,data:p,updated_at:now})));
+  // Always upsert inventory so deletions and additions stay in sync
+  const {data:remoteInv}=await _sb.from("inventory").select("id").eq("user_id",currentUser.id);
+  const remoteIds=new Set((remoteInv||[]).map(r=>r.id));
+  const localIds=new Set(inv.map(k=>k.id));
+  const toDelete=[...remoteIds].filter(id=>!localIds.has(id));
+  if(inv.length)await _sb.from("inventory").upsert(inv.map(k=>({id:k.id,user_id:currentUser.id,data:k,updated_at:now})));
+  for(const id of toDelete)await _sb.from("inventory").delete().eq("id",id).eq("user_id",currentUser.id);
+}
 function _scheduleSbSync(){
   if(!currentUser||!_sb)return;
+  _syncStatus='pending';
   if(_sbSyncTid)clearTimeout(_sbSyncTid);
   _sbSyncTid=setTimeout(async()=>{
     _sbSyncTid=null;
+    _syncStatus='syncing';render();
     try{
-      const posts=S.posts.filter(p=>!p._tourDemo);
-      if(posts.length)await _sb.from("posts").upsert(posts.map(p=>({id:p.id,user_id:currentUser.id,data:p,updated_at:new Date().toISOString()})));
-      const inv=S.inventory.filter(k=>!k._tourDemo);
-      if(inv.length)await _sb.from("inventory").upsert(inv.map(k=>({id:k.id,user_id:currentUser.id,data:k,updated_at:new Date().toISOString()})));
-    }catch(e){console.warn("Supabase sync failed:",e);}
+      await _doSbSync();
+      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+    }catch(e){
+      _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
+      console.warn("Supabase sync failed:",e);
+    }
+    render();
   },1500);
+}
+async function manualSync(){
+  if(!_sb||!currentUser)return;
+  if(_sbSyncTid){clearTimeout(_sbSyncTid);_sbSyncTid=null;}
+  _syncStatus='syncing';render();
+  try{
+    await _doSbSync();
+    _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+  }catch(e){
+    _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
+    console.warn("Manual sync failed:",e);
+  }
+  render();
 }
 async function save(){
   if(!S.loaded)return;
@@ -1104,9 +1147,10 @@ async function _sbLoad(){
     if(inv&&inv.length)S.inventory=inv.map(r=>r.data).filter(k=>!k._tourDemo);
     S.loaded=true;
     reconcileInventory();
+    _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
     // Mirror to localStorage and mark this device as synced for this user
     try{localStorage.setItem("ks_v4",JSON.stringify(S.posts));localStorage.setItem("ks_inv_v1",JSON.stringify(S.inventory));localStorage.setItem("ks_settings",JSON.stringify(SETTINGS));localStorage.setItem("ks_synced_uid",currentUser.id);}catch(e){}
-  }catch(e){console.warn("Supabase load failed:",e);S.loaded=true;}
+  }catch(e){console.warn("Supabase load failed:",e);S.loaded=true;_syncStatus='error';_syncErrMsg='Could not load cloud data';}
 }
 async function _sbUpsertPost(post){
   if(!_sb||!currentUser)return;
@@ -3534,6 +3578,10 @@ function renderGuide(){
     <div style="margin-bottom:24px">
       <div style="font-size:22px;font-weight:700;color:var(--t1);margin-bottom:6px">How do I use BladeFlow with Knife Swap?</div>
       <div style="font-size:14px;color:var(--t3);line-height:1.6">The complete process from first-time setup to confirmed trade, using this tool alongside the subreddit.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-sec btn-sm" onclick="S.modal='rules';render()" style="display:inline-flex;align-items:center;gap:6px">${icon('book-open',13)} r/Knife_Swap Rules</button>
+        <a href="https://www.reddit.com/r/Knife_Swap/" target="_blank" rel="noopener" class="btn btn-sec btn-sm" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none">${icon('globe',13)} Visit r/Knife_Swap</a>
+      </div>
     </div>
 
     ${sec(icon("settings",18,'#0071E3'),"First-Time Setup","rgba(0,122,255,.15)",`
@@ -3726,12 +3774,28 @@ function mainHdr(){
     :S.authStatus==="signed_in"
       ?`<button class="auth-btn signed" onclick="S.modal='auth';render()" title="${esc(S.authEmail)}"><div class="auth-avatar">${S.authEmail[0].toUpperCase()}</div><span class="auth-label">${esc(S.authEmail)}</span></button>`
       :`<button class="auth-btn" onclick="S.modal='auth';render()">&#9729;<span class="btn-lbl"> Sign In</span></button>`;
+  // Sync status chip — only shown when signed in
+  const syncChip=(()=>{
+    if(S.authStatus!=='signed_in'||!currentUser)return '';
+    if(_syncStatus==='syncing'||(_syncStatus==='pending'&&_sbSyncTid)){
+      return`<button class="sync-chip syncing" onclick="manualSync()" title="Syncing…"><span class="sc-ico">${icon('refresh-cw',12)}</span><span class="sc-lbl">Syncing</span></button>`;
+    }
+    if(_syncStatus==='error'){
+      return`<button class="sync-chip error" onclick="manualSync()" title="${esc(_syncErrMsg)}">${icon('alert-circle',12,'var(--redt)')}<span class="sc-lbl">Retry</span></button>`;
+    }
+    if(_syncStatus==='synced'&&_syncLastAt){
+      const _ms=Date.now()-_syncLastAt;
+      const _lbl=_ms<60000?'Just now':_ms<3600000?Math.floor(_ms/60000)+'m ago':'Synced';
+      return`<button class="sync-chip synced" onclick="manualSync()" title="Last synced · tap to sync now">${icon('check-circle',12,'var(--greent)')}<span class="sc-lbl">${_lbl}</span></button>`;
+    }
+    return`<button class="sync-chip" onclick="manualSync()" title="Tap to sync">${icon('cloud',12)}<span class="sc-lbl">Sync</span></button>`;
+  })();
   const hasDemoData=S.tour==null&&(S.inventory.some(k=>k._tourDemo)||S.posts.some(p=>p._tourDemo));
   const demoBanner=hasDemoData?`<div class="demo-banner">${icon('film',14)} Demo data is active <button class="demo-rm-btn" onclick="endTour(false)">Remove Demo Data</button></div>`:"";
   return`<div class="hdr">
     <div class="hdr-logo" onclick="S.view='list';render()"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
     <div class="hdr-tabs"><div class="tab-seg"><button class="tab-item${S.view==='list'?' on':''}" onclick="S.view='list';render()">Listings</button><button class="tab-item${S.view==='roll'?' on':''}" onclick="S.view='roll';render()">The Roll</button><button class="tab-item${S.view==='sold'?' on':''}" onclick="S.view='sold';render()">Sold</button><button class="tab-item${S.view==='shipping'?' on':''}" onclick="S.view='shipping';render()" style="position:relative">${icon('truck',13)} Shipping${(()=>{const n=S.posts.reduce((a,p)=>a+p.knives.filter(k=>{const s=kShipStatus(k);return s==='ready'||s==='shipped'||s==='delivered';}).length,0);return n?`<span style="position:absolute;top:3px;right:3px;background:var(--oranget);color:#fff;font-size:9px;font-weight:700;border-radius:10px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1">${n}</span>`:"";})()}</button><button class="tab-item${S.view==='guide'?' on':''}" onclick="S.view='guide';render()">${icon('book',13)} How-To</button></div></div>
-    <div class="hdr-r"><button class="hdr-ico-btn" onclick="S.modal='rules';render()"><span class="ico">${icon("book-open",18)}</span><span class="btn-lbl">Rules</span></button><button class="hdr-ico-btn" onclick="S.view='settings';render()"><span class="ico">${icon("settings",18)}</span><span class="btn-lbl">Settings</span></button><a class="hdr-ico-btn" href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" title="Support the developer"><span class="ico">☕</span><span class="btn-lbl">Support</span></a>${authBtn}</div>
+    <div class="hdr-r">${syncChip}<button class="hdr-ico-btn" onclick="S.view='settings';render()"><span class="ico">${icon("settings",18)}</span><span class="btn-lbl">Settings</span></button><a class="hdr-ico-btn" href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" title="Support the developer"><span class="ico">☕</span><span class="btn-lbl">Support</span></a>${authBtn}</div>
   </div>${demoBanner}`;
 }
 function kfFormHtml(){
@@ -5052,7 +5116,7 @@ window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleK
 window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;window.copyDibsMessage=copyDibsMessage;window.buildDibsMessage=buildDibsMessage;window.lookupZip=lookupZip;window.copyShippingAddress=copyShippingAddress;window.copyShippingName=copyShippingName;window.copyShippingAddrOnly=copyShippingAddrOnly;window.addrDisplayHtml=addrDisplayHtml;window.openPirateShip=openPirateShip;window.fmtAddress=fmtAddress;window.fmtAddrNoName=fmtAddrNoName;window.markShipped=markShipped;window.markDelivered=markDelivered;window.markConfirmedTrade=markConfirmedTrade;window.kShipStatus=kShipStatus;window.copyTrackingLink=copyTrackingLink;window.startTracking=startTracking;window.cancelTracking=cancelTracking;window.saveTracking=saveTracking;
 window.markPending=markPending;window.markInvPending=markInvPending;
 window.markSoldElsewhere=markSoldElsewhere;window.confirmSoldElsewhere=confirmSoldElsewhere;window.markWithdrawn=markWithdrawn;window.readdKnife=readdKnife;
-window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.changeEmail=changeEmail;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.discardLocalData=discardLocalData;window.skipMigrate=skipMigrate;
+window.sendMagicLink=sendMagicLink;window.signOut=signOut;window.changeEmail=changeEmail;window.deleteAccount=deleteAccount;window.migrateToSupabase=migrateToSupabase;window.discardLocalData=discardLocalData;window.skipMigrate=skipMigrate;window.manualSync=manualSync;
 window.renderTutorialModal=renderTutorialModal;window.renderAboutModal=renderAboutModal;window.renderCloudinaryModal=renderCloudinaryModal;window.renderCloudinaryStatus=renderCloudinaryStatus;
 window.startTour=startTour;window.nextTourStep=nextTourStep;window.prevTourStep=prevTourStep;window.endTour=endTour;
 window.autoPostType=autoPostType;window.buildTitleStr=buildTitleStr;window.doFetchPriceResearch=doFetchPriceResearch;window.clearPriceResearch=clearPriceResearch;window.applyPriceFromResearch=applyPriceFromResearch;
