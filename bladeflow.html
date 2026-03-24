@@ -973,7 +973,7 @@ const PAYS=["PayPal G&S","PayPal F&F","Venmo","Zelle","Cash App","Apple Pay","Ot
 const NO_SHIP=["California","New York","New Jersey","Illinois","Massachusetts","Hawaii","Alaska","Puerto Rico","International","Other"];
 const ISSUES=["Light scratches","Deep scratches","Snail trails","Blade stain","Handle marks","Tip damage","Blade play","Lock stick","Lock slip","Lock rock","Ano wear","Detent issues","Detent lash","Other","None"];
 const ACC=["Original box","Certificate/papers","Carrying pouch","Kydex sheath","Sheath","Pocket clip","Adjustment tool","Spare scales","Extra hardware","Extra screws","Blade oil","Lanyard","Polishing cloth","Other","None"];
-const BLADE_COND=["New in box","Mint","Factory edge","Lightly used","Field sharpened","Reprofiled","Dull","Needs sharpening"];
+const BLADE_COND=["Factory edge","Stropped","Honed","Field sharpened","Reprofiled","Dull"];
 const TMPL=["Detailed","Compact","Minimal","Table"];
 
 // ─── HELPERS ──────────────────────────────────────────────────
@@ -1000,8 +1000,8 @@ async function saveSettings(){
 }
 
 // ─── STATE ────────────────────────────────────────────────────
-const EK=()=>({brand:"",model:"",steel:"",price:"",soldPrice:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",soldElsewhere:false,soldElsewhereTrackShip:false,withdrawn:false});
-const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",sharpened:"No",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:""});
+const EK=()=>({brand:"",model:"",steel:"",price:"",soldPrice:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",soldElsewhere:false,soldElsewhereTrackShip:false,withdrawn:false});
+const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:""});
 const ENI=()=>({id:gid(),itemCategory:"other",description:"",condition:"Excellent",price:"",tradeValue:"",saleType:"WTS",photos:[],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,pending:false,soldTo:null,soldPrice:"",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const isNI=item=>!!item.itemCategory;
 const ICONS={
@@ -1661,7 +1661,6 @@ function knifeDetails(k){
     owners:k.owners||"1",
     carried:k.carried||"No",
     cut:k.usedCut||"No",
-    sharpened:k.sharpened||"No",
     centering:k.centering||"",
     lockup:k.lockup||"",
     lockupNotes:k.lockupNotes||"",
@@ -1730,7 +1729,7 @@ function buildAddonsSection(addonKnives,carrier,v){
       const pl=knifePrice(k,{addonMode:true});
       const hdr=`**${k.brand} ${k.model}** | **${pl}**`;
       const sc=k.shippingClass||"Priority";
-      const lines=[`- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}`,`- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut} | **Sharpened:** ${k.sharpened}`,`- **Issues:** ${iss} | **Accessories:** ${ac}`,`- **Shipping:** ${carrier} ${sc} w/ insurance`];
+      const lines=[`- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}`,`- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut}`,`- **Issues:** ${iss} | **Accessories:** ${ac}`,`- **Shipping:** ${carrier} ${sc} w/ insurance`];
       if(k.notes)lines.push(`- **Notes:** ${k.notes}`);
       return`${hdr}\n${lines.join("\n")}`;
     }).join("\n\n---\n\n");
@@ -2157,7 +2156,7 @@ function buildPost(post,v){
       const sc=k.shippingClass||"Priority";
       const lines=[
         `- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}`,
-        `- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut} | **Sharpened:** ${k.sharpened}`,
+        `- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut}`,
         `- **Centering:** ${k.centering} | **Lockup:** ${k.lockup}${k.lockupNotes?" - "+k.lockupNotes:""}`,
         `- **Issues:** ${iss} | **Accessories:** ${ac}`,
         `- **Shipping:** ${carrier} ${sc} w/ insurance`,
@@ -2242,7 +2241,6 @@ function buildPost(post,v){
       if(!c&&!u)parts.push("Not carried or used to cut");
       else if(c&&!u)parts.push("Carried, not used to cut");
       else if(u)parts.push("Carried and used to cut");
-      if(k.sharpened==="Yes")parts.push("Resharpened");
       if(k.bladeCondition&&k.bladeCondition!=="Factory edge, carried")parts.push(k.bladeCondition);
       const iss=(k.issues||[]).filter(x=>x&&x!=="None").map(x=>x==="Other"&&k.issuesOther?k.issuesOther:x);
       if(iss.length)parts.push(iss.join(", "));
@@ -4098,7 +4096,7 @@ function kfFormHtml(){
   }
   return`<div class="kf" style="margin-top:10px"><div class="kf-hdr"><div class="kf-title">${s.kfIdx>=0?"Edit Knife":(isLock?"Add to The Roll":"Add a Knife")}</div>${badge}</div>
     <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Brand</label><input type="text" id="kf-brand" list="dl-brands" value="${esc(f.brand)}" placeholder="e.g. Spyderco" oninput="updateModelList()" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-brand','dl-brands');updateModelList();}"/></div><div class="field"><label>Model</label><input type="text" id="kf-model" list="dl-models" value="${esc(f.model)}" placeholder="e.g. Para 3 LW" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-model','dl-models');}"/></div></div>
-    <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-steel','dl-steels');}"/></div><div class="field"><label>Condition</label><select id="kf-bladeCondition">${[...new Set([...BLADE_COND,...(f.bladeCondition&&!BLADE_COND.includes(f.bladeCondition)?[f.bladeCondition]:[])])].map(v=>`<option${f.bladeCondition===v?" selected":""}>${v}</option>`).join("")}</select></div></div>
+    <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-steel','dl-steels');}"/></div><div class="field"><label>Blade Edge</label><select id="kf-bladeCondition">${[...new Set([...BLADE_COND,...(f.bladeCondition&&!BLADE_COND.includes(f.bladeCondition)?[f.bladeCondition]:[])])].map(v=>`<option${f.bladeCondition===v?" selected":""}>${v}</option>`).join("")}</select></div></div>
     <div class="kf-type-sel"><button class="kf-type-btn${kt==="WTS"?" on wts":""}" onclick="syncKF();S.kf.knifeType='WTS';render()">WTS - For Sale</button><button class="kf-type-btn${kt==="WTT"?" on wtt":""}" onclick="syncKF();S.kf.knifeType='WTT';render()">WTT - For Trade</button><button class="kf-type-btn${kt==="WTS/WTT"?" on wtstt":""}" onclick="syncKF();S.kf.knifeType='WTS/WTT';render()">WTS/WTT - Both</button></div>
     <div class="fr2" style="margin-bottom:13px">
       ${kt!=="WTT"?`<div class="field"><label>Sale Price / SV ($)</label><input type="number" id="kf-price" value="${esc(f.price)}" placeholder="175" min="0" onblur="syncKF();render()"/></div>`:`<div></div>`}
@@ -4115,7 +4113,7 @@ function kfFormHtml(){
       ${prPanel}
       ${(f.comps||[]).length?`<div style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:11px;font-weight:600;color:var(--t3)">${icon('save',11)} Saved comps:</span>${(f.comps||[]).map((c,ci)=>`<span class="comp-chip" onclick="applyPriceFromResearch('$${esc(c.price)}')" style="cursor:pointer" title="Click to use">\$${esc(c.price)}<button onclick="event.stopPropagation();S.kf.comps=(S.kf.comps||[]).filter((_,i)=>i!==${ci});render()" style="background:none;border:none;cursor:pointer;padding:0;color:inherit;font-size:12px;opacity:.7;margin-left:2px">×</button></span>`).join("")}</div>`:""}
     </div>
-    <div class="fr3"><div class="field"><label>Carried?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.carried===v?" on":""}" onclick="syncKF();S.kf.carried='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Used to cut?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.usedCut===v?" on":""}" onclick="syncKF();S.kf.usedCut='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Sharpened?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.sharpened===v?" on":""}" onclick="syncKF();S.kf.sharpened='${v}';render()">${v}</button>`).join("")}</div></div></div>
+    <div class="fr2"><div class="field"><label>Carried?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.carried===v?" on":""}" onclick="syncKF();S.kf.carried='${v}';render()">${v}</button>`).join("")}</div></div><div class="field"><label>Used to cut?</label><div class="yn-row">${["Yes","No"].map(v=>`<button class="yn${f.usedCut===v?" on":""}" onclick="syncKF();S.kf.usedCut='${v}';render()">${v}</button>`).join("")}</div></div></div>
     <div class="field" style="margin-top:10px"><label>Shipping <span style="font-weight:400;color:var(--t4);font-size:11px">(always w/ insurance)</span></label><div class="chips" style="margin-top:4px">${["First Class","Priority"].map(v=>`<button class="chip sm${(f.shippingClass||"Priority")===v?" on":""}" onclick="syncKF();S.kf.shippingClass='${v}';render()">${v}</button>`).join("")}</div></div>
     ${advHtml}
     <div class="field" id="kf-photos-field" style="margin-top:12px">
@@ -4159,9 +4157,13 @@ function kfFormHtml(){
               </div>`;
             }).join("")}
             ${showControls?`
-              ${activePhotoService()==="cloudinary"?`<button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload('${tag}')" type="button" style="width:100%">${icon('image',12)} Photo</button>`:`<button class="btn btn-sm" style="width:100%;opacity:.4;cursor:default;background:var(--bg);border:.5px solid var(--b2);color:var(--t4)" disabled title="Configure Cloudinary in Settings">↑ Upload</button>`}
+              ${activePhotoService()==="cloudinary"
+                ?`<button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload('${tag}')" type="button" style="width:100%">${icon('image',12)} Upload Photo</button>`
+                :`<div style="background:var(--orangebg);border:.5px solid var(--oranget);border-radius:7px;padding:6px 8px;font-size:10.5px;color:var(--oranget);line-height:1.45;margin-bottom:2px">
+                  ${icon('alert-circle',11,'var(--oranget)')} <strong>Cloudinary not set up.</strong> Direct uploads are disabled. Paste an Imgur link below, or <span style="text-decoration:underline;cursor:pointer" onclick="S.modal='cloudinary';render()">set up Cloudinary in Settings</span> to enable uploads.
+                </div>`}
               <div style="display:flex;gap:4px">
-                <input type="text" id="kf-url-${tag}" placeholder="Paste URL…" style="flex:1;min-width:0;font-size:11px;padding:5px 7px;border:.5px solid var(--b2);border-radius:6px;background:var(--bg);color:var(--t1)" onkeydown="if(event.key==='Enter'){event.preventDefault();addKnifePhotoUrl('${tag}');}"/>
+                <input type="text" id="kf-url-${tag}" placeholder="${activePhotoService()==='cloudinary'?'Paste URL or Imgur link…':'Paste Imgur link…'}" style="flex:1;min-width:0;font-size:11px;padding:5px 7px;border:.5px solid var(--b2);border-radius:6px;background:var(--bg);color:var(--t1)" onkeydown="if(event.key==='Enter'){event.preventDefault();addKnifePhotoUrl('${tag}');}"/>
                 <button class="btn btn-sec btn-sm" onclick="addKnifePhotoUrl('${tag}')" type="button" style="padding:4px 8px;flex-shrink:0">+</button>
               </div>
             `:""}
@@ -4223,12 +4225,12 @@ function kfFormHtml(){
               ${icon('video',12,'var(--t3)')} Upload Video <span style="font-size:9px">${s.vidBwTip?'▲':'▼'}</span>
             </button>
             ${s.vidBwTip?`<div style="background:#fffbeb;border:.5px solid #f59e0b;border-radius:9px;padding:11px 13px;font-size:11px;color:#78350f;line-height:1.6">
-              <strong style="display:block;margin-bottom:5px">⚠ Before you upload a video — read this</strong>
-              Videos are served from your Cloudinary account. The free tier includes 25GB of bandwidth per month. At ~4MB per video that sounds like a lot, but active sellers with many listings can burn through it quickly — especially if listings get heavy traffic.
+              <strong style="display:block;margin-bottom:5px">⚠ Before you upload a video, read this</strong>
+              Videos are served from your Cloudinary account. The free tier includes 25GB of bandwidth per month. At ~4MB per video that sounds like a lot, but active sellers with many listings can burn through it quickly, especially if listings get heavy traffic.
               <br><br>
-              If you hit the limit, everything stops loading for every viewer until the month resets. Videos consume far more bandwidth than photos — a single 4MB video uses as much as ~80 photos. Keep videos short and use them selectively.
+              If you hit the limit, everything stops loading for every viewer until the month resets. Videos consume far more bandwidth than photos: a single 4MB video uses as much as ~80 photos. Keep videos short and use them selectively.
               <br><br>
-              If you hit your limit, paste an <strong>Imgur link</strong> into any photo slot instead — that uses Imgur's bandwidth, not yours.
+              If you hit your limit, paste an <strong>Imgur link</strong> into any photo slot instead. That uses Imgur's bandwidth, not yours.
               <br><br>
               <a href="https://console.cloudinary.com" target="_blank" rel="noopener" style="color:#7c3aed;font-weight:600;text-decoration:none">Check your Cloudinary usage ↗</a>
               <div style="margin-top:10px">${activePhotoService()==='cloudinary'?`<button class="btn btn-sm" onclick="triggerKnifeVideoUpload()" type="button" style="background:#7c3aed;color:#fff;border:none;font-weight:600">${icon('video',13,'#fff')} I understand — Upload Video</button>`:`<button class="btn btn-sm" style="opacity:.4;cursor:default;background:var(--bg);border:.5px solid var(--b2);color:var(--t4)" disabled>Configure Cloudinary to upload</button>`}</div>
@@ -4455,7 +4457,7 @@ function renderKnifeDetailModal(){
   const photoHtml=photos.length?`<div style="display:flex;gap:8px;overflow-x:auto;padding:14px 20px 2px;flex-shrink:0;scrollbar-width:none;-webkit-overflow-scrolling:touch">${photos.map(url=>`<img src="${esc(cdnImg(url,800,0,'limit'))}" data-orig="${esc(url)}" style="height:130px;width:auto;border-radius:10px;object-fit:cover;flex-shrink:0;cursor:pointer;border:.5px solid var(--b2)" onclick="window.open('${esc(url)}','_blank')" loading="lazy" referrerpolicy="no-referrer" onerror="imgFallback(this)"/>`).join("")}</div>`:"";
   const row=(label,val)=>val?`<div style="display:flex;gap:8px;padding:7px 0;border-bottom:.5px solid var(--b2)"><div style="font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;min-width:88px;flex-shrink:0;padding-top:1px">${label}</div><div style="font-size:13px;color:var(--t1);flex:1;line-height:1.5">${val}</div></div>`:"";
   const condLine=[d.condition,d.steel].filter(Boolean).join(" · ");
-  const useLine=[d.carried==="Yes"?"Carried":"",d.cut==="Yes"?"Used to cut":"",d.sharpened==="Yes"?"Sharpened":""].filter(Boolean).join(", ");
+  const useLine=[d.carried==="Yes"?"Carried":"",d.cut==="Yes"?"Used to cut":""].filter(Boolean).join(", ");
   const trkUrl=k.trackingNumber?trackingUrl(k.trackingCarrier||"USPS",k.trackingNumber):null;
   const trkVal=k.trackingNumber?`<span style="font-family:monospace;font-size:12px;background:var(--bluebg);color:var(--bluet);padding:2px 8px;border-radius:12px">${esc(k.trackingCarrier||"USPS")} · ${esc(k.trackingNumber)}</span>${trkUrl?` <a href="${trkUrl}" target="_blank" rel="noopener" style="font-size:12px;color:var(--blue);font-weight:600;margin-left:6px">Track →</a>`:""}`:null;
   const addrVal=k.shippingAddress?[k.shippingAddress.name,k.shippingAddress.line1,k.shippingAddress.line2,[k.shippingAddress.city,k.shippingAddress.state,k.shippingAddress.zip].filter(Boolean).join(", ")].filter(Boolean).map(esc).join("<br>"):null;
