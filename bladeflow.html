@@ -2513,7 +2513,7 @@ function renderNIForm(){
     <div class="fr2" style="margin-bottom:10px">${priceFields}</div>
     <div class="field" style="margin-bottom:10px"><label>Details <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><input type="text" value="${esc(f.notes||"")}" placeholder="e.g. black dial, box and papers included" oninput="S.ni.notes=stripNL(this.value)"/></div>
     <div class="field" style="margin-bottom:10px" id="ni-photos-field">
-      <label>Photos <span style="font-size:11px;font-weight:400;color:var(--redt)">· 1 photo required to list</span></label>
+      <label>Photos <span style="font-size:11px;font-weight:400;color:var(--redt)">· 1 photo required to list</span><span style="font-size:11px;font-weight:400;color:var(--t4)"> · Cloudinary uploads link as gallery · pasted URLs link directly</span></label>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
         ${S.niUploads.map(u=>`<div style="position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:.5px solid var(--b2);background:var(--bg);flex-shrink:0">
           ${u.url?`<img src="${esc(cdnImg(u.url,144,144,'limit'))}" style="width:100%;height:100%;object-fit:contain" loading="lazy"/>`:u.uploading?`<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--t4)">${icon('refresh-cw',16)}</div>`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--redt)">${icon('alert-circle',16)}</div>`}
@@ -3764,7 +3764,7 @@ function renderGuide(){
       ${step(1,"Set your Reddit username","Go to Settings and enter your Reddit handle. It gets stamped into every post and dibs message automatically.")}
       ${step(2,"Set your payment methods","PayPal Goods &amp; Services (G&amp;S) is required for all sellers with fewer than 25 confirmed trades. Once you hit 25 you can accept Venmo, Cash App, Zelle, or anything else. Check the ones you accept in Settings.")}
       ${step(3,"Add your payment links","Paste your PayPal.me URL, Venmo handle, Cash App $tag, etc. in Settings. They auto-fill into every payment message you send buyers. You never retype them.")}
-      ${step(4,"Set up photo uploads","Set up a free Cloudinary account and enter your Cloud Name and Upload Preset in Settings for drag-and-drop uploads directly from your browser. If you prefer, you can skip that and paste direct image URLs instead (i.imgur.com/xxx.jpg format).")}
+      ${step(4,"Set up photo uploads","Set up a free Cloudinary account and enter your Cloud Name and Upload Preset in Settings for drag-and-drop uploads directly from your browser. If you prefer, you can skip that and paste direct image URLs instead (i.imgur.com/xxx.jpg format). <strong>Note:</strong> swipeable gallery links in generated posts only work with Cloudinary-uploaded photos — pasted URLs link directly to the image.")}
     `)}
 
     ${sec(icon('scissors',18,'#34C759'),"Step 1: Add Items to The Roll","rgba(52,199,89,.15)",`
@@ -4101,7 +4101,7 @@ function kfFormHtml(){
     <div class="field" style="margin-top:10px"><label>Shipping <span style="font-weight:400;color:var(--t4);font-size:11px">(always w/ insurance)</span></label><div class="chips" style="margin-top:4px">${["First Class","Priority"].map(v=>`<button class="chip sm${(f.shippingClass||"Priority")===v?" on":""}" onclick="syncKF();S.kf.shippingClass='${v}';render()">${v}</button>`).join("")}</div></div>
     ${advHtml}
     <div class="field" id="kf-photos-field" style="margin-top:12px">
-      <label>Knife Photos <span style="font-weight:400;color:var(--t4);font-size:11px">(2+ become a swipeable gallery)</span><span style="font-weight:600;color:var(--redt);font-size:11px"> · Show Side + Clip Side required to list</span></label>
+      <label>Knife Photos <span style="font-weight:400;color:var(--t4);font-size:11px">(2+ Cloudinary uploads become a swipeable gallery · pasted URLs link directly)</span><span style="font-weight:600;color:var(--redt);font-size:11px"> · Show Side + Clip Side required to list</span></label>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:8px">
         ${[{tag:"show",label:"Show Side"},{tag:"clip",label:"Clip Side"},{tag:"centering",label:"Centering"},{tag:"other",label:"Other"}].map(({tag,label})=>{
           const tagItems=s.kfUploads.filter(x=>x.tag===tag);
@@ -4829,7 +4829,7 @@ const TOUR_STEPS=[
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
   {icon:icon("camera",26,'var(--blue)'),title:"Knife Photos: Upload or Paste a URL",
-   body:"Add photos to each knife while editing it. Set up a free Cloudinary account in Settings for drag-and-drop uploads direct from your browser. Or paste any direct image URL (i.imgur.com/xxx.jpg works). Add 2+ photos and they become a click-through indexed gallery viewable right inside the tool. Swipe through each photo without leaving the page.",
+   body:"Add photos to each knife while editing it. Set up a free Cloudinary account in Settings for drag-and-drop uploads direct from your browser. Or paste any direct image URL (i.imgur.com/xxx.jpg works). <strong>Swipeable gallery links in generated posts only work with Cloudinary-uploaded photos</strong> — pasted URLs (Imgur etc.) link directly to the first photo instead.",
    target:'#kf-photos-field',kfOpen:true,
    nav:s=>{s.view='roll';s.modal=null;_tourOpenKnife(s);}},
 
