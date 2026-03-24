@@ -4202,6 +4202,7 @@ function kfFormHtml(){
                   onended="kfVidState('${vid_uid}',false)">
                   <source src="${esc(u.url)}" type="video/webm">
                   <source src="${esc(cdnVideo(u.url,1280))}" type="video/mp4">
+                  <source src="${esc(u.url)}" type="video/mp4">
                 </video>
                 <div style="background:rgba(0,0,0,.82);padding:7px 10px;display:flex;align-items:center;gap:8px">
                   <button id="kfvid-btn-${vid_uid}" onclick="kfVidPlayPause('${vid_uid}')" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;line-height:1;flex-shrink:0"><span style="font-size:14px">▶</span></button>

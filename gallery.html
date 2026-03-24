@@ -503,6 +503,7 @@ function gico(name, size=16) {
 function cdnImg(url,w,h,fit){if(!url||!url.includes("res.cloudinary.com"))return url;const t=`w_${w}${h?",h_"+h:""},c_${fit||"limit"},q_auto,f_auto`;return url.replace("/upload/",`/upload/${t}/`)}
 function isCdnVideo(url){return url&&url.includes("res.cloudinary.com")&&(url.includes("/video/")||/\.(mp4|mov|avi|webm|mkv)$/i.test(url));}
 function cdnVideoThumb(url,w,h){if(!url||!url.includes("res.cloudinary.com"))return null;const t=`so_0,w_${w||80},h_${h||55},c_fill,f_jpg`;return url.replace("/upload/",`/upload/${t}/`).replace(/\.[^.]+$/,".jpg");}
+function cdnVideoMp4(url){if(!url||!url.includes("res.cloudinary.com"))return null;const t=`vc_h264,q_auto:good,f_mp4`;return url.replace("/upload/",`/upload/${t}/`).replace(/\.[^.]+$/,".mp4");}
 const _galVidWasPlaying={};
 function galVidPlayPause(id){const v=document.getElementById(id);if(!v)return;v.paused?v.play():v.pause();}
 function galVidSkipBack(id){const v=document.getElementById(id);if(!v)return;v.currentTime=Math.max(0,v.currentTime-10);}
@@ -794,13 +795,13 @@ function loadSection(idx, animate) {
       wrap.innerHTML = `
         <video id="${vid_id}"${thumb ? ` poster="${thumb}"` : ''}
           style="width:100%;max-height:calc(100vh - 180px);object-fit:contain;display:block"
-          playsinline preload="metadata"
+          playsinline preload="auto"
           ontimeupdate="galVidTimeUpdate('${vid_id}')"
           onplay="galVidState('${vid_id}',true)"
           onpause="galVidState('${vid_id}',false)"
           onended="galVidState('${vid_id}',false)">
           <source src="${url}" type="video/webm">
-          <source src="${url}" type="video/mp4">
+          ${cdnVideoMp4(url) ? `<source src="${cdnVideoMp4(url)}" type="video/mp4">` : ''}
         </video>
         <div class="vid-ctrl">
           <button id="${vid_id}-btn" onclick="galVidPlayPause('${vid_id}')">▶</button>
