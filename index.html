@@ -1082,11 +1082,23 @@ async function _doSbSync(){
   const noId=S.inventory.filter(k=>!k._tourDemo&&!k.id);
   if(noId.length)console.warn('[sync] Skipping',noId.length,'item(s) with no id:',noId);
 
-  // Per-step timeout helper — each step gets its own 12s window so we know which hangs
-  const withTimeout=(promise,label)=>Promise.race([
+  // Per-step timeout + one automatic retry (Supabase free tier can have connection pool spikes)
+  const withTimeout=(promise,ms,label)=>Promise.race([
     promise,
-    new Promise((_,rej)=>setTimeout(()=>rej(new Error(label+' timed out (12s)')),12000))
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error(label+' timed out ('+ms+'ms)')),ms))
   ]);
+  const upsertWithRetry=async(table,payload,label)=>{
+    const run=()=>_sb.from(table).upsert(payload,{onConflict:'id'});
+    let attempt=0;
+    while(attempt<2){
+      attempt++;
+      const ms=attempt===1?20000:25000;
+      const{error}=await withTimeout(run(),ms,label+' attempt '+attempt);
+      if(!error)return;
+      if(attempt<2){console.warn('[sync] '+label+' attempt 1 failed ('+( error.message||'unknown')+'), retrying in 2s…');await new Promise(r=>setTimeout(r,2000));}
+      else throw new Error(label+': '+(error.message||error.code||JSON.stringify(error)));
+    }
+  };
 
   // Pre-flight: user_id must exist or Supabase rejects rows silently
   if(!currentUser?.id)throw new Error('No user ID — cannot sync');
@@ -1099,21 +1111,13 @@ async function _doSbSync(){
 
   if(posts.length){
     console.log('[sync] posts →',posts.length);
-    const{error}=await withTimeout(
-      _sb.from("posts").upsert(postsPayload,{onConflict:'id'}),
-      'Posts upsert'
-    );
-    if(error)throw new Error('Posts: '+(error.message||error.code||JSON.stringify(error)));
+    await upsertWithRetry('posts',postsPayload,'Posts upsert');
     console.log('[sync] posts ✓');
   }
 
   if(inv.length){
     console.log('[sync] inventory →',inv.length,'(knives:',inv.filter(k=>!k.itemCategory).length,'gear:',inv.filter(k=>k.itemCategory).length,')');
-    const{error}=await withTimeout(
-      _sb.from("inventory").upsert(invPayload,{onConflict:'id'}),
-      'Inventory upsert'
-    );
-    if(error)throw new Error('Inventory: '+(error.message||error.code||JSON.stringify(error)));
+    await upsertWithRetry('inventory',invPayload,'Inventory upsert');
     console.log('[sync] inventory ✓');
   }
 }
