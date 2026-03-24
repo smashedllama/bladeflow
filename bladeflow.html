@@ -658,6 +658,11 @@ button:disabled{opacity:.35;cursor:not-allowed}
     --shm:0 4px 20px rgba(0,0,0,.5),0 0 0 .5px rgba(255,255,255,.06);
   }
   body,html{background:#1C1C1E}
+  .dark-video-slot{background:linear-gradient(135deg,#2d1f4a 0%,#1e1435 100%) !important;border-color:#7c3aed88 !important}
+  .dark-video-slot span[style*="color:#5b21b6"]{color:#c4b5fd !important}
+  .dark-video-slot span[style*="color:#6d28d9"]{color:#a78bfa !important}
+  .dark-video-slot span[style*="color:#7c3aed"]{color:#c4b5fd !important}
+  .dark-video-slot span[style*="background:#ede9fe"]{background:#3b1f6e !important;color:#c4b5fd !important}
   /* Header */
   .hdr{background:rgba(28,28,30,.9);border-bottom-color:rgba(255,255,255,.1)}
   .hdr-ico-btn{background:rgba(255,255,255,.1);color:var(--t2)}
@@ -850,7 +855,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <datalist id="dl-steels"></datalist>
 <datalist id="dl-models"></datalist>
 <input type="file" id="file-upload-input" multiple accept="image/*" style="display:none" onchange="handleFileInput(event)">
-<input type="file" id="kf-photo-input-hidden" accept="image/*,video/*" multiple style="display:none" onchange="handleKnifeFileInput(event)">
+<input type="file" id="kf-photo-input-hidden" accept="image/*" multiple style="display:none" onchange="handleKnifeFileInput(event)">
+<input type="file" id="kf-video-input-hidden" accept="video/*" style="display:none" onchange="handleKnifeVideoInput(event)">
 <div class="app" id="root"></div>
 
 <script>
@@ -2386,10 +2392,12 @@ async function uploadFile(file){
 function removeUpload(uid){S.uploadFiles=S.uploadFiles.filter(x=>x.uid!==uid);S.draft.photos=S.uploadFiles.filter(x=>x.url).map(x=>x.url);render();}
 
 // Per-knife photo uploads
-const PHOTO_SLOT_ORDER=["show","clip","centering","other"];
+const PHOTO_SLOT_ORDER=["show","clip","centering","other","video"];
 function kfUploadsToPhotos(uploads){const result=[];PHOTO_SLOT_ORDER.forEach(tag=>{uploads.filter(x=>x.url&&x.tag===tag).forEach(x=>result.push(x.url));});uploads.filter(x=>x.url&&!x.tag).forEach(x=>result.push(x.url));return result;}
 function triggerKnifeUpload(tag){S.kfPhotoTag=tag||"other";const el=document.getElementById("kf-photo-input-hidden");if(el){el.value="";el.click();}}
+function triggerKnifeVideoUpload(){const el=document.getElementById("kf-video-input-hidden");if(el){el.value="";el.click();}}
 function handleKnifeFileInput(e){const tag=S.kfPhotoTag||"other";[...e.target.files].forEach(f=>{uploadKnifePhoto(f,tag);});}
+function handleKnifeVideoInput(e){[...e.target.files].forEach(f=>{uploadKnifePhoto(f,"video");});}
 async function uploadKnifePhoto(file,tag){
   const uid=gid();
   const isVideo=file.type.startsWith('video/');
@@ -4130,6 +4138,7 @@ function kfFormHtml(){
           ${!_ok?`<div style="font-size:10.5px;color:var(--t3);margin-top:7px">Stock photos and manufacturer images are not allowed. Your own photos only.</div>`:''}
         </div>`;
       })()}
+      <!-- Photo slots -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:8px">
         ${[{tag:"show",label:"Show Side",hint:"Recommended"},{tag:"clip",label:"Clip Side",hint:"Recommended"},{tag:"centering",label:"Centering",hint:"Optional"},{tag:"other",label:"Other",hint:"Optional"}].map(({tag,label,hint})=>{
           const tagItems=s.kfUploads.filter(x=>x.tag===tag);
@@ -4140,27 +4149,17 @@ function kfFormHtml(){
           return `<div style="border:.5px solid var(--b2);border-radius:10px;padding:9px;background:var(--surf);display:flex;flex-direction:column;gap:5px">
             <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"><span style="font-size:11px;font-weight:600;color:var(--t2)">${label}</span><span style="font-size:9px;font-weight:600;padding:1px 5px;border-radius:20px;background:${hint==='Recommended'?'var(--bluebg)':'var(--bg)'};color:${hint==='Recommended'?'var(--blue)':'var(--t4)'};border:.5px solid ${hint==='Recommended'?'var(--blue)':'var(--b2)'}">${hint}</span></div>
             ${tagItems.map(u=>{
-              const isVid=u.url&&(isCdnVideo(u.url)||/\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(u.url));
-              const isImg=!isVid&&u.url&&/\.(jpg|jpeg|png|gif|webp|avif)(\?|$)/i.test(u.url);
+              const isImg=u.url&&/\.(jpg|jpeg|png|gif|webp|avif)(\?|$)/i.test(u.url);
               return `<div style="position:relative">
-                ${u.uploading?(()=>{
-                  const isCompressing=u.status&&u.status.startsWith('Compressing');
-                  const pct=u.status&&u.status.match(/(\d+)%/)?parseInt(u.status.match(/(\d+)%/)[1]):null;
-                  return`<div style="background:var(--bg);border-radius:6px;padding:10px 10px 8px;display:flex;flex-direction:column;gap:5px">
-                    <div style="display:flex;align-items:center;gap:7px"><span class="up-spin"></span><span style="font-size:11px;font-weight:600;color:var(--t1)">${isCompressing?'Compressing video…':'Uploading…'}</span></div>
-                    ${isCompressing?`<div style="font-size:10px;color:var(--t3)">Re-encoding to ~6MB — takes about as long as the clip itself. Don't close this tab.</div>`:''}
-                    ${pct!==null?`<div style="display:flex;align-items:center;gap:6px;margin-top:2px"><div style="flex:1;height:4px;background:var(--b1);border-radius:2px;overflow:hidden"><div style="height:100%;background:var(--blue);border-radius:2px;width:${pct}%;transition:width .25s"></div></div><span style="font-size:10px;color:var(--t3);flex-shrink:0">${pct}%</span></div>`:''}
-                  </div>`;
-                })():
+                ${u.uploading?`<div style="background:var(--bg);border-radius:6px;padding:10px 10px 8px;display:flex;flex-direction:column;gap:5px"><div style="display:flex;align-items:center;gap:7px"><span class="up-spin"></span><span style="font-size:11px;font-weight:600;color:var(--t1)">Uploading…</span></div></div>`:
                 u.error?`<div style="font-size:9px;color:var(--redt);padding:2px 0;word-break:break-all">${esc(u.error)}</div>`:
-                isVid?(()=>{const thumb=isCdnVideo(u.url)?cdnVideoThumb(u.url,440,260):"";return`<div style="position:relative;width:100%;height:90px;border-radius:6px;overflow:hidden;background:#000"><video src="${esc(cdnVideo(u.url,640))}"${thumb?` poster="${esc(thumb)}"`:""}  style="width:100%;height:100%;object-fit:cover;display:block" muted playsinline controls preload="none"></video></div>`;})():
                 isImg?`<img src="${esc(cdnImg(u.url,220,130,'fill'))}" data-orig="${esc(u.url)}" style="width:100%;height:64px;object-fit:cover;border-radius:6px;display:block" loading="lazy" referrerpolicy="no-referrer" onerror="imgFallback(this)"/>`:
-                `<a href="${esc(u.url)}" target="_blank" style="color:var(--blue);font-size:10px;word-break:break-all;display:block;padding:3px 0">${esc(u.name)}</a>`}
+                u.url?`<a href="${esc(u.url)}" target="_blank" style="color:var(--blue);font-size:10px;word-break:break-all;display:block;padding:3px 0">${esc(u.name||u.url)}</a>`:''}
                 ${u.url&&!u.uploading?`<button onclick="removeKnifeUpload('${u.uid}')" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.52);border:none;color:#fff;border-radius:50%;width:17px;height:17px;cursor:pointer;font-size:11px;padding:0;line-height:1;display:flex;align-items:center;justify-content:center">&times;</button>`:""}
               </div>`;
             }).join("")}
             ${showControls?`
-              ${activePhotoService()==="cloudinary"?`<button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload('${tag}')" type="button" style="width:100%">↑ Upload</button>`:`<button class="btn btn-sm" style="width:100%;opacity:.4;cursor:default;background:var(--bg);border:.5px solid var(--b2);color:var(--t4)" disabled title="Configure Cloudinary in Settings">↑ Upload</button>`}
+              ${activePhotoService()==="cloudinary"?`<button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload('${tag}')" type="button" style="width:100%">${icon('image',12)} Photo</button>`:`<button class="btn btn-sm" style="width:100%;opacity:.4;cursor:default;background:var(--bg);border:.5px solid var(--b2);color:var(--t4)" disabled title="Configure Cloudinary in Settings">↑ Upload</button>`}
               <div style="display:flex;gap:4px">
                 <input type="text" id="kf-url-${tag}" placeholder="Paste URL…" style="flex:1;min-width:0;font-size:11px;padding:5px 7px;border:.5px solid var(--b2);border-radius:6px;background:var(--bg);color:var(--t1)" onkeydown="if(event.key==='Enter'){event.preventDefault();addKnifePhotoUrl('${tag}');}"/>
                 <button class="btn btn-sec btn-sm" onclick="addKnifePhotoUrl('${tag}')" type="button" style="padding:4px 8px;flex-shrink:0">+</button>
@@ -4169,6 +4168,40 @@ function kfFormHtml(){
           </div>`;
         }).join("")}
       </div>
+      <!-- Video slot — full width, visually distinct -->
+      ${(()=>{
+        const vidItems=s.kfUploads.filter(x=>x.tag==='video');
+        const hasVid=vidItems.some(x=>x.url&&!x.uploading);
+        const isUploadingVid=vidItems.some(x=>x.uploading);
+        const showVidControls=!hasVid&&!isUploadingVid;
+        return`<div style="border:1.5px solid #7c3aed55;border-radius:10px;padding:11px 12px;background:linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%);margin-top:8px" class="dark-video-slot">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+            <span style="font-size:16px">🎥</span>
+            <span style="font-size:12px;font-weight:700;color:#5b21b6">Video</span>
+            <span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:20px;background:#ede9fe;color:#7c3aed;border:.5px solid #7c3aed">Optional</span>
+            <span style="font-size:10.5px;color:#6d28d9;margin-left:2px">— shows both sides? Upload here instead of 2 photos</span>
+          </div>
+          ${vidItems.map(u=>{
+            const isCompressing=u.status&&u.status.startsWith('Compressing');
+            const pct=u.status&&u.status.match(/(\d+)%/)?parseInt(u.status.match(/(\d+)%/)[1]):null;
+            const thumb=u.url&&isCdnVideo(u.url)?cdnVideoThumb(u.url,640,360):'';
+            return`<div style="position:relative;margin-bottom:6px">
+              ${u.uploading?`<div style="background:rgba(255,255,255,.7);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:8px"><span class="up-spin"></span><span style="font-size:12px;font-weight:700;color:#5b21b6">${isCompressing?'Compressing video…':'Uploading video…'}</span></div>
+                ${isCompressing?`<div style="font-size:10.5px;color:#6d28d9">Re-encoding to ~6MB — takes about as long as the clip. Don't close this tab.</div>`:''}
+                ${pct!==null?`<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:#ddd6fe;border-radius:3px;overflow:hidden"><div style="height:100%;background:#7c3aed;border-radius:3px;width:${pct}%;transition:width .25s"></div></div><span style="font-size:11px;font-weight:600;color:#7c3aed;flex-shrink:0">${pct}%</span></div>`:''}
+              </div>`:
+              u.error?`<div style="font-size:10px;color:var(--redt);padding:4px 0">${esc(u.error)}</div>`:
+              u.url?`<div style="position:relative;border-radius:8px;overflow:hidden;background:#000;max-height:220px"><video src="${esc(cdnVideo(u.url,1280))}"${thumb?` poster="${esc(thumb)}"`:''}  style="width:100%;max-height:220px;object-fit:contain;display:block" playsinline controls preload="none"></video></div>`:''}
+              ${u.url&&!u.uploading?`<button onclick="removeKnifeUpload('${u.uid}')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:13px;padding:0;line-height:1;display:flex;align-items:center;justify-content:center">&times;</button>`:''}
+            </div>`;
+          }).join('')}
+          ${showVidControls?`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            ${activePhotoService()==='cloudinary'?`<button class="btn btn-sm" onclick="triggerKnifeVideoUpload()" type="button" style="background:#7c3aed;color:#fff;border:none;font-weight:600">${icon('video',13,'#fff')} Upload Video</button>`:`<button class="btn btn-sm" style="opacity:.4;cursor:default;background:var(--bg);border:.5px solid var(--b2);color:var(--t4)" disabled>Configure Cloudinary to upload</button>`}
+            <span style="font-size:10.5px;color:#6d28d9">or paste an Imgur link in any photo slot above</span>
+          </div>`:''}
+        </div>`;
+      })()}
     </div>
     ${kfChecklist(f)}
     ${s.err?`<div class="err">${esc(s.err)}</div>`:""}
@@ -5383,7 +5416,7 @@ window.markSold=markSold;window.cycleTmpl=cycleTmpl;window.deletePost=deletePost
 window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=executeMove;
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;window.imgFallback=imgFallback;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
-window.triggerKnifeUpload=triggerKnifeUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;
+window.triggerKnifeUpload=triggerKnifeUpload;window.triggerKnifeVideoUpload=triggerKnifeVideoUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.handleKnifeVideoInput=handleKnifeVideoInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;
 window.confirmSoldFlow=confirmSoldFlow;window.cancelSoldFlow=cancelSoldFlow;window.copyConfirmComment=copyConfirmComment;window.buildConfirmComment=buildConfirmComment;window.copyDibsMessage=copyDibsMessage;window.buildDibsMessage=buildDibsMessage;window.lookupZip=lookupZip;window.addrDisplayHtml=addrDisplayHtml;window.openPirateShip=openPirateShip;window.fmtAddress=fmtAddress;window.fmtAddrNoName=fmtAddrNoName;window.markShipped=markShipped;window.markDelivered=markDelivered;window.markConfirmedTrade=markConfirmedTrade;window.kShipStatus=kShipStatus;window.copyTrackingLink=copyTrackingLink;window.startTracking=startTracking;window.cancelTracking=cancelTracking;window.saveTracking=saveTracking;
 window.markPending=markPending;window.markInvPending=markInvPending;
 window.markSoldElsewhere=markSoldElsewhere;window.confirmSoldElsewhere=confirmSoldElsewhere;window.markWithdrawn=markWithdrawn;window.readdKnife=readdKnife;
