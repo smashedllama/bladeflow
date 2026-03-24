@@ -171,6 +171,35 @@ body{
   display:block;touch-action:none;
   user-select:none;-webkit-user-drag:none;
 }
+.slide-video-wrap{
+  display:flex;flex-direction:column;
+  width:100%;max-width:720px;
+  border-radius:10px;overflow:hidden;
+  background:#000;
+}
+.slide-video-wrap video{
+  width:100%;max-height:calc(100vh - 180px);
+  object-fit:contain;display:block;
+}
+.vid-ctrl{
+  background:rgba(0,0,0,.82);
+  padding:8px 12px;
+  display:flex;align-items:center;gap:10px;
+}
+.vid-ctrl button{
+  background:none;border:none;color:#fff;
+  cursor:pointer;padding:0;line-height:1;
+  flex-shrink:0;font-size:11px;font-weight:600;
+  display:flex;align-items:center;gap:3px;
+}
+.vid-ctrl input[type=range]{
+  flex:1;cursor:pointer;accent-color:#FF9500;
+  height:3px;min-width:0;
+}
+.vid-ctrl .vid-time{
+  font-size:10px;color:#ccc;
+  flex-shrink:0;min-width:36px;text-align:right;
+}
 .zoom-indicator{
   position:absolute;bottom:52px;right:12px;
   background:rgba(0,0,0,.52);
@@ -472,6 +501,15 @@ function gico(name, size=16) {
 
 // ─── HELPERS ────────────────────────────────────────────────────
 function cdnImg(url,w,h,fit){if(!url||!url.includes("res.cloudinary.com"))return url;const t=`w_${w}${h?",h_"+h:""},c_${fit||"limit"},q_auto,f_auto`;return url.replace("/upload/",`/upload/${t}/`)}
+function isCdnVideo(url){return url&&url.includes("res.cloudinary.com")&&(url.includes("/video/")||/\.(mp4|mov|avi|webm|mkv)$/i.test(url));}
+function cdnVideoThumb(url,w,h){if(!url||!url.includes("res.cloudinary.com"))return null;const t=`so_0,w_${w||80},h_${h||55},c_fill,f_jpg`;return url.replace("/upload/",`/upload/${t}/`).replace(/\.[^.]+$/,".jpg");}
+const _galVidWasPlaying={};
+function galVidPlayPause(id){const v=document.getElementById(id);if(!v)return;v.paused?v.play():v.pause();}
+function galVidSkipBack(id){const v=document.getElementById(id);if(!v)return;v.currentTime=Math.max(0,v.currentTime-10);}
+function galVidTimeUpdate(id){const v=document.getElementById(id);if(!v)return;const prog=document.getElementById(id+'-prog');const time=document.getElementById(id+'-time');if(prog&&v.duration)prog.value=(v.currentTime/v.duration)*100;if(time){const s=Math.floor(v.currentTime);time.textContent=Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}}
+function galVidState(id,playing){const btn=document.getElementById(id+'-btn');if(btn)btn.textContent=playing?'⏸':'▶';}
+function galVidSeekStart(id){const v=document.getElementById(id);_galVidWasPlaying[id]=v&&!v.paused;if(v)v.pause();}
+function galVidSeekEnd(id,val){const v=document.getElementById(id);if(!v||!v.duration)return;v.currentTime=(val/100)*v.duration;if(_galVidWasPlaying[id])v.play();}
 
 // ─── STATE ──────────────────────────────────────────────────────
 // section: {label, ico, imgs, price, details, isTimestamp}
@@ -746,25 +784,68 @@ function loadSection(idx, animate) {
     const slide = document.createElement('div');
     slide.className = 'slide';
     slide.id = `slide-${i}`;
-    const img = document.createElement('img');
-    const optimized = cdnImg(url, 900, 0, 'limit');
-    img.dataset.src = optimized; // deferred — loaded on demand by showSlide
-    if (i === 0) img.src = optimized; // first slide loads immediately
-    img.alt = `${s.label} photo ${i + 1}`;
-    img.draggable = false;
-    img.addEventListener('load', () => { if (i === curSlide) document.getElementById('spinner').style.display = 'none'; });
-    img.addEventListener('error', () => {
-      img.alt = 'Could not load photo';
-      img.style.cssText = 'width:80px;height:80px;opacity:.3';
+    const isVid = isCdnVideo(url);
+
+    if (isVid) {
+      const vid_id = `galvid-${curSection}-${i}`;
+      const thumb = cdnVideoThumb(url, 900, 600);
+      const wrap = document.createElement('div');
+      wrap.className = 'slide-video-wrap';
+      wrap.innerHTML = `
+        <video id="${vid_id}"${thumb ? ` poster="${thumb}"` : ''}
+          style="width:100%;max-height:calc(100vh - 180px);object-fit:contain;display:block"
+          playsinline preload="metadata"
+          ontimeupdate="galVidTimeUpdate('${vid_id}')"
+          onplay="galVidState('${vid_id}',true)"
+          onpause="galVidState('${vid_id}',false)"
+          onended="galVidState('${vid_id}',false)">
+          <source src="${url}" type="video/webm">
+          <source src="${url}" type="video/mp4">
+        </video>
+        <div class="vid-ctrl">
+          <button id="${vid_id}-btn" onclick="galVidPlayPause('${vid_id}')">▶</button>
+          <button onclick="galVidSkipBack('${vid_id}')">↩ 10s</button>
+          <input type="range" id="${vid_id}-prog" min="0" max="100" step="0.1" value="0"
+            onmousedown="galVidSeekStart('${vid_id}')" ontouchstart="galVidSeekStart('${vid_id}')"
+            onchange="galVidSeekEnd('${vid_id}',this.value)">
+          <span id="${vid_id}-time" class="vid-time">0:00</span>
+        </div>`;
+      slide.appendChild(wrap);
+      slide.addEventListener('load', () => { if (i === curSlide) document.getElementById('spinner').style.display = 'none'; }, {once:true});
+      // Hide spinner immediately for video slides
       if (i === curSlide) document.getElementById('spinner').style.display = 'none';
-    });
-    slide.appendChild(img);
+    } else {
+      const img = document.createElement('img');
+      const optimized = cdnImg(url, 900, 0, 'limit');
+      img.dataset.src = optimized;
+      if (i === 0) img.src = optimized;
+      img.alt = `${s.label} photo ${i + 1}`;
+      img.draggable = false;
+      img.addEventListener('load', () => { if (i === curSlide) document.getElementById('spinner').style.display = 'none'; });
+      img.addEventListener('error', () => {
+        img.alt = 'Could not load photo';
+        img.style.cssText = 'width:80px;height:80px;opacity:.3';
+        if (i === curSlide) document.getElementById('spinner').style.display = 'none';
+      });
+      slide.appendChild(img);
+    }
+
     slidesEl.appendChild(slide);
 
     if (s.imgs.length > 1) {
-      const t = document.createElement('img');
+      const t = document.createElement(isVid ? 'div' : 'img');
       t.className = 'thumb' + (i === 0 ? ' active' : '');
-      t.src = cdnImg(url, 80, 55, 'fill'); t.alt = `Thumb ${i + 1}`; t.draggable = false;
+      if (isVid) {
+        const vthumb = cdnVideoThumb(url, 80, 55);
+        t.style.cssText = 'position:relative;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:4px;';
+        t.innerHTML = vthumb
+          ? `<img src="${vthumb}" style="width:100%;height:100%;object-fit:cover;display:block" draggable="false"><span style="position:absolute;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.7)">▶</span>`
+          : `<span style="font-size:18px">🎥</span>`;
+      } else {
+        t.src = cdnImg(url, 80, 55, 'fill');
+        t.alt = `Thumb ${i + 1}`;
+        t.draggable = false;
+      }
       t.addEventListener('click', () => showSlide(i));
       thumbsEl.appendChild(t);
     }
@@ -789,15 +870,20 @@ function showSlide(n, animate = true) {
   const nextThumb = document.querySelectorAll('.thumb')[curSlide];
   if (next) next.classList.add('active');
   if (nextThumb) { nextThumb.classList.add('active'); nextThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }
+  // Pause any video on the slide we just left
+  prev?.querySelector('video')?.pause();
   const img = next?.querySelector('img');
-  // Load deferred slide on demand
+  const vid = next?.querySelector('video');
+  // Load deferred image slide on demand
   if (img && !img.src && img.dataset.src) img.src = img.dataset.src;
-  // Prefetch adjacent slides so swipes feel instant
+  // Prefetch adjacent image slides so swipes feel instant
   [-1, 1].forEach(d => {
     const adj = document.getElementById(`slide-${curSlide + d}`)?.querySelector('img');
     if (adj && !adj.src && adj.dataset.src) adj.src = adj.dataset.src;
   });
-  if (img?.complete && img?.naturalHeight) document.getElementById('spinner').style.display = 'none';
+  // Video slides don't need the spinner
+  if (vid) document.getElementById('spinner').style.display = 'none';
+  else if (img?.complete && img?.naturalHeight) document.getElementById('spinner').style.display = 'none';
   updateArrows();
   const c = document.getElementById('counter');
   if (imgs.length > 1) { c.style.display = 'block'; c.textContent = `${curSlide + 1} / ${imgs.length}`; }
