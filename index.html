@@ -1068,48 +1068,82 @@ async function load(){
   S.loaded=true;
   render();
 }
-// Debounced Supabase batch sync — fires 1.5s after the last save call.
-// Replaces the old per-item sequential upsert loop (N round-trips → 2 round-trips).
+// ── Supabase batch sync ───────────────────────────────────────
+// Single source of truth: 2 upserts (posts + inventory) per cycle.
+// _syncInFlight prevents concurrent cycles from racing on the same rows.
+let _syncInFlight=false;
+
 async function _doSbSync(){
   const now=new Date().toISOString();
   const posts=S.posts.filter(p=>!p._tourDemo);
-  const inv=S.inventory.filter(k=>!k._tourDemo);
-  // Supabase JS v2 returns {data,error} — it never throws. We must check error manually.
-  // Wrap in a 20s timeout so a stalled fetch never leaves the chip spinning forever.
-  const _run=async()=>{
-    if(posts.length){const{error}=await _sb.from("posts").upsert(posts.map(p=>({id:p.id,user_id:currentUser.id,data:p,updated_at:now})));if(error)throw new Error(error.message||'Posts upsert failed');}
-    if(inv.length){const{error}=await _sb.from("inventory").upsert(inv.map(k=>({id:k.id,user_id:currentUser.id,data:k,updated_at:now})));if(error)throw new Error(error.message||'Inventory upsert failed');}
-  };
-  await Promise.race([_run(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('Sync timed out after 20s')),20000))]);
+  // Defensive: skip any inventory item that has no id (can't upsert without PK)
+  const inv=S.inventory.filter(k=>!k._tourDemo&&k.id);
+  const noId=S.inventory.filter(k=>!k._tourDemo&&!k.id);
+  if(noId.length)console.warn('[sync] Skipping',noId.length,'item(s) with no id:',noId);
+
+  // Per-step timeout helper — each step gets its own 12s window so we know which hangs
+  const withTimeout=(promise,label)=>Promise.race([
+    promise,
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error(label+' timed out (12s)')),12000))
+  ]);
+
+  if(posts.length){
+    console.log('[sync] posts →',posts.length);
+    const{error}=await withTimeout(
+      _sb.from("posts").upsert(posts.map(p=>({id:p.id,user_id:currentUser.id,data:p,updated_at:now}))),
+      'Posts upsert'
+    );
+    if(error)throw new Error('Posts: '+(error.message||error.code||JSON.stringify(error)));
+    console.log('[sync] posts ✓');
+  }
+
+  if(inv.length){
+    console.log('[sync] inventory →',inv.length,'(knives:',inv.filter(k=>!k.itemCategory).length,'gear:',inv.filter(k=>k.itemCategory).length,')');
+    const{error}=await withTimeout(
+      _sb.from("inventory").upsert(inv.map(k=>({id:k.id,user_id:currentUser.id,data:k,updated_at:now}))),
+      'Inventory upsert'
+    );
+    if(error)throw new Error('Inventory: '+(error.message||error.code||JSON.stringify(error)));
+    console.log('[sync] inventory ✓');
+  }
 }
+
 function _scheduleSbSync(){
   if(!currentUser||!_sb)return;
   _syncStatus='pending';
   if(_sbSyncTid)clearTimeout(_sbSyncTid);
   _sbSyncTid=setTimeout(async()=>{
     _sbSyncTid=null;
+    // If another cycle is already in flight, re-queue rather than race it
+    if(_syncInFlight){console.log('[sync] in-flight — re-queuing');_scheduleSbSync();return;}
+    _syncInFlight=true;
     _syncStatus='syncing';render();
     try{
       await _doSbSync();
       _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
     }catch(e){
       _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
-      console.warn("Supabase sync failed:",e);
+      console.warn('[sync] failed:',e.message);
     }
+    _syncInFlight=false;
     render();
   },1500);
 }
+
 async function manualSync(){
   if(!_sb||!currentUser)return;
   if(_sbSyncTid){clearTimeout(_sbSyncTid);_sbSyncTid=null;}
+  if(_syncInFlight){console.log('[sync] manual: in-flight, skipping');return;}
+  _syncInFlight=true;
   _syncStatus='syncing';render();
   try{
     await _doSbSync();
     _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
   }catch(e){
     _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
-    console.warn("Manual sync failed:",e);
+    console.warn('[sync] manual failed:',e.message);
   }
+  _syncInFlight=false;
   render();
 }
 async function save(){
