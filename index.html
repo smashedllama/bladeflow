@@ -1000,8 +1000,8 @@ async function saveSettings(){
 }
 
 // ─── STATE ────────────────────────────────────────────────────
-const EK=()=>({brand:"",model:"",steel:"",price:"",soldPrice:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",inventoryId:null,prevPrice:"",photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",soldElsewhere:false,soldElsewhereTrackShip:false,withdrawn:false});
-const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:""});
+const EK=()=>({brand:"",model:"",steel:"",price:"",soldPrice:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",inventoryId:null,prevPrice:"",photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",soldElsewhere:false,soldElsewhereTrackShip:false,withdrawn:false});
+const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:""});
 const ENI=()=>({id:gid(),itemCategory:"other",description:"",condition:"Excellent",price:"",tradeValue:"",saleType:"WTS",photos:[],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,pending:false,soldTo:null,soldPrice:"",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const isNI=item=>!!item.itemCategory;
 const ICONS={
@@ -1671,20 +1671,23 @@ function knifeDetails(k){
 }
 function galleryUrl(k){
   const imgs=(k.photos||[]).filter(Boolean);
-  if(!imgs.length)return null;
-  if(imgs.length===1)return imgs[0];
-  // Only build gallery for Cloudinary images; external URLs (imgur etc.) link directly to first photo
-  if(!imgs.some(u=>u.includes("res.cloudinary.com")))return imgs[0];
-  try{
-    const d=btoa(unescape(encodeURIComponent(JSON.stringify({
-      knife:k.brand+" "+k.model,
-      price:knifePrice(k),
-      user:SETTINGS.username||"",
-      imgs,
-      details:knifeDetails(k)
-    }))));
-    return`https://smashedllama.github.io/bladeflow/gallery.html?d=${d}`;
-  }catch(e){return imgs[0];}
+  const cdnImgs=imgs.filter(u=>u.includes("res.cloudinary.com"));
+  // If we have Cloudinary images, build a gallery
+  if(cdnImgs.length){
+    try{
+      const d=btoa(unescape(encodeURIComponent(JSON.stringify({
+        knife:k.brand+" "+k.model,
+        price:knifePrice(k),
+        user:SETTINGS.username||"",
+        imgs:cdnImgs,
+        details:knifeDetails(k)
+      }))));
+      return`https://smashedllama.github.io/bladeflow/gallery.html?d=${d}`;
+    }catch(e){}
+  }
+  // Fall back to imgur gallery link if set
+  if(k.imgurLink)return k.imgurLink;
+  return null;
 }
 
 // Post-level gallery URL - encodes all knives + timestamp so buyer can navigate
@@ -2428,6 +2431,20 @@ function removeKnifeUpload(uid){
   S.kf.photos=kfUploadsToPhotos(S.kfUploads);
   render();
 }
+function setKnifeImgurLink(){
+  const el=document.getElementById("kf-imgur-link");
+  const url=(el?.value||"").trim();
+  if(!url)return;
+  syncKF();
+  S.kf.imgurLink=url;
+  if(el)el.value="";
+  render();
+}
+function clearKnifeImgurLink(){
+  syncKF();
+  S.kf.imgurLink="";
+  render();
+}
 function addKnifePhotoUrl(tag){
   tag=tag||"other";
   const el=document.getElementById("kf-url-"+tag);
@@ -2538,7 +2555,10 @@ function knifePickerIssues(k){
   if((kt==="WTS"||kt==="WTS/WTT")&&!(parseFloat(k.price)>0))issues.push("missing price");
   if((kt==="WTT"||kt==="WTS/WTT")&&!(parseFloat(k.tradeValue)>0))issues.push("missing trade value");
   const photos=(k.photos||[]).filter(Boolean);
-  if(photos.length===0)issues.push("no photos (at least one photo required)");
+  const kpVid=photos.filter(u=>isCdnVideo(u));
+  const kpImg=photos.filter(u=>u.includes("res.cloudinary.com")&&!isCdnVideo(u));
+  const kpOk=!!(k.imgurLink)||kpVid.length>=1||kpImg.length>=2;
+  if(!kpOk)issues.push(kpImg.length===1?"needs a 2nd Cloudinary photo":"needs photos (2 Cloudinary, 1 video, or Imgur gallery link)");
   return issues;
 }
 function addFromLocker(invIdx){
@@ -4120,18 +4140,17 @@ function kfFormHtml(){
       <label>Knife Photos &amp; Video</label>
       ${(()=>{
         const _all=(f.photos||[]).filter(Boolean);
-        const _ext=_all.filter(u=>!u.includes('res.cloudinary.com'));
         const _vid=_all.filter(u=>isCdnVideo(u));
         const _img=_all.filter(u=>u.includes('res.cloudinary.com')&&!isCdnVideo(u));
-        const _ok=_ext.length>=1||_vid.length>=1||_img.length>=2;
+        const _ok=!!(f.imgurLink)||_vid.length>=1||_img.length>=2;
         const row=(check,text,sub)=>`<div style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:.5px solid var(--b2)"><span style="font-size:13px;flex-shrink:0;margin-top:1px">${check}</span><div><div style="font-size:12px;font-weight:500;color:var(--t1)">${text}</div>${sub?`<div style="font-size:10.5px;color:var(--t3);margin-top:1px">${sub}</div>`:''}</div></div>`;
-        const opt1done=_img.length>=2,opt2done=_vid.length>=1,opt3done=_ext.length>=1;
+        const opt1done=_img.length>=2,opt2done=_vid.length>=1,opt3done=!!(f.imgurLink);
         return`<div style="background:${_ok?'var(--greenbg)':'var(--orangebg)'};border:.5px solid ${_ok?'var(--greent)':'var(--oranget)'};border-radius:9px;padding:10px 12px;margin-bottom:10px">
           <div style="font-size:11.5px;font-weight:700;color:${_ok?'var(--greent)':'var(--oranget)'};margin-bottom:6px">${_ok?'✓ Photo requirement met':'⚠ Photo required to list — choose one:'}</div>
           <div style="border-top:.5px solid var(--b2)">
             ${row(opt1done?'✅':'⬜','2 Cloudinary uploads (any slots)','Upload front + back — enables swipeable gallery in your post')}
             ${row(opt2done?'✅':'⬜','1 Cloudinary video','Upload a video showing both sides — compresses automatically before upload')}
-            ${row(opt3done?'✅':'⬜','1 Imgur link','Paste an Imgur URL into any slot\'s URL field — links directly in your post')}
+            ${row(opt3done?'✅':'⬜','1 Imgur gallery link','Paste your Imgur gallery link below — links directly in your post')}
           </div>
           ${!_ok?`<div style="font-size:10.5px;color:var(--t3);margin-top:7px">Stock photos and manufacturer images are not allowed. Your own photos only.</div>`:''}
         </div>`;
@@ -4159,16 +4178,25 @@ function kfFormHtml(){
             ${showControls?`
               ${activePhotoService()==="cloudinary"
                 ?`<button class="btn btn-sec btn-sm" onclick="triggerKnifeUpload('${tag}')" type="button" style="width:100%">${icon('image',12)} Upload Photo</button>`
-                :`<div style="background:var(--orangebg);border:.5px solid var(--oranget);border-radius:7px;padding:6px 8px;font-size:10.5px;color:var(--oranget);line-height:1.45;margin-bottom:2px">
-                  ${icon('alert-circle',11,'var(--oranget)')} <strong>Cloudinary not set up.</strong> Direct uploads are disabled. Paste an Imgur link below, or <span style="text-decoration:underline;cursor:pointer" onclick="S.modal='cloudinary';render()">set up Cloudinary in Settings</span> to enable uploads.
+                :`<div style="background:var(--orangebg);border:.5px solid var(--oranget);border-radius:7px;padding:6px 8px;font-size:10.5px;color:var(--oranget);line-height:1.45">
+                  ${icon('alert-circle',11,'var(--oranget)')} <strong>Cloudinary not set up.</strong> Direct uploads disabled. <span style="text-decoration:underline;cursor:pointer" onclick="S.modal='cloudinary';render()">Set up Cloudinary in Settings</span> or use the Imgur link below.
                 </div>`}
-              <div style="display:flex;gap:4px">
-                <input type="text" id="kf-url-${tag}" placeholder="${activePhotoService()==='cloudinary'?'Paste URL or Imgur link…':'Paste Imgur link…'}" style="flex:1;min-width:0;font-size:11px;padding:5px 7px;border:.5px solid var(--b2);border-radius:6px;background:var(--bg);color:var(--t1)" onkeydown="if(event.key==='Enter'){event.preventDefault();addKnifePhotoUrl('${tag}');}"/>
-                <button class="btn btn-sec btn-sm" onclick="addKnifePhotoUrl('${tag}')" type="button" style="padding:4px 8px;flex-shrink:0">+</button>
-              </div>
             `:""}
           </div>`;
         }).join("")}
+      </div>
+      <!-- Imgur gallery link — single field, full width -->
+      <div style="margin-top:10px;border:.5px solid var(--b2);border-radius:9px;padding:9px 11px;background:var(--surf)">
+        <div style="font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px">${icon('link',11,'var(--t3)')} Imgur Gallery Link <span style="font-size:9px;font-weight:500;color:var(--t4);margin-left:3px">optional alternative to uploading photos</span></div>
+        ${f.imgurLink
+          ?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <a href="${esc(f.imgurLink)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--blue);text-decoration:none;word-break:break-all;flex:1">${esc(f.imgurLink)}</a>
+              <button onclick="clearKnifeImgurLink()" type="button" style="background:none;border:none;color:var(--redt);cursor:pointer;font-size:11px;font-weight:600;flex-shrink:0;padding:0">Remove</button>
+            </div>`
+          :`<div style="display:flex;gap:4px">
+              <input type="text" id="kf-imgur-link" placeholder="https://imgur.com/gallery/…" style="flex:1;min-width:0;font-size:11px;padding:5px 7px;border:.5px solid var(--b2);border-radius:6px;background:var(--bg);color:var(--t1)" onkeydown="if(event.key==='Enter'){event.preventDefault();setKnifeImgurLink();}"/>
+              <button class="btn btn-sec btn-sm" onclick="setKnifeImgurLink()" type="button" style="flex-shrink:0">Add</button>
+            </div>`}
       </div>
       <!-- Video slot — full width, visually distinct -->
       ${(()=>{
@@ -4745,7 +4773,7 @@ function renderRoll(){
     const ktClass=kt==="WTS"?"wts":kt==="WTT"?"wtt":"wtstt";
     const _fp=(k.photos||[]).find(Boolean);
     const _cdnFp=(k.photos||[]).find(u=>u&&u.includes('res.cloudinary.com'));
-    const _extFp=(k.photos||[]).find(u=>u&&!u.includes('res.cloudinary.com'));
+    const _extFp=k.imgurLink||null;
     const _covImg=_cdnFp?`<div style="border-radius:10px;overflow:hidden;background:var(--bg);margin-bottom:8px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="openKnifeDetail(null,null,'${k.id}')"><img src="${esc(cdnImg(_cdnFp,500,375,'limit'))}" style="width:100%;height:100%;object-fit:contain;display:block" loading="lazy"/></div>`:"";
     const _extLink=_extFp?`<a href="${esc(_extFp)}" target="_blank" rel="noopener" style="display:block;font-size:11px;font-weight:600;color:var(--blue);margin-bottom:8px;text-decoration:none">${icon('external-link',11,'var(--blue)')} ${_cdnFp?"Imgur Link":"View photo"} ↗</a>`:"";
     const _cov=_cdnFp?_covImg+_extLink:_extFp?`<div style="border-radius:10px;background:var(--surf);margin-bottom:8px;padding:12px;display:flex;align-items:center;justify-content:center">${_extLink}</div>`:"";
@@ -5112,11 +5140,10 @@ function kfChecklist(f){
   if(kt==="WTS"||kt==="WTS/WTT") items.push({ok:!!(f.price&&parseFloat(f.price)>0),label:"Asking price (SV)"});
   if(kt==="WTT"||kt==="WTS/WTT") items.push({ok:!!(f.tradeValue&&parseFloat(f.tradeValue)>0),label:"Trade value (TV)"});
   const _kpAll=(f.photos||[]).filter(Boolean);
-  const _kpExt=_kpAll.filter(u=>!u.includes("res.cloudinary.com"));
   const _kpVid=_kpAll.filter(u=>isCdnVideo(u));
   const _kpImg=_kpAll.filter(u=>u.includes("res.cloudinary.com")&&!isCdnVideo(u));
-  const _kpOk=_kpExt.length>=1||_kpVid.length>=1||_kpImg.length>=2;
-  const _kpLabel=_kpAll.length===0?"Knife photos (need 2 Cloudinary photos, 1 video, or 1 Imgur link)":!_kpOk?"Need one more Cloudinary photo (or use a video/Imgur link)":"Knife photos";
+  const _kpOk=!!(f.imgurLink)||_kpVid.length>=1||_kpImg.length>=2;
+  const _kpLabel=!_kpOk?(_kpImg.length===1?"Need one more Cloudinary photo":"Photos required: 2 Cloudinary uploads, 1 video, or an Imgur gallery link"):"Photos";
   items.push({ok:_kpOk,label:_kpLabel});
   const allOk=items.every(i=>i.ok);
   const rows=items.map(it=>`<div class="cl-item${it.ok?" ok":""}"><span class="cl-check ${it.ok?"ok":"fail"}">${it.ok?"✓":"○"}</span><span class="cl-label">${it.label}</span></div>`).join("");
@@ -5133,11 +5160,10 @@ function composeChecklist(d){
     if((kt==="WTS"||kt==="WTS/WTT")&&!(parseFloat(k.price)>0)) knifeProblems.push(`${n}: missing asking price`);
     if((kt==="WTT"||kt==="WTS/WTT")&&!(parseFloat(k.tradeValue)>0)) knifeProblems.push(`${n}: missing trade value`);
     const kphotos=(k.photos||[]).filter(Boolean);
-    const kpExt=kphotos.filter(u=>!u.includes("res.cloudinary.com"));
     const kpVid=kphotos.filter(u=>isCdnVideo(u));
     const kpImg=kphotos.filter(u=>u.includes("res.cloudinary.com")&&!isCdnVideo(u));
-    const kpOk=kpExt.length>=1||kpVid.length>=1||kpImg.length>=2;
-    if(!kpOk) knifeProblems.push(kphotos.length===0?`${n}: no photos`:`${n}: needs a second Cloudinary photo (or use a video/Imgur link)`);
+    const kpOk=!!(k.imgurLink)||kpVid.length>=1||kpImg.length>=2;
+    if(!kpOk) knifeProblems.push(kpImg.length===1?`${n}: needs a second Cloudinary photo`:`${n}: needs photos (2 Cloudinary, 1 video, or Imgur gallery link)`);
   });
   const gearProblems=[];
   (d.items||[]).forEach((it,i)=>{
@@ -5452,7 +5478,7 @@ window.markSold=markSold;window.cycleTmpl=cycleTmpl;window.deletePost=deletePost
 window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=executeMove;
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;window.imgFallback=imgFallback;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
-window.triggerKnifeUpload=triggerKnifeUpload;window.triggerKnifeVideoUpload=triggerKnifeVideoUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.handleKnifeVideoInput=handleKnifeVideoInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;
+window.triggerKnifeUpload=triggerKnifeUpload;window.triggerKnifeVideoUpload=triggerKnifeVideoUpload;window.handleKnifeFileInput=handleKnifeFileInput;window.handleKnifeVideoInput=handleKnifeVideoInput;window.removeKnifeUpload=removeKnifeUpload;window.addKnifePhotoUrl=addKnifePhotoUrl;window.setKnifeImgurLink=setKnifeImgurLink;window.clearKnifeImgurLink=clearKnifeImgurLink;
 const _kfVidWasPlaying={};
 function kfVidPlayPause(uid){const v=document.getElementById('kfvid-'+uid);if(!v)return;v.paused?v.play():v.pause();}
 function kfVidSkipBack(uid){const v=document.getElementById('kfvid-'+uid);if(!v)return;v.currentTime=Math.max(0,v.currentTime-10);}
