@@ -1384,7 +1384,7 @@ function autoPostType(knives){
 function buildTitleStr(knives,postType,maxLen,items){
   maxLen=maxLen||300;
   const prefix=(postType||"[WTS]")+" ";
-  const gearNames=(items||[]).map(x=>(NI_LABELS[x.itemCategory||"other"]||"Other")+(x.description?" "+x.description:""));
+  const gearNames=(items||[]).map(x=>x.description||(NI_LABELS[x.itemCategory||"other"]||"Other"));
   const names=[...knives.map(k=>k.brand+" "+k.model),...gearNames];
   let joined=names.join(" | ");
   if((prefix+joined).length<=maxLen)return prefix+joined;
