@@ -1074,6 +1074,7 @@ async function load(){
 // Single source of truth: 2 upserts (posts + inventory) per cycle.
 // _syncInFlight prevents concurrent cycles from racing on the same rows.
 let _syncInFlight=false;
+let _syncPending=false;
 
 async function _doSbSync(){
   const now=new Date().toISOString();
@@ -1090,14 +1091,16 @@ async function _doSbSync(){
   ]);
   const upsertWithRetry=async(table,payload,label)=>{
     const run=()=>_sb.from(table).upsert(payload,{onConflict:'id'});
-    let attempt=0;
-    while(attempt<2){
-      attempt++;
-      const ms=attempt===1?20000:25000;
-      const{error}=await withTimeout(run(),ms,label+' attempt '+attempt);
-      if(!error)return;
-      if(attempt<2){console.warn('[sync] '+label+' attempt 1 failed ('+( error.message||'unknown')+'), retrying in 2s…');await new Promise(r=>setTimeout(r,2000));}
-      else throw new Error(label+': '+(error.message||error.code||JSON.stringify(error)));
+    for(let attempt=1;attempt<=2;attempt++){
+      const ms=attempt===1?20000:30000;
+      try{
+        const{error}=await withTimeout(run(),ms,label+' attempt '+attempt);
+        if(!error)return;
+        throw new Error(label+': '+(error.message||error.code||JSON.stringify(error)));
+      }catch(e){
+        if(attempt<2){console.warn('[sync]',label,'attempt',attempt,'failed:',e.message,'— retrying in 4s…');await new Promise(r=>setTimeout(r,4000));}
+        else throw e;
+      }
     }
   };
 
@@ -1110,17 +1113,17 @@ async function _doSbSync(){
   // Log payload sizes — catches accidental base64-photo inflation
   console.log('[sync] payload bytes — posts:'+JSON.stringify(postsPayload).length+' inv:'+JSON.stringify(invPayload).length);
 
+  // Fire posts + inventory upserts in parallel — one round-trip instead of two sequential waits
+  const ops=[];
   if(posts.length){
     console.log('[sync] posts →',posts.length);
-    await upsertWithRetry('posts',postsPayload,'Posts upsert');
-    console.log('[sync] posts ✓');
+    ops.push(upsertWithRetry('posts',postsPayload,'Posts upsert').then(()=>console.log('[sync] posts ✓')));
   }
-
   if(inv.length){
     console.log('[sync] inventory →',inv.length,'(knives:',inv.filter(k=>!k.itemCategory).length,'gear:',inv.filter(k=>k.itemCategory).length,')');
-    await upsertWithRetry('inventory',invPayload,'Inventory upsert');
-    console.log('[sync] inventory ✓');
+    ops.push(upsertWithRetry('inventory',invPayload,'Inventory upsert').then(()=>console.log('[sync] inventory ✓')));
   }
+  if(ops.length)await Promise.all(ops);
 }
 
 function _scheduleSbSync(){
@@ -1129,8 +1132,8 @@ function _scheduleSbSync(){
   if(_sbSyncTid)clearTimeout(_sbSyncTid);
   _sbSyncTid=setTimeout(async()=>{
     _sbSyncTid=null;
-    // If another cycle is already in flight, re-queue rather than race it
-    if(_syncInFlight){console.log('[sync] in-flight — re-queuing');_scheduleSbSync();return;}
+    // If a cycle is already running, mark pending so it re-syncs once after — no cascade
+    if(_syncInFlight){console.log('[sync] in-flight — will re-sync after');_syncPending=true;return;}
     _syncInFlight=true;
     _syncStatus='syncing';render();
     try{
@@ -1141,8 +1144,10 @@ function _scheduleSbSync(){
       console.warn('[sync] failed:',e.message);
     }
     _syncInFlight=false;
+    // One deferred re-sync if edits landed while we were in-flight
+    if(_syncPending){_syncPending=false;_scheduleSbSync();}
     render();
-  },1500);
+  },8000);
 }
 
 async function manualSync(){
