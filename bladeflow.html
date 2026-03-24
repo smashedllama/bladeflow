@@ -1136,14 +1136,16 @@ async function _doSbSync(){
   if(ops.length)await Promise.all(ops);
 }
 
-function _scheduleSbSync(){
+function _scheduleSbSync(immediate){
   if(!currentUser||!_sb)return;
   _syncStatus='pending';
   if(_sbSyncTid)clearTimeout(_sbSyncTid);
+  // Structural changes (sold, tracking, knife added/removed) use 500ms so they feel instant.
+  // Text edits use 3000ms to batch rapid keystrokes into one request.
+  const delay=immediate?500:3000;
   _sbSyncTid=setTimeout(async()=>{
     _sbSyncTid=null;
-    // If a cycle is already running, mark pending so it re-syncs once after — no cascade
-    if(_syncInFlight){console.log('[sync] in-flight — will re-sync after');_syncPending=true;return;}
+    if(_syncInFlight){console.log('[sync] in-flight, will re-sync after');_syncPending=true;return;}
     _syncInFlight=true;
     _syncStatus='syncing';render();
     try{
@@ -1154,10 +1156,9 @@ function _scheduleSbSync(){
       console.warn('[sync] failed:',e.message);
     }
     _syncInFlight=false;
-    // One deferred re-sync if edits landed while we were in-flight
     if(_syncPending){_syncPending=false;_scheduleSbSync();}
     render();
-  },3000);
+  },delay);
 }
 
 async function manualSync(){
@@ -1178,18 +1179,29 @@ async function manualSync(){
 }
 async function save(){
   if(!S.loaded)return;
-  // Save to localStorage immediately (tour demo items excluded so they never persist)
   try{await window.storage.set("ks_v4",JSON.stringify(S.posts.filter(p=>!p._tourDemo)));}catch(e){}
   _scheduleSbSync();
 }
 async function saveInv(){
   if(!S.loaded)return;
-  // Save to localStorage immediately (tour demo items excluded so they never persist)
   try{await window.storage.set("ks_inv_v1",JSON.stringify(S.inventory.filter(k=>!k._tourDemo)));}catch(e){}
   _scheduleSbSync();
 }
+// Immediate-sync variants for structural changes (sold, tracking, add/remove knife)
+async function saveNow(){
+  if(!S.loaded)return;
+  try{await window.storage.set("ks_v4",JSON.stringify(S.posts.filter(p=>!p._tourDemo)));}catch(e){}
+  _scheduleSbSync(true);
+}
+async function saveInvNow(){
+  if(!S.loaded)return;
+  try{await window.storage.set("ks_inv_v1",JSON.stringify(S.inventory.filter(k=>!k._tourDemo)));}catch(e){}
+  _scheduleSbSync(true);
+}
 function up(fn){fn(S);save();render();}
 function upInv(fn){fn(S);saveInv();render();}
+function upNow(fn){fn(S);saveNow();render();}
+function upInvNow(fn){fn(S);saveInvNow();render();}
 
 // ─── UNDO ─────────────────────────────────────────────────────
 function pushUndo(msg){
@@ -1204,7 +1216,7 @@ function undoLast(){
   const snap=S.undoStack.shift();
   S.posts=snap.posts;S.inventory=snap.inventory;
   S.undoToast=null;clearTimeout(S._undoTid);
-  save();saveInv();render();
+  saveNow();saveInvNow();render();
 }
 // Audit every "listed" inventory item against active posts.
 // Runs at load time so stale statuses from old bugs are self-healing.
@@ -2568,18 +2580,18 @@ function addFromLocker(invIdx){
   S.draft.knives.push(copy);
   S.draft.postType=autoPostType(S.draft.knives);
   S.inventory[invIdx].status="listed";
-  S.lockerPicker=false;saveInv();render();
+  S.lockerPicker=false;saveInvNow();render();
 }
 function addGearFromRoll(invIdx){
   const item=S.inventory[invIdx];if(!item||!isNI(item))return;
   const copy=JSON.parse(JSON.stringify(item));
   S.draft.items=[...(S.draft.items||[]),copy];
   S.inventory[invIdx].status="listed";
-  S.gearPicker=false;saveInv();render();
+  S.gearPicker=false;saveInvNow();render();
 }
 function removeGearItem(draftIdx){S.draft.items=(S.draft.items||[]).filter((_,i)=>i!==draftIdx);render();}
 function removeFromInventory(idx){if(!confirm("Remove this knife from The Roll?"))return;pushUndo("Knife removed from Roll");const gone=S.inventory[idx];if(gone)_sbDeleteInv(gone.id);upInv(s=>{s.inventory.splice(idx,1)});}
-function markInvSold(idx){upInv(s=>{const k=s.inventory[idx];if(k.confirmedAt)return;k.status=k.status==="sold"?"available":"sold";k.soldAt=k.status==="sold"?new Date().toISOString():null;});}
+function markInvSold(idx){upInvNow(s=>{const k=s.inventory[idx];if(k.confirmedAt)return;k.status=k.status==="sold"?"available":"sold";k.soldAt=k.status==="sold"?new Date().toISOString():null;});}
 
 // ─── NON-KNIFE ITEMS ──────────────────────────────────────────
 function openNI(idx){
@@ -2746,7 +2758,7 @@ function submitPost(){
   // Update inventory status for any linked knives
   post.knives.forEach(k=>{if(k.inventoryId){const inv=S.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="listed";}});
   S.posts=[post,...S.posts];
-  S.view="list";S.expanded=post.id;S.draft=ED();S.uploadFiles=[];save();saveInv();render();
+  S.view="list";S.expanded=post.id;S.draft=ED();S.uploadFiles=[];saveNow();saveInvNow();render();
 }
 function markSold(pid,ki){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
@@ -2798,7 +2810,7 @@ function confirmSoldFlow(){
   const soldPrice=(g("sold-price-input")?.value||"").trim().replace(/^\$/,"");
   pushUndo("Knife marked sold");
   up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldAt=new Date().toISOString();k.soldTo=buyer||null;k.soldPrice=soldPrice||null;k.shippingAddress=null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="sold";}p.postText=buildPost(p);});
-  saveInv();S.soldFlow=null;render();
+  saveInvNow();S.soldFlow=null;render();
 }
 function cancelSoldFlow(){S.soldFlow=null;render();}
 function markGearSold(pid,gi){
@@ -2807,7 +2819,7 @@ function markGearSold(pid,gi){
   if(item.sold){
     if(item.confirmedAt&&item.deliveredAt)return;
     up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.sold=false;it.soldAt=null;it.soldTo=null;it.pending=false;if(it.inventoryId){const inv=s.inventory.find(x=>x.id===it.inventoryId);if(inv)inv.status="listed";}p.postText=buildPost(p);});
-    saveInv();return;
+    saveInvNow();return;
   }
   S.gearSoldFlow={pid,gi};render();
 }
@@ -2819,7 +2831,7 @@ function confirmGearSoldFlow(){
   const soldPrice=(g("gsold-price-input")?.value||"").trim().replace(/^\$/,"");
   pushUndo("Item marked sold");
   up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const it=p.items[sf.gi];it.sold=true;it.soldAt=new Date().toISOString();it.soldTo=buyer||null;it.soldPrice=soldPrice||null;it.shippingAddress=null;it.pending=false;if(it.inventoryId){const inv=s.inventory.find(x=>x.id===it.inventoryId);if(inv)inv.status="sold";}p.postText=buildPost(p);});
-  saveInv();S.gearSoldFlow=null;render();
+  saveInvNow();S.gearSoldFlow=null;render();
 }
 function cancelGearSoldFlow(){S.gearSoldFlow=null;render();}
 function markGearPending(pid,gi){
@@ -2842,7 +2854,7 @@ function saveGearTracking(pid,gi){
   if(!trk){alert("Please enter a tracking number.");return;}
   pushUndo("Gear tracking added");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=it.shippedAt||new Date().toISOString();it.shippingAddress=null;});
-  saveInv();S.trackingFlow=null;render();
+  saveInvNow();S.trackingFlow=null;render();
 }
 function markGearShipped(pid,gi){
   const trk=(document.getElementById(`gtrk-${pid}-${gi}`)?.value||"").trim();
@@ -2850,17 +2862,17 @@ function markGearShipped(pid,gi){
   if(!trk){alert("Please enter a tracking number first.");return;}
   pushUndo("Gear marked shipped");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=new Date().toISOString();it.shippingAddress=null;});
-  saveInv();render();
+  saveInvNow();render();
 }
 function markGearDelivered(pid,gi){
   pushUndo("Gear marked delivered");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;p.items[gi].deliveredAt=new Date().toISOString();});
-  saveInv();render();
+  saveInvNow();render();
 }
 function markGearConfirmed(pid,gi){
   pushUndo("Gear trade confirmed");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.confirmedAt=new Date().toISOString();if(it.inventoryId){const inv=s.inventory.find(x=>x.id===it.inventoryId);if(inv)inv.confirmedAt=it.confirmedAt;}});
-  saveInv();render();
+  saveInvNow();render();
 }
 async function copyGearConfirmComment(pid,gi){
   const p=S.posts.find(x=>x.id===pid);
@@ -2902,7 +2914,7 @@ function confirmSoldElsewhere(){
   const trackShip=!!(g("se-track-ship")?.checked);
   pushUndo("Knife marked sold elsewhere");
   up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldElsewhere=true;k.soldElsewhereTrackShip=trackShip;k.soldAt=new Date().toISOString();k.soldPrice=soldPrice||null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="sold";}p.postText=buildPost(p);});
-  saveInv();S.soldFlow=null;render();
+  saveInvNow();S.soldFlow=null;render();
 }
 function markWithdrawn(pid,ki){
   pushUndo("Knife withdrawn");
@@ -2912,13 +2924,13 @@ function markWithdrawn(pid,ki){
 function readdKnife(pid,ki){
   pushUndo("Knife re-added to listing");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.withdrawn=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="listed";}p.postText=buildPost(p);});
-  saveInv();render();
+  saveInvNow();render();
 }
 function markPending(pid,ki){
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];if(!k||k.sold)return;k.pending=!k.pending;p.postText=buildPost(p);});
 }
 function markInvPending(idx){
-  upInv(s=>{const k=s.inventory[idx];if(!k||k.status==="sold")return;k.pending=!k.pending;});
+  upInvNow(s=>{const k=s.inventory[idx];if(!k||k.status==="sold")return;k.pending=!k.pending;});
 }
 function buildConfirmComment(pid,ki){
   const p=S.posts.find(x=>x.id===pid);if(!p)return"";
@@ -4430,7 +4442,7 @@ function saveTracking(pid,ki){
   if(!trk){alert("Please enter a tracking number.");return;}
   pushUndo("Tracking added");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=k.shippedAt||new Date().toISOString();k.shippingAddress=null;});
-  saveInv();S.trackingFlow=null;render();
+  saveInvNow();S.trackingFlow=null;render();
 }
 async function copyTrackingLink(pid,ki){
   const p=S.posts.find(x=>x.id===pid);
@@ -4447,12 +4459,12 @@ function markShipped(pid,ki){
   if(!trk){alert("Please enter a tracking number first.");return;}
   pushUndo("Knife marked shipped");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=new Date().toISOString();k.shippingAddress=null;});
-  saveInv();render();
+  saveInvNow();render();
 }
 function markDelivered(pid,ki){
   pushUndo("Knife marked delivered");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.deliveredAt=new Date().toISOString();});
-  saveInv();render();
+  saveInvNow();render();
 }
 function markConfirmedTrade(pid,ki){
   pushUndo("Trade confirmed");
@@ -4463,7 +4475,7 @@ function markConfirmedTrade(pid,ki){
     // Mirror onto the inventory item so the Roll can block Relist
     if(k.inventoryId){const inv=s.inventory.find(i=>i.id===k.inventoryId);if(inv)inv.confirmedAt=k.confirmedAt;}
   });
-  saveInv();render();
+  saveInvNow();render();
 }
 function openKnifeDetail(pid,ki,invId){
   let k,p=null;
