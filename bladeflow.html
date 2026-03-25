@@ -31,6 +31,7 @@
   --sh:0 1px 3px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.07);
   --shm:0 4px 20px rgba(0,0,0,.09),0 0 0 .5px rgba(0,0,0,.06);
   --r:14px;--rs:10px;--rxs:7px;
+  --surf:rgba(0,0,0,.03);--surf2:rgba(0,0,0,.05);--surf3:rgba(0,0,0,.07);
   --tr:.2s cubic-bezier(.25,.46,.45,.94);
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;
   --mono:'SF Mono',ui-monospace,'Cascadia Code',monospace;
@@ -298,7 +299,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .sel-bundle-knife-row:last-child{border-bottom:none}
 .repost-btns{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
 .section-hdr{display:flex;align-items:center;gap:8px;padding:0 2px;margin:24px 0 10px}
-.section-hdr-lbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t4)}
+.section-hdr-lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}
 .section-hdr-count{font-size:11px;color:var(--t4);background:rgba(0,0,0,.07);padding:1px 8px;border-radius:10px;font-weight:600}
 .section-hdr-sub{font-size:11px;color:var(--t3)}
 .krow{display:flex;flex-direction:column;padding:10px 13px;border-radius:var(--rs);background:var(--bg);border:.5px solid var(--b1);margin-bottom:7px}
@@ -330,7 +331,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .lk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
 .lk-card{background:var(--card);border:.5px solid var(--b1);border-radius:var(--r);padding:17px;box-shadow:var(--sh);transition:box-shadow var(--tr)}
 .lk-card:hover{box-shadow:var(--shm)}
-.lk-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.lk-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .lk-card-tags{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .lk-brand{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
 .lk-model{font-size:15px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;line-height:1.2}
@@ -351,7 +352,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .ni-card:nth-child(3){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .08s both}
 .ni-card:nth-child(4){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .12s both}
 .ni-card:nth-child(n+5){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .16s both}
-.ni-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.ni-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .ni-icon{font-size:18px;flex-shrink:0}
 .ni-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)}
 .ni-desc{font-size:15px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;line-height:1.2;color:var(--t1)}
@@ -362,7 +363,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .lk-pick-row:last-child{border-bottom:none}
 .lk-pick-name{font-size:13px;font-weight:600;letter-spacing:-.01em;flex:1}
 .filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
-.sort-select{width:auto!important;font-size:12px;padding:5px 8px;border-radius:8px;background:var(--card);color:var(--t1);font-family:var(--font)}
+.sort-select{width:auto!important;font-size:12px;padding:5px 8px;border-radius:8px;background:var(--card);color:var(--t1);font-family:var(--font);border:.5px solid var(--b1);box-shadow:0 1px 2px rgba(0,0,0,.05);cursor:pointer}
 .comps-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
 /* ROLL UNROLL ANIMATION */
 @keyframes rollUnfurl{
@@ -509,7 +510,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .srow-sub{font-size:11.5px;color:var(--t3);margin-top:2px}
 .srow-ctrl{flex:1;display:flex;justify-content:flex-end;flex-wrap:wrap;gap:6px}
 .settings-main{padding:18px 18px 50px;max-width:520px;margin:0 auto}
-.settings-section-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin:20px 0 8px;padding-left:4px}
+.settings-section-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin:20px 0 8px;padding-left:4px}
 .settings-section-lbl:first-child{margin-top:0}
 .save-notice{font-size:12px;color:var(--greent);font-weight:500;padding:6px 0;text-align:center;visibility:hidden}
 .save-notice.on{visibility:visible}
@@ -656,6 +657,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
     --purple:#BF5AF2;--purplebg:rgba(191,90,242,.18);--purplet:#DA8FFF;
     --sh:0 1px 3px rgba(0,0,0,.4),0 0 0 .5px rgba(255,255,255,.07);
     --shm:0 4px 20px rgba(0,0,0,.5),0 0 0 .5px rgba(255,255,255,.06);
+    --surf:rgba(255,255,255,.05);--surf2:rgba(255,255,255,.07);--surf3:rgba(255,255,255,.1);
   }
   body,html{background:#1C1C1E}
   .dark-video-slot{background:linear-gradient(135deg,#2d1f4a 0%,#1e1435 100%) !important;border-color:#7c3aed88 !important}
@@ -4868,7 +4870,7 @@ function renderRoll(){
   const fil=S.lockerFilter;
   const filtered=fil==="all"?knifeInv:fil==="pending"?knifeInv.filter(k=>k.pending&&k.status!=="sold"):knifeInv.filter(k=>k.status===fil);
   const rollValue=knifeInv.filter(k=>k.status!=="sold").reduce((s,k)=>s+parseFloat(k.price||0),0);
-  const stats=`<div class="stats"><div class="stat clickable" onclick="S.lockerFilter=S.lockerFilter==='available'?'all':'available';render()"><div class="stat-n green${fil==='available'?' ring':''}">${av}</div><div class="stat-l">Available</div></div><div class="stat clickable" onclick="S.lockerFilter=S.lockerFilter==='listed'?'all':'listed';render()"><div class="stat-n orange${fil==='listed'?' ring':''}">${li}</div><div class="stat-l">Listed</div></div>${pe>0?`<div class="stat clickable" onclick="S.lockerFilter=S.lockerFilter==='pending'?'all':'pending';render()"><div class="stat-n orange${fil==='pending'?' ring':''}">${pe}</div><div class="stat-l">Pending</div></div>`:""}<div class="stat clickable" onclick="S.lockerFilter=S.lockerFilter==='sold'?'all':'sold';render()"><div class="stat-n${fil==='sold'?' ring':''}" style="color:var(--t3)">${so}</div><div class="stat-l">Sold</div></div>${rollValue>0?`<div class="stat"><div class="stat-n purple">$${Math.round(rollValue).toLocaleString()}</div><div class="stat-l">Value</div></div>`:""}<div class="stats-acts"><div style="display:flex;flex-direction:column;gap:5px"><button class="btn btn-sec btn-sm" style="white-space:nowrap;justify-content:center" onclick="openKF(-1,'locker')">+ Add Knife</button><button class="btn btn-sec btn-sm" style="white-space:nowrap;justify-content:center" onclick="openNI(-1)">+ Add Gear</button></div></div></div>`;
+  const stats=`<div class="stats"><div class="stat clickable" onclick="S.lockerFilter=S.lockerFilter==='available'?'all':'available';render()"><div class="stat-n green${fil==='available'?' ring':''}">${av}</div><div class="stat-l">Available</div></div><div class="stat clickable" onclick="S.lockerFilter=S.lockerFilter==='listed'?'all':'listed';render()"><div class="stat-n orange${fil==='listed'?' ring':''}">${li}</div><div class="stat-l">Listed</div></div>${pe>0?`<div class="stat clickable" onclick="S.lockerFilter=S.lockerFilter==='pending'?'all':'pending';render()"><div class="stat-n orange${fil==='pending'?' ring':''}">${pe}</div><div class="stat-l">Pending</div></div>`:""}<div class="stat clickable" onclick="S.lockerFilter=S.lockerFilter==='sold'?'all':'sold';render()"><div class="stat-n${fil==='sold'?' ring':''}" style="color:var(--t3)">${so}</div><div class="stat-l">Sold</div></div>${rollValue>0?`<div class="stat"><div class="stat-n purple">$${Math.round(rollValue).toLocaleString()}</div><div class="stat-l">Value</div></div>`:""}</div>`;
   // Sort the filtered array
   const srt=S.rollSort||"added";
   const sortedFiltered=[...filtered].sort((a,b)=>{
@@ -4914,11 +4916,14 @@ function renderRoll(){
   const kniOpen=S.rollKnivesOpen!==false;
   const kniCount=knifeInv.filter(k=>k.status!=="sold").length;
   const knifeSection=`<div>
-    <button style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:10px 0 8px;width:100%;text-align:left;color:var(--t1)" onclick="S.rollKnivesOpen=!S.rollKnivesOpen;render()">
-      <span class="sec-lbl" style="margin:0">Knives</span>
-      ${kniCount>0?`<span style="font-size:11px;font-weight:700;background:rgba(0,0,0,.07);color:var(--t3);padding:1px 7px;border-radius:10px">${kniCount}</span>`:""}
-      <span style="margin-left:auto;color:var(--t4)">${chevron(kniOpen)}</span>
-    </button>
+    <div style="display:flex;align-items:center;margin-bottom:${kniOpen?10:0}px">
+      <button style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:10px 0 8px;flex:1;text-align:left;color:var(--t1)" onclick="S.rollKnivesOpen=!S.rollKnivesOpen;render()">
+        <span class="sec-lbl" style="margin:0">Knives</span>
+        ${kniCount>0?`<span style="font-size:11px;font-weight:700;background:rgba(0,0,0,.07);color:var(--t3);padding:1px 7px;border-radius:10px">${kniCount}</span>`:""}
+        <span style="margin-left:auto;color:var(--t4)">${chevron(kniOpen)}</span>
+      </button>
+      ${kniOpen&&!(S.kfOpen&&S.kfMode==="locker")?`<button class="btn btn-sec btn-sm" style="margin-left:8px;flex-shrink:0" onclick="openKF(-1,'locker')">+ Add Knife</button>`:""}
+    </div>
     ${kniOpen?filterBar+form+cards:""}
   </div>`;
   const niSection=(()=>{
@@ -4948,7 +4953,7 @@ function renderRoll(){
         <div class="lk-acts">${item.status!=="sold"?`<button class="btn btn-sm${item.pending?" btn-am":" btn-sec"}" onclick="markNIPending(${realIdx})">${item.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markNISold(${realIdx})"><span class="sdot sdot-r"></span> Sold</button>`:`<button class="btn btn-sm btn-sec" onclick="markNISold(${realIdx})">Relist</button>`}<button class="btn btn-sm btn-sec" onclick="openNI(${realIdx})">Edit</button><button class="btn btn-sm btn-rd" onclick="removeNI(${realIdx})">Remove</button></div>
       </div>`;
     }).join("");
-    const emptyNI=!niItems.length&&!S.niOpen?`<div style="padding:16px;color:var(--t4);font-size:13px;border:1px dashed rgba(128,128,128,.2);border-radius:var(--rs)">Watches, sunglasses, flashlights, bags &amp; more. Use <strong style="color:var(--t3)">+ Add Gear</strong> above to add items.</div>`:"";
+    const emptyNI=!niItems.length&&!S.niOpen?`<div style="padding:16px;color:var(--t4);font-size:13px;border:1px dashed rgba(128,128,128,.2);border-radius:var(--rs)">Watches, sunglasses, flashlights, bags &amp; more. Tap <strong style="color:var(--t3)">+ Add Item</strong> to get started.</div>`:"";
     const niCount=niItems.filter(x=>x.status!=="sold").length;
     return`<div class="ni-section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${gearOpen?10:0}px">
@@ -4957,7 +4962,7 @@ function renderRoll(){
           ${niCount>0?`<span style="font-size:11px;font-weight:700;background:rgba(0,0,0,.07);color:var(--t3);padding:1px 7px;border-radius:10px">${niCount}</span>`:""}
           <span style="margin-left:auto;color:var(--t4)">${chevron(gearOpen)}</span>
         </button>
-        ${gearOpen&&!S.niOpen&&niItems.length?`<button class="btn btn-sec btn-sm" style="margin-left:8px" onclick="openNI(-1)">+ Add Item</button>`:""}
+        ${gearOpen&&!S.niOpen?`<button class="btn btn-sec btn-sm" style="margin-left:8px" onclick="openNI(-1)">+ Add Item</button>`:""}
       </div>
       ${gearOpen?emptyNI+niForm+(niCards?`<div class="ni-grid">${niCards}</div>`:""):""}
     </div>`;
@@ -5077,7 +5082,7 @@ function renderSold(){
       <span style="color:var(--t4);flex-shrink:0;font-size:16px;line-height:1">›</span>
     </div>`;
   }).join("");
-  const historySection=historyRows?`<div class="sec-lbl">Sold History</div><div class="pc" style="padding:0;overflow:hidden">${historyRows}</div>`:"";
+  const historySection=historyRows?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="sec-lbl" style="margin:0">Sold History</span><span style="font-size:11px;font-weight:700;background:rgba(0,0,0,.07);color:var(--t3);padding:1px 7px;border-radius:10px">${historyItems.length}</span></div><div class="pc" style="padding:0;overflow:hidden">${historyRows}</div>`:"";
   const showListings=sf==="all"||sf==="listings";
   const showHistory=sf==="all"||sf==="roll";
   return hdr+`<div class="main">${salesSubNav()}${stats}${showListings?completedSection:""}${showHistory?historySection:""}</div>`;
