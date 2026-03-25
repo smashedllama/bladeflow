@@ -3887,7 +3887,7 @@ function renderGuide(){
       ${step(1,"Set your Reddit username","Go to Settings and enter your Reddit handle. It gets stamped into every post and dibs message automatically.")}
       ${step(2,"Set your payment methods","PayPal Goods &amp; Services (G&amp;S) is required for all sellers with fewer than 25 confirmed trades. Once you hit 25 you can accept Venmo, Cash App, Zelle, or anything else. Check the ones you accept in Settings.")}
       ${step(3,"Add your payment links","Paste your PayPal.me URL, Venmo handle, Cash App $tag, etc. in Settings. They auto-fill into every payment message you send buyers. You never retype them.")}
-      ${step(4,"Set up photo uploads","Set up a free Cloudinary account and enter your Cloud Name and Upload Preset in Settings for drag-and-drop photo and video uploads. Alternatively, paste an Imgur gallery link — no Cloudinary needed. See the Photos &amp; Video section below for the full breakdown.")}
+      ${step(4,"Set up photo uploads","Set up a free Cloudinary account and enter your Cloud Name and Upload Preset in Settings for drag-and-drop photo and video uploads. Alternatively, paste an Imgur gallery link (no Cloudinary needed). See the Photos &amp; Video section below for the full breakdown.")}
       ${step(5,"Back up your data (optional)","Your data lives in this browser by default. Use <strong>Settings &rarr; Data Backup &rarr; Export Backup</strong> to download a .json file you can restore on any device at any time. This is the easiest way to move between devices without creating an account.")}
     `)}
 
@@ -3895,7 +3895,7 @@ function renderGuide(){
       <p style="font-size:13px;color:var(--t2);line-height:1.7;margin:0 0 12px">The Roll is your inventory. Add every knife or other item you want to sell here first. You only fill in the details once, then pull it into any listing with a single tap.</p>
       ${step(1,"Open The Roll tab and hit + Add Knife or + Add Gear","Use + Add Knife for knives. Use + Add Gear for anything else: watches, sunglasses, flashlights, multi-tools, bags, clothing, or other items.")}
       ${step(2,"Fill in the details","For knives: brand, model, steel, and condition. Be thorough. For gear: category, description, condition, and price.")}
-      ${step(3,"Add your photos","Each knife has four dedicated photo slots: <strong>Show Side</strong>, <strong>Clip Side</strong>, <strong>Centering</strong>, and <strong>Other</strong>. Drag-and-drop or paste a direct URL into each slot. Show Side and Clip Side are required before the knife can be added to a listing — the others are optional. Stock photos and manufacturer images are not allowed. Your own photos only.")}
+      ${step(3,"Add your photos","Each knife has four dedicated photo slots: <strong>Show Side</strong>, <strong>Clip Side</strong>, <strong>Centering</strong>, and <strong>Other</strong>. Drag-and-drop or paste a direct URL into each slot. Show Side and Clip Side are required before the knife can be added to a listing; the others are optional. Stock photos and manufacturer images are not allowed. Your own photos only.")}
       ${step(4,"Set type and price","WTS (selling), WTT (trading), or WTS/WTT (open to both). Enter your asking price in the SV field. For trades, also add a TV (trade value).")}
       ${tip("New to the sub? Users with 0 confirmed trades can only list one knife per post. Once you have flair you can list multiple knives in one post.")}
       ${tool("Each knife card in The Roll shows a readiness badge: <strong style='color:var(--greent)'>✓ Ready to list</strong> if everything is complete, or <strong style='color:var(--redt)'>Incomplete: [reason]</strong> listing exactly what needs to be fixed before that knife can go in a listing.")}
@@ -3921,7 +3921,7 @@ function renderGuide(){
 
     ${sec(icon('pencil',18,'#0071E3'),"Step 4: Build Your Listing","rgba(0,122,255,.12)",`
       ${step(1,"Go to Listings → + New Listing","")}
-      ${step(2,"Add knives from The Roll","Tap + Add from Roll and select your knife. The picker shows each knife's readiness — incomplete knives display exactly what's missing (e.g. missing Show Side photo, no price) and are blocked with a Fix first badge until the issues are resolved. Or add knives manually if you prefer.")}
+      ${step(2,"Add knives from The Roll","Tap + Add from Roll and select your knife. The picker shows each knife's readiness: incomplete knives display exactly what's missing (e.g. missing Show Side photo, no price) and are blocked with a Fix first badge until the issues are resolved. Or add knives manually if you prefer.")}
       ${step(3,"Add gear items from The Roll (optional)","Tap From Roll: Gear to add watches, sunglasses, or other non-knife items. They are automatically grouped into a labeled Gear & Extras section at the bottom of your post.")}
       ${step(4,"Paste your timestamp URL","Required before you can post.")}
       ${step(5,"Pick a template","Detailed includes all condition notes. Compact is a clean one-liner. Minimal is bare essentials. Table is a markdown table layout. Hit Switch to cycle between them anytime.")}
@@ -3993,12 +3993,12 @@ function renderGuide(){
         </div>
         <div style="background:var(--bluebg);border:.5px solid rgba(0,113,227,.2);border-radius:10px;padding:12px 14px">
           <div style="font-size:13px;font-weight:700;color:var(--bluet);margin-bottom:4px">Option 2: One Cloudinary video (drag and drop)</div>
-          <div style="font-size:12.5px;color:var(--t2);line-height:1.6">Upload a video using the <strong>Upload Video</strong> button in the knife form. The tool automatically compresses it in your browser at 2.5 Mbps before upload, so a 30-second clip is roughly 10MB. Videos give buyers the best look at action, blade finish, and any wear. Keep clips short — 15 to 30 seconds is ideal.</div>
+          <div style="font-size:12.5px;color:var(--t2);line-height:1.6">Upload a video using the <strong>Upload Video</strong> button in the knife form. The tool automatically compresses it in your browser at 2.5 Mbps before upload, so a 30-second clip is roughly 10MB. Videos give buyers the best look at action, blade finish, and any wear. Keep clips short: 15 to 30 seconds is ideal.</div>
           ${warn("Videos burn through Cloudinary's 25GB monthly bandwidth much faster than photos. At ~10MB per clip, your account handles roughly 2,500 total plays per month. Read the bandwidth note in the video upload panel before going heavy on video listings.")}
         </div>
         <div style="background:var(--surf3);border:.5px solid var(--b2);border-radius:10px;padding:12px 14px">
           <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px">Option 3: One Imgur gallery link</div>
-          <div style="font-size:12.5px;color:var(--t2);line-height:1.6">Paste a link to an Imgur album or gallery into the <strong>Imgur Gallery Link</strong> field on the knife form. This satisfies the photo requirement and the knife name in your post links directly to your Imgur gallery. No Cloudinary account needed. Individual Imgur photo URLs do not hotlink reliably — use the gallery/album link, not a single image link.</div>
+          <div style="font-size:12.5px;color:var(--t2);line-height:1.6">Paste a link to an Imgur album or gallery into the <strong>Imgur Gallery Link</strong> field on the knife form. This satisfies the photo requirement and the knife name in your post links directly to your Imgur gallery. No Cloudinary account needed. Individual Imgur photo URLs do not hotlink reliably; use the gallery/album link, not a single image link.</div>
         </div>
       </div>
       ${tip("Cloudinary uploads give buyers the best experience: a built-in swipeable gallery hosted in the app. Imgur is the easiest fallback if you already have photos posted there.")}
@@ -4006,10 +4006,10 @@ function renderGuide(){
 
     ${sec(icon('hard-drive',18,'#8E8E93'),"Your Data & Accounts","rgba(142,142,147,.12)",`
       <p style="font-size:13px;color:var(--t2);line-height:1.7;margin:0 0 12px">BladeFlow works entirely in your browser. No account is required. Here is how data storage works and your options for keeping it safe.</p>
-      ${step(1,"Local storage (default)","Everything — listings, inventory, settings, Cloudinary credentials — is saved in your browser's local storage. It stays there until you clear your browser data. Works offline.")}
+      ${step(1,"Local storage (default)","Everything (listings, inventory, settings, Cloudinary credentials) is saved in your browser's local storage. It stays there until you clear your browser data. Works offline.")}
       ${step(2,"Export / Import backup","Go to <strong>Settings &rarr; Data Backup</strong> and hit <strong>Export Backup</strong> to download a .json file with all your data. To move to a new device or browser, open the app there and use <strong>Import Backup</strong> to restore everything instantly. This is the simplest way to switch devices without an account.")}
       ${step(3,"Cloud sync (optional)","Sign in with a magic link sent to your email. Once signed in, all your data syncs automatically to a private cloud database so it is available on every device you sign in on. Your data is encrypted in transit and at rest. You can delete your account and all cloud data at any time from Settings.")}
-      ${tip("If you are not ready to create an account, export a backup regularly — especially after a big batch of listings. It takes two seconds and means you never lose anything.")}
+      ${tip("If you are not ready to create an account, export a backup regularly, especially after a big batch of listings. It takes two seconds and means you never lose anything.")}
       ${warn("Clearing your browser history, cache, or site data in Safari or Chrome will wipe your local data permanently if you have not backed up or signed in.")}
     `)}
 
@@ -4369,11 +4369,11 @@ function kfFormHtml(){
             </button>
             ${s.vidBwTip?`<div style="background:#fffbeb;border:.5px solid #f59e0b;border-radius:9px;padding:11px 13px;font-size:11px;color:#78350f;line-height:1.6">
               <strong style="display:block;margin-bottom:5px">⚠ Before you upload a video, read this</strong>
-              Videos are served from your own Cloudinary free tier, which includes <strong>25GB of bandwidth per month</strong>. Each ~30-second clip uploaded here is about <strong>10MB</strong> — meaning your account can handle roughly <strong>2,500 total plays</strong> before it hits the cap.
+              Videos are served from your own Cloudinary free tier, which includes <strong>25GB of bandwidth per month</strong>. Each ~30-second clip uploaded here is about <strong>10MB</strong>, meaning your account can handle roughly <strong>2,500 total plays</strong> before it hits the cap.
               <br><br>
-              In practice that looks like: <strong>5 active video listings each viewed 50 times = 2.5GB used</strong>. That's fine. But a busy month with <strong>20+ listings each getting 100+ views</strong> can push you to 20GB fast — and if you hit the cap, <strong>every photo and video on every listing stops loading</strong> for all buyers until the month resets.
+              In practice that looks like: <strong>5 active video listings each viewed 50 times = 2.5GB used</strong>. That's fine. But a busy month with <strong>20+ listings each getting 100+ views</strong> can push you to 20GB fast. If you hit the cap, <strong>every photo and video on every listing stops loading</strong> for all buyers until the month resets.
               <br><br>
-              Keep videos short (under 30s), use them selectively on your best listings, and check your usage before a busy posting week. If you're running low, switch to pasting an <strong>Imgur link</strong> instead — that uses Imgur's bandwidth, not yours.
+              Keep videos short (under 30s), use them selectively on your best listings, and check your usage before a busy posting week. If you're running low, switch to pasting an <strong>Imgur link</strong> instead; that uses Imgur's bandwidth, not yours.
               <br><br>
               <a href="https://console.cloudinary.com" target="_blank" rel="noopener" style="color:#7c3aed;font-weight:600;text-decoration:none">Check your Cloudinary usage ↗</a>
               <div style="margin-top:10px">${activePhotoService()==='cloudinary'?`<button class="btn btn-sm" onclick="triggerKnifeVideoUpload()" type="button" style="background:#7c3aed;color:#fff;border:none;font-weight:600">${icon('video',13,'#fff')} Upload Video</button>`:`<button class="btn btn-sm" style="opacity:.4;cursor:default;background:var(--bg);border:.5px solid var(--b2);color:var(--t4)" disabled>Configure Cloudinary to upload</button>`}</div>
@@ -5126,7 +5126,7 @@ const TOUR_STEPS=[
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
   {icon:icon("camera",26,'var(--blue)'),title:"Knife Photos: Upload or Paste a URL",
-   body:"Add photos to each knife while editing it. Set up a free Cloudinary account in Settings for drag-and-drop uploads direct from your browser. Or paste any direct image URL (i.imgur.com/xxx.jpg works). <strong>Swipeable gallery links in generated posts only work with Cloudinary-uploaded photos</strong> — pasted URLs (Imgur etc.) link directly to the first photo instead.",
+   body:"Add photos to each knife while editing it. Set up a free Cloudinary account in Settings for drag-and-drop uploads direct from your browser. Or paste any direct image URL (i.imgur.com/xxx.jpg works). <strong>Swipeable gallery links in generated posts only work with Cloudinary-uploaded photos</strong>: pasted URLs (Imgur etc.) link directly to the first photo instead.",
    target:'#kf-photos-field',kfOpen:true,
    nav:s=>{s.view='roll';s.modal=null;_tourOpenKnife(s);}},
 
@@ -5571,7 +5571,7 @@ function renderSettings(){
       <div><div class="srow-lbl">Change Address</div><div class="srow-sub">Update the address used to sign in. A confirmation link will be sent to the new address.</div></div>
       ${S.emailChangeOpen?`<div style="width:100%;display:flex;flex-direction:column;gap:8px">
         <input id="change-email-input" type="email" placeholder="new@example.com" autocomplete="off" style="width:100%;font-size:13px;padding:7px 10px"/>
-        ${S.emailChangeNotice?`<div style="font-size:12px;color:var(--greent);background:var(--greenbg);border-radius:8px;padding:8px 12px;border:.5px solid rgba(52,199,89,.2)">✓ Confirmation link sent — check your new address and click the link to finish.</div>`:""}
+        ${S.emailChangeNotice?`<div style="font-size:12px;color:var(--greent);background:var(--greenbg);border-radius:8px;padding:8px 12px;border:.5px solid rgba(52,199,89,.2)">✓ Confirmation link sent: check your new address and click the link to finish.</div>`:""}
         ${S.err?`<div class="err">${esc(S.err)}</div>`:""}
         <div style="display:flex;gap:8px">
           <button class="btn btn-pri btn-sm" onclick="changeEmail()">Send Confirmation</button>
