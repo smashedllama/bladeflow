@@ -4108,6 +4108,7 @@ function mainHdr(){
     </div></div>
     <div class="hdr-r">
       <a class="hdr-ico-btn" href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" title="Support the developer"><span class="ico">☕</span><span class="btn-lbl">Support</span></a>
+      <button class="hdr-ico-btn" onclick="S.view='settings';S.acctPopover=false;render()" title="Settings"><span class="ico">${icon('settings',16)}</span></button>
       <div class="acct-wrap">
         <button class="acct-btn" onclick="S.acctPopover=!S.acctPopover;render()" title="${S.authStatus==='signed_in'?esc(S.authEmail):'Account'}">
           <div class="acct-ring ${ringClass}"></div>
@@ -4115,7 +4116,6 @@ function mainHdr(){
         </button>
         ${popoverHtml}
       </div>
-      <button class="hdr-ico-btn" onclick="S.view='settings';S.acctPopover=false;render()" title="Settings"><span class="ico">${icon('settings',16)}</span></button>
     </div>
   </div>${demoBanner}`;
 }
