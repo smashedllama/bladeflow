@@ -574,7 +574,7 @@ function init() {
       (data.knives || []).forEach(k => {
         const imgs = (k.imgs || []).filter(Boolean);
         if (imgs.length) {
-          sections.push({ label: k.name || "Knife", ico: gico('image', 16), imgs, price: k.price || "", details: k.details || null, isTimestamp: false });
+          sections.push({ label: k.name || "Knife", ico: gico('image', 16), imgs, price: k.price || "", details: k.details || null, isTimestamp: false, isGear: !!k.isGear });
         }
       });
       curSection = Math.max(0, Math.min(typeof data.startAt === 'number' ? data.startAt : 0, Math.max(0, sections.length - 1)));
@@ -634,9 +634,10 @@ function buildNav() {
     document.getElementById('mob-menu-btn').style.display = 'none';
   }
 
-  // Group: timestamp sections first, then knives
+  // Group: timestamp first, then knives, then gear
   const tsIdxs = sections.map((s,i) => s.isTimestamp ? i : -1).filter(i => i >= 0);
-  const knifeIdxs = sections.map((s,i) => !s.isTimestamp ? i : -1).filter(i => i >= 0);
+  const knifeIdxs = sections.map((s,i) => !s.isTimestamp && !s.isGear ? i : -1).filter(i => i >= 0);
+  const gearIdxs = sections.map((s,i) => s.isGear ? i : -1).filter(i => i >= 0);
 
   function addLabel(el, text) {
     const lbl = document.createElement('div');
@@ -656,11 +657,15 @@ function buildNav() {
     tsIdxs.forEach(i => addNavItem(navItemsEl, i));
     if (knifeIdxs.length) addLabel(navItemsEl, knifeIdxs.length === 1 ? 'Knife' : 'Knives');
     knifeIdxs.forEach(i => addNavItem(navItemsEl, i));
+    if (gearIdxs.length) addLabel(navItemsEl, 'Gear');
+    gearIdxs.forEach(i => addNavItem(navItemsEl, i));
 
     if (tsIdxs.length) addSheetLabel(sheetItemsEl, 'Timestamp');
     tsIdxs.forEach(i => addSheetItem(sheetItemsEl, i));
     if (knifeIdxs.length) addSheetLabel(sheetItemsEl, knifeIdxs.length === 1 ? 'Knife' : 'Knives');
     knifeIdxs.forEach(i => addSheetItem(sheetItemsEl, i));
+    if (gearIdxs.length) addSheetLabel(sheetItemsEl, 'Gear');
+    gearIdxs.forEach(i => addSheetItem(sheetItemsEl, i));
   } else {
     sections.forEach((_, i) => { addNavItem(navItemsEl, i); addSheetItem(sheetItemsEl, i); });
   }
