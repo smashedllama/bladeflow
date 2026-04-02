@@ -5977,6 +5977,35 @@ if("serviceWorker" in navigator){
 window.addEventListener('beforeunload',()=>{try{const _bfs=JSON.parse(localStorage.getItem('bf_stats')||'{}');_bfs.totalTimeMs=(_bfs.totalTimeMs||0)+(Date.now()-(S._sessionStart||Date.now()));localStorage.setItem('bf_stats',JSON.stringify(_bfs));}catch(e){}});
 // Capture desired view from hash/param BEFORE any async render() calls overwrite location.hash
 const _VALID_VIEWS=['list','roll','sold','shipping','guide','settings'];
+// ─── ACCESS GATE ─────────────────────────────────────────────────────────────
+(()=>{
+  const p=new URLSearchParams(location.search);
+  if(p.get('key')==='bf2025'){
+    try{localStorage.setItem('bf_granted','1');}catch(e){}
+    // Remove key from URL bar without a reload
+    const clean=location.pathname+(location.hash||'');
+    history.replaceState(null,'',clean);
+  }
+  if(localStorage.getItem('bf_granted')!=='1'){
+    document.body.innerHTML=`<style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{background:#1C1C1E;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+      .cs{text-align:center;padding:40px 24px;max-width:420px}
+      .cs img{width:64px;height:64px;border-radius:16px;margin-bottom:20px}
+      .cs h1{color:#F2F2F7;font-size:26px;font-weight:700;margin-bottom:8px}
+      .cs p{color:rgba(242,242,247,.55);font-size:15px;line-height:1.6;margin-bottom:24px}
+      .cs a{color:#0A84FF;font-size:14px;text-decoration:none}
+    </style>
+    <div class="cs">
+      <img src="/bladeflow/icon.png" alt="BladeFlow">
+      <h1>Coming Soon</h1>
+      <p>BladeFlow is still in beta. Follow <a href="https://www.reddit.com/user/smashedllama" target="_blank">u/smashedllama</a> on Reddit for updates.</p>
+      <a href="https://smashedllama.github.io/bladeflow/gallery.html" target="_blank">View a sample gallery</a>
+    </div>`;
+    throw new Error('access gate');
+  }
+})();
+
 const _STARTUP_HASH=location.hash.replace('#','');
 const _STARTUP_VIEW=_VALID_VIEWS.includes(_STARTUP_HASH)?_STARTUP_HASH
   :new URLSearchParams(location.search).has('guide')?'guide':null;
