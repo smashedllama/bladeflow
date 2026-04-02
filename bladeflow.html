@@ -5208,7 +5208,7 @@ const TOUR_STEPS=[
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
   {icon:icon("tag",26,'var(--redt)'),title:"Mark Sold & Capture Buyer Info",
-   body:`Hit ${icon('tag',13,'var(--redt)')} Sold on the knife row and enter the buyer's Reddit username and sale price. Once confirmed, two buttons appear: ${chip('Confirm Comment')} for the confirmed trade thread, and ${chip('Payment Message')} which copies a pre-formatted DM with your payment links, price, and an address request — ready to paste straight into Reddit chat.`,
+   body:`Hit ${icon('tag',13,'var(--redt)')} Sold on the knife row and enter the buyer's Reddit username and sale price. Once confirmed, two buttons appear: <strong>Confirm Comment</strong> for the confirmed trade thread, and <strong>Payment Message</strong> which copies a pre-formatted DM with your payment links, price, and an address request — ready to paste straight into Reddit chat.`,
    target:'.krow.sold',
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
@@ -5293,7 +5293,7 @@ function startTour(){
     const bugoutK=existingDemo.knives.find(k=>k.inventoryId===bugoutId||k.brand==="Benchmade");
     if(bugoutK&&!bugoutK.sold){
       const now3=new Date().toISOString();
-      Object.assign(bugoutK,{sold:true,soldAt:now3,soldTo:"ExampleBuyer99",
+      Object.assign(bugoutK,{sold:true,soldAt:now3,soldTo:"ExampleBuyer99",soldPrice:"110",
         shippingAddress:{name:"Alex Johnson",line1:"456 Oak Ave",line2:"Apt 3B",city:"Austin",state:"TX",zip:"78701"},
         trackingNumber:null,trackingCarrier:"USPS"});
     }
