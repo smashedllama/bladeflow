@@ -2247,7 +2247,7 @@ function buildPost(post,v){
   const bundle=post.bundleEnabled&&post.bundlePrice;
   const ph=SETTINGS.postHeader?(SETTINGS.postHeader.trim()):"";
   const ti=post.tradeInterests||(SETTINGS.tradeInterests||"");
-  const soldCommentBlurb=SETTINGS.soldInComment?"\n\n*Sold items are tracked in the comments on this post. Repeated edits can trigger Reddit's spam filter and get listings removed, so availability updates are posted there instead.*":"";
+  const soldCommentBlurb=SETTINGS.soldInComment?"\n\n*Sold items are tracked in the [SOLD ITEM TRACKER] comment on this post. Repeated edits can trigger Reddit's spam filter and get listings removed, so availability updates are posted there instead.*":"";
   const isWTT=type.includes("WTT");
   const dot=k=>{const c=k.soldElsewhere||k.sold?'var(--redt)':k.withdrawn?'var(--t3)':k.pending?'var(--oranget)':'var(--greent)';return`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;margin-right:2px"></span>`;}
 
