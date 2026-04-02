@@ -2247,7 +2247,7 @@ function buildPost(post,v){
   const bundle=post.bundleEnabled&&post.bundlePrice;
   const ph=SETTINGS.postHeader?(SETTINGS.postHeader.trim()):"";
   const ti=post.tradeInterests||(SETTINGS.tradeInterests||"");
-  const soldCommentBlurb=SETTINGS.soldInComment?"\n\n*Sold items are tracked in the comments below — check there for current availability.*":"";
+  const soldCommentBlurb=SETTINGS.soldInComment?"\n\n*Sold items are tracked in the comments on this post. Repeated edits can trigger Reddit's spam filter and get listings removed, so availability updates are posted there instead.*":"";
   const isWTT=type.includes("WTT");
   const dot=k=>{const c=k.soldElsewhere||k.sold?'var(--redt)':k.withdrawn?'var(--t3)':k.pending?'var(--oranget)':'var(--greent)';return`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;margin-right:2px"></span>`;}
 
@@ -2292,7 +2292,7 @@ function buildPost(post,v){
     const notesLine=post.notes?`\n**Notes:** ${post.notes}`:"";
     const sig=un?`*${un} - ${ts}*`:`*${ts}*`;
     const itemsSection0=buildItemsSection(post);
-    return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}**Timestamp:** ${photoBlock}\n\n---\n\n${blocks}${addonBlock}${bundleBlock}${selBundleBlock}${itemsSection0}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${carrier} w/ insurance | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${soldCommentBlurb}\n\n${sig}`;
+    return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}**Timestamp:** ${photoBlock}${soldCommentBlurb}\n\n---\n\n${blocks}${addonBlock}${bundleBlock}${selBundleBlock}${itemsSection0}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${carrier} w/ insurance | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
   }
 
   if(v===1){
@@ -2325,7 +2325,7 @@ function buildPost(post,v){
     const sig=un?`${un} - ${ts}`:ts;
     const shipSummary1=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
     const itemsSection1=buildItemsSection(post);
-    return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}Timestamp: ${photoLine}\n\n${lines}${addonBlock1}${bundleLine}${selBundleLine1}${itemsSection1}\n\nPayment: ${pay} | Shipping: ${shipSummary1}${noshipLine}${tradeFooter}${post.notes?"\nNotes: "+post.notes:""}${soldCommentBlurb}\n${sig}`;
+    return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}Timestamp: ${photoLine}${soldCommentBlurb}\n\n${lines}${addonBlock1}${bundleLine}${selBundleLine1}${itemsSection1}\n\nPayment: ${pay} | Shipping: ${shipSummary1}${noshipLine}${tradeFooter}${post.notes?"\nNotes: "+post.notes:""}\n${sig}`;
   }
 
   // TABLE (v=3) - Reddit markdown table
@@ -2370,7 +2370,7 @@ function buildPost(post,v){
     }).join("\n");
     const shipSummary3=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
     const itemsSection3=buildItemsSection(post);
-    return`${rp?rp.trim()+"\n\n":""}${hdrBlock?hdrBlock.trim()+"\n\n":""}**Timestamp:** ${photoBlock}\n\n---\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${addonBlock3}${bundleBlock}${selBundleBlock3}${itemsSection3}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${shipSummary3} | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${soldCommentBlurb}\n\n${sig}`;
+    return`${rp?rp.trim()+"\n\n":""}${hdrBlock?hdrBlock.trim()+"\n\n":""}**Timestamp:** ${photoBlock}${soldCommentBlurb}\n\n---\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${addonBlock3}${bundleBlock}${selBundleBlock3}${itemsSection3}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${shipSummary3} | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}\n\n${sig}`;
   }
 
   // MINIMAL (v=2) - one line per knife
@@ -2383,7 +2383,7 @@ function buildPost(post,v){
   const sig=un?`${un} - ${ts}`:ts;
   const shipSummary2=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ ins`:`${carrier} w/ ins`;
   const itemsSection2=buildItemsSection(post);
-  return`${rp?rp.trim()+"\n\n":""}${photoLine}${headerBlock}\n\n${post.knives.map((k,i)=>{const gu=(k.photos||[]).filter(Boolean).length?(buildPostGalleryUrl(post,i)||galleryUrl(k)):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);const inlineAddon2=k.addonEnabled&&k.addonPrice?` | Add-on: $${k.addonPrice}`:"";return`${nm}${k.soldElsewhere?(k.soldPrice?` [SOLD ELSEWHERE @ $${k.soldPrice}]`:" [SOLD ELSEWHERE]"):k.withdrawn?" [WITHDRAWN]":k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":""} | ${knifePrice(k)}${inlineAddon2} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}${selBundleLine2}${itemsSection2}\n\nPayment: ${pay} | Shipping: ${shipSummary2}${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}${soldCommentBlurb}\n${sig}`;
+  return`${rp?rp.trim()+"\n\n":""}${photoLine}${soldCommentBlurb}${headerBlock}\n\n${post.knives.map((k,i)=>{const gu=(k.photos||[]).filter(Boolean).length?(buildPostGalleryUrl(post,i)||galleryUrl(k)):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);const inlineAddon2=k.addonEnabled&&k.addonPrice?` | Add-on: $${k.addonPrice}`:"";return`${nm}${k.soldElsewhere?(k.soldPrice?` [SOLD ELSEWHERE @ $${k.soldPrice}]`:" [SOLD ELSEWHERE]"):k.withdrawn?" [WITHDRAWN]":k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":""} | ${knifePrice(k)}${inlineAddon2} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}${selBundleLine2}${itemsSection2}\n\nPayment: ${pay} | Shipping: ${shipSummary2}${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}\n${sig}`;
 }
 
 // ─── UPLOAD ───────────────────────────────────────────────────
