@@ -1103,22 +1103,27 @@ async function _doSbSync(){
   const noId=S.inventory.filter(k=>!k._tourDemo&&!k.id);
   if(noId.length)console.warn('[sync] Skipping',noId.length,'item(s) with no id:',noId);
 
-  // Per-step timeout + one automatic retry (Supabase free tier can have connection pool spikes)
-  const withTimeout=(promise,ms,label)=>Promise.race([
-    promise,
-    new Promise((_,rej)=>setTimeout(()=>rej(new Error(label+' timed out ('+ms+'ms)')),ms))
-  ]);
+  // Per-step timeout using AbortController so timed-out requests are actually cancelled
+  // (Promise.race left zombie requests running, causing attempt 2 to compete with attempt 1)
   const upsertWithRetry=async(table,payload,label)=>{
-    const run=()=>_sb.from(table).upsert(payload,{onConflict:'id'});
     for(let attempt=1;attempt<=2;attempt++){
-      const ms=attempt===1?20000:30000;
+      const ms=attempt===1?25000:35000;
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),ms);
       try{
-        const{error}=await withTimeout(run(),ms,label+' attempt '+attempt);
+        const{error}=await _sb.from(table).upsert(payload,{onConflict:'id'}).abortSignal(ctrl.signal);
+        clearTimeout(tid);
         if(!error)return;
         throw new Error(label+': '+(error.message||error.code||JSON.stringify(error)));
       }catch(e){
-        if(attempt<2){console.warn('[sync]',label,'attempt',attempt,'failed:',e.message,'— retrying in 4s…');await new Promise(r=>setTimeout(r,4000));}
-        else throw e;
+        clearTimeout(tid);
+        if(ctrl.signal.aborted){
+          if(attempt<2){console.warn('[sync]',label,'attempt',attempt,'timed out — retrying…');await new Promise(r=>setTimeout(r,2000));}
+          else throw new Error(label+' attempt '+attempt+' timed out ('+ms+'ms)');
+        }else{
+          if(attempt<2){console.warn('[sync]',label,'attempt',attempt,'failed:',e.message,'— retrying…');await new Promise(r=>setTimeout(r,4000));}
+          else throw e;
+        }
       }
     }
   };
@@ -1133,17 +1138,17 @@ async function _doSbSync(){
   // Log payload sizes — catches accidental base64-photo inflation
   console.log('[sync] payload bytes — posts:'+JSON.stringify(postsPayload).length+' inv:'+JSON.stringify(invPayload).length);
 
-  // Fire posts + inventory upserts in parallel — one round-trip instead of two sequential waits
-  const ops=[];
+  // Sequential upserts: posts first to warm the connection, then inventory on the warm socket
   if(posts.length){
     console.log('[sync] posts →',posts.length);
-    ops.push(upsertWithRetry('posts',postsPayload,'Posts upsert').then(()=>console.log('[sync] posts ✓')));
+    await upsertWithRetry('posts',postsPayload,'Posts upsert');
+    console.log('[sync] posts ✓');
   }
   if(inv.length){
     console.log('[sync] inventory →',inv.length,'(knives:',inv.filter(k=>!k.itemCategory).length,'gear:',inv.filter(k=>k.itemCategory).length,')');
-    ops.push(upsertWithRetry('inventory',invPayload,'Inventory upsert').then(()=>console.log('[sync] inventory ✓')));
+    await upsertWithRetry('inventory',invPayload,'Inventory upsert');
+    console.log('[sync] inventory ✓');
   }
-  if(ops.length)await Promise.all(ops);
 }
 
 function _scheduleSbSync(immediate){
