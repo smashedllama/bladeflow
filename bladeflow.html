@@ -1744,7 +1744,7 @@ function gearItemGalleryUrl(x){
         user:SETTINGS.username||"",
         imgs
       }))));
-      return`https://smashedllama.github.io/bladeflow/gallery.html?d=${d}`;
+      return`https://bladeflow-gallery.altdev-319.workers.dev?d=${d}`;
     }catch(e){}
   }
   if(x.imgurLink)return x.imgurLink;
@@ -1764,7 +1764,7 @@ function galleryUrl(k){
         imgs:cdnImgs,
         details:knifeDetails(k)
       }))));
-      return`https://smashedllama.github.io/bladeflow/gallery.html?d=${d}`;
+      return`https://bladeflow-gallery.altdev-319.workers.dev?d=${d}`;
     }catch(e){}
   }
   // Fall back to imgur gallery link if set
@@ -1815,7 +1815,7 @@ function buildPostGalleryUrl(post, knifeIdx){
       timestamp:timestampPhotos,
       startAt
     }))));
-    return`https://smashedllama.github.io/bladeflow/gallery.html?d=${d}`;
+    return`https://bladeflow-gallery.altdev-319.workers.dev?d=${d}`;
   }catch(e){return null;}
 }
 
