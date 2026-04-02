@@ -4009,7 +4009,7 @@ function renderGuide(){
       ${critStep(2,"Comments only. Never DMs alone.","A buyer must comment on the post publicly. Never sell to someone who only sends you a DM without commenting first. Buyers who cannot comment may be shadowbanned or otherwise restricted on the sub. Selling to them puts you at risk with no recourse.")}
       ${step(3,"Reply to their comment","Something like 'Yours, sending a chat' in the comments. Then send them a chat/DM with payment details.")}
       ${step(4,"If multiple people are interested","They will call seconds, thirds, etc. in the comments. If your first buyer backs out, move to the next person in line in comment order.")}
-      ${tool("Hit the Payment Info button on the knife row to copy a pre-formatted payment message: knife name, price, payment links, and a no-notes warning. Paste it straight into Reddit chat.")}
+      ${tool("Hit the Payment Info button on the knife row to copy a pre-formatted payment message with price and your payment links. Paste it straight into Reddit chat.")}
       ${warn("The no-notes warning matters: adding any mention of knives in the payment memo on Venmo, Cash App, or Zelle can get payment accounts flagged or banned. The payment message the tool generates already includes this warning for your buyer.")}
     `)}
 
@@ -4025,7 +4025,8 @@ function renderGuide(){
       ${step(1,"Click the Sold button on the knife row","Found in your listing on the Listings tab.")}
       ${step(2,"Enter the buyer's Reddit username","This is used to generate the confirmed trade comment.")}
       ${step(3,"Enter the final sale price","This updates the post text and shows in your sold history.")}
-      ${tool("The post text updates automatically with a strikethrough [SOLD] label next to the knife. Your Roll entry moves to sold status.")}
+      ${step(4,"Hit Payment Message on the sold knife row","Copies a pre-formatted DM to your clipboard with your payment links, the sale price, and a request for the buyer's shipping address. Paste it directly into Reddit chat.")}
+      ${tool("The post text updates automatically with a strikethrough [SOLD] label next to the knife. Your Roll entry moves to sold status. You can customize the Payment Message template in Settings.")}
     `)}
 
     ${sec(icon("truck",18,'#0071E3'),"Step 9: Ship the Knife","rgba(0,122,255,.1)",`
@@ -4134,7 +4135,8 @@ function renderAboutModal(){
       {q:"What is Cloudinary and do I need it?",a:"Cloudinary is a free image hosting service. You only need it if you want to drag-and-drop upload photos directly from the tool. You can skip it entirely and paste direct image URLs instead."},
       {q:"Will Imgur links work?",a:"Yes, but only direct image links in the format i.imgur.com/xxx.jpg. Album page URLs (imgur.com/a/xxx) will not work as photo links in posts."},
       {q:"How does the price drop checker work?",a:"r/Knife_Swap requires either a 10% price reduction or a $25 reduction to repost within 7 days. After 7 days you can repost at the same price. The tool checks these rules automatically and shows the minimum valid repost price. Hit the Repost button on any listing to generate a new post with the drop already applied."},
-      {q:"How do I mark a knife as sold?",a:"Click the red Sold button on any knife row in your listing. A form slides open to capture the buyer's Reddit username, the final sale price, and their shipping address. The knife moves to your sold history and the post text updates automatically with a strikethrough [SOLD] label."},
+      {q:"How do I mark a knife as sold?",a:"Click the red Sold button on any knife row in your listing. A form slides open to capture the buyer's Reddit username and final sale price. Once confirmed, two buttons appear on the knife row: Confirm Comment (for the confirmed trade thread) and Payment Message."},
+      {q:"What is the Payment Message button?",a:"After marking a knife sold, the Payment Message button copies a pre-formatted DM to your clipboard. It includes your payment links, the sale price, a no-notes warning for services like Venmo or Cash App, and a request for the buyer's shipping address — everything you need to paste straight into a Reddit chat. You can customize the template in Settings under Payment Message Template."},
       {q:"What is the confirmed trade comment?",a:"After your buyer receives the knife, both parties post in r/Knife_Swap's monthly Confirmed Trade Thread. Hit the Confirm Comment button on any knife in the Shipping tab to copy a pre-formatted comment. Paste it in the thread, your buyer replies 'Confirmed', and u/ksbot records it for both your flair counts."},
       {q:"How does PirateShip work with this tool?",a:"When you mark a knife sold and enter the buyer's address, a Ship on PirateShip button appears in the Shipping tab. Clicking it opens PirateShip in a new tab and copies the buyer's address to your clipboard so you can paste it directly into the label form. PirateShip rates are typically 30-40% cheaper than retail post office pricing."},
       {q:"Can I use this for WTT posts?",a:"Yes. Each knife can be set to WTS, WTT, or WTS/WTT. The tool picks the correct post type for the title automatically based on what you add."},
@@ -5206,8 +5208,8 @@ const TOUR_STEPS=[
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
   {icon:icon("tag",26,'var(--redt)'),title:"Mark Sold & Capture Buyer Info",
-   body:`When a knife sells, hit ${icon('tag',13,'var(--redt)')} Sold on the knife row. A form captures the buyer's Reddit username and shipping address. Enter the ZIP and city/state auto-fills via the zippopotam.us API.`,
-   target:'.krow',
+   body:`Hit ${icon('tag',13,'var(--redt)')} Sold on the knife row and enter the buyer's Reddit username and sale price. Once confirmed, two buttons appear: ${chip('Confirm Comment')} for the confirmed trade thread, and ${chip('Payment Message')} which copies a pre-formatted DM with your payment links, price, and an address request — ready to paste straight into Reddit chat.`,
+   target:'.krow.sold',
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
   {icon:icon("package",26,'var(--blue)'),title:"Shipping Pipeline: Ready to Ship",
@@ -5253,7 +5255,7 @@ function startTour(){
     // Bugout: pre-sold so the Shipping tab has a "Ready to Ship" card to demo
     const demaBugoutInv=S.inventory.find(k=>k.id===bugoutId)||demoBugout;
     const demoBugoutK={...JSON.parse(JSON.stringify(demaBugoutInv)),inventoryId:bugoutId,knifeType:"WTS",pending:false,
-      sold:true,soldAt:now2,soldTo:"ExampleBuyer99",
+      sold:true,soldAt:now2,soldTo:"ExampleBuyer99",soldPrice:"110",
       shippingAddress:{name:"Alex Johnson",line1:"456 Oak Ave",line2:"Apt 3B",city:"Austin",state:"TX",zip:"78701"},
       trackingNumber:null,trackingCarrier:"USPS"};
     // Update Bugout inventory status
