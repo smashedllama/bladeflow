@@ -3333,7 +3333,7 @@ function render(){
     }
   }
 }
-function openPreflight(pid){S.preflight=pid;S.modal="preflight";render();}
+function openPreflight(pid){S.preflight=pid;S.modal="preflight";try{if(localStorage.getItem("ks_rules_ok")==="1")S.rulesConfirmed=true;}catch(e){}render();}
 function closePreflight(){S.modal=null;S.preflight=null;render();}
 function addTimestampToPreflight(pid){
   const url=(document.getElementById("pf-ts-input")?.value||"").trim();
@@ -3350,13 +3350,13 @@ function addTimestampInline(pid){
 async function copyFromPreflight(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
   let copied=false;try{await navigator.clipboard.writeText(p.postText||"");copied=true;}catch(e){}
-  S.copied=pid;S.modal=null;S.preflight=null;S.rulesConfirmed=false;
+  S.copied=pid;S.modal=null;S.preflight=null;
   S.flairToast=copied?`${icon('clipboard',13)} Post text copied. On Reddit: switch to Markdown editor (bottom-right of the text box), then paste.`:`${icon('alert-triangle',13,'var(--oranget)')} Couldn't auto-copy. On Reddit: switch to Markdown editor first, then paste your post text.`;
   clearTimeout(S._flairTid);S._flairTid=setTimeout(()=>{S.flairToast=null;render();},9000);
   render();setTimeout(()=>{if(S.copied===pid){S.copied=null;render();}},2000);
 }
 async function openRedditFromPreflight(pid){
-  S.modal=null;S.preflight=null;S.rulesConfirmed=false;render();
+  S.modal=null;S.preflight=null;render();
   await openRedditPost(pid);
 }
 function renderPreflightModal(){
@@ -3396,7 +3396,7 @@ function renderPreflightModal(){
       ${checkRows}
       <div style="padding:12px 0 4px">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
-          <input type="checkbox" ${rulesConfirmed?"checked":""} onchange="S.rulesConfirmed=this.checked;render()" style="width:16px;height:16px;margin-top:2px;flex-shrink:0;cursor:pointer"/>
+          <input type="checkbox" ${rulesConfirmed?"checked":""} onchange="S.rulesConfirmed=this.checked;if(this.checked){try{localStorage.setItem('ks_rules_ok','1');}catch(e){}}render()" style="width:16px;height:16px;margin-top:2px;flex-shrink:0;cursor:pointer"/>
           <span style="font-size:13px;color:var(--t1);line-height:1.5">I've read the <a href="https://www.reddit.com/r/Knife_Swap/wiki/rules" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">r/Knife_Swap rules</a> and my post follows them</span>
         </label>
       </div>
