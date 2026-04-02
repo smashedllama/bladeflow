@@ -1,6 +1,6 @@
 // BladeFlow Service Worker
-// v3: network-first for HTML navigation so auth fixes deploy instantly
-const CACHE = 'bf-app-v3';
+// v4: force cache bust after Supabase SRI fix
+const CACHE = 'bf-app-v4';
 const CORE = ['/bladeflow/', '/bladeflow/index.html'];
 
 self.addEventListener('install', e => {
