@@ -2234,7 +2234,7 @@ function buildTimestampLine(post){
   const ts=(post.photos||[]).filter(Boolean);
   if(!ts.length)return"[ paste your timestamp photo link here ]";
   const galleryLink=buildPostGalleryUrl(post,undefined)||ts[0];
-  return`[TIMESTAMP](${galleryLink})`;
+  return`[TIMESTAMP](${galleryLink})[\u200B](${ts[0]})`;
 }
 
 function buildPost(post,v){
