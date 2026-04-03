@@ -2265,7 +2265,7 @@ function buildPost(post,v){
       const inlineAddon=k.addonEnabled&&!post.groupAddons&&k.addonPrice?` | Add-on: $${k.addonPrice}`:"";
       const pl=knifePrice(k)+inlineAddon;
       const kphotos=(k.photos||[]).filter(Boolean);
-      const nameLinked=kphotos.length?`[${k.brand} ${k.model}](${galleryUrl(k)||kphotos[0]})`:(`${k.brand} ${k.model}`);
+      const nameLinked=kphotos.length?`[${k.brand} ${k.model}](${buildPostGalleryUrl(post,i)||galleryUrl(k)||kphotos[0]})`:(`${k.brand} ${k.model}`);
       const statusLabel=k.soldElsewhere?"[SOLD ELSEWHERE]":k.withdrawn?"[WITHDRAWN]":k.sold?"[SOLD]":k.pending?"[PENDING]":"";
       const soldLabel=k.soldElsewhere?(k.soldPrice?`[SOLD ELSEWHERE @ $${k.soldPrice}]`:"[SOLD ELSEWHERE]"):k.withdrawn?"[WITHDRAWN]":k.sold?(k.soldPrice?`[SOLD @ $${k.soldPrice}]`:"[SOLD]"):"";
       const num=i+1;
@@ -2307,7 +2307,7 @@ function buildPost(post,v){
       const iss=k.issues.filter(x=>x!=="None").map(x=>x==="Other"&&k.issuesOther?k.issuesOther:x).join(", ")||"None";
       const ac=k.accessories.filter(x=>x!=="None").map(x=>x==="Other"&&k.accessoriesOther?k.accessoriesOther:x).join(", ")||"None";
       const kphotos=(k.photos||[]).filter(Boolean);
-      const nameLinked=kphotos.length?`[${k.brand} ${k.model}](${galleryUrl(k)||kphotos[0]})`:(`${k.brand} ${k.model}`);
+      const nameLinked=kphotos.length?`[${k.brand} ${k.model}](${buildPostGalleryUrl(post,i)||galleryUrl(k)||kphotos[0]})`:(`${k.brand} ${k.model}`);
       const statusLabel=k.soldElsewhere?(k.soldPrice?` [SOLD ELSEWHERE @ $${k.soldPrice}]`:" [SOLD ELSEWHERE]"):k.withdrawn?" [WITHDRAWN]":k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":"";
       const inlineAddon=k.addonEnabled&&!post.groupAddons&&k.addonPrice?` | Add-on: $${k.addonPrice}`:"";
       let block=`**${i+1}. ${nameLinked}**${statusLabel} | ${knifePrice(k)}${inlineAddon}`;
@@ -2347,7 +2347,7 @@ function buildPost(post,v){
     const rows=mainKnives3.map((k)=>{
       const i=post.knives.indexOf(k);
       const kphotos3=(k.photos||[]).filter(Boolean);
-      const gurl3=kphotos3.length?(galleryUrl(k)||kphotos3[0]):null;
+      const gurl3=kphotos3.length?(buildPostGalleryUrl(post,i)||galleryUrl(k)||kphotos3[0]):null;
       const soldTag3=k.soldElsewhere?(k.soldPrice?` \\[SOLD ELSEWHERE @ $${k.soldPrice}\\]`:" \\[SOLD ELSEWHERE\\]"):k.withdrawn?" \\[WITHDRAWN\\]":k.sold?(k.soldPrice?` \\[SOLD @ $${k.soldPrice}\\]`:" \\[SOLD\\]"):k.pending?" \\[PENDING\\]":"";
       const nameCell=gurl3
         ?`[${k.brand} ${k.model}](${gurl3})${soldTag3}`
@@ -2383,7 +2383,7 @@ function buildPost(post,v){
   const sig=un?`${un} - ${ts}`:ts;
   const shipSummary2=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ ins`:`${carrier} w/ ins`;
   const itemsSection2=buildItemsSection(post);
-  return`${rp?rp.trim()+"\n\n":""}${photoLine}${soldCommentBlurb}${headerBlock}\n\n${post.knives.map((k,i)=>{const kph2=(k.photos||[]).filter(Boolean);const gu=kph2.length?(galleryUrl(k)||kph2[0]):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);const inlineAddon2=k.addonEnabled&&k.addonPrice?` | Add-on: $${k.addonPrice}`:"";return`${nm}${k.soldElsewhere?(k.soldPrice?` [SOLD ELSEWHERE @ $${k.soldPrice}]`:" [SOLD ELSEWHERE]"):k.withdrawn?" [WITHDRAWN]":k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":""} | ${knifePrice(k)}${inlineAddon2} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}${selBundleLine2}${itemsSection2}\n\nPayment: ${pay} | Shipping: ${shipSummary2}${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}\n${sig}`;
+  return`${rp?rp.trim()+"\n\n":""}${photoLine}${soldCommentBlurb}${headerBlock}\n\n${post.knives.map((k,i)=>{const kph2=(k.photos||[]).filter(Boolean);const gu=kph2.length?(buildPostGalleryUrl(post,i)||galleryUrl(k)||kph2[0]):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);const inlineAddon2=k.addonEnabled&&k.addonPrice?` | Add-on: $${k.addonPrice}`:"";return`${nm}${k.soldElsewhere?(k.soldPrice?` [SOLD ELSEWHERE @ $${k.soldPrice}]`:" [SOLD ELSEWHERE]"):k.withdrawn?" [WITHDRAWN]":k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":""} | ${knifePrice(k)}${inlineAddon2} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}${selBundleLine2}${itemsSection2}\n\nPayment: ${pay} | Shipping: ${shipSummary2}${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}\n${sig}`;
 }
 
 // ─── UPLOAD ───────────────────────────────────────────────────
