@@ -983,7 +983,7 @@ const NO_SHIP=["California","New York","New Jersey","Illinois","Massachusetts","
 const ISSUES=["Light scratches","Deep scratches","Snail trails","Blade stain","Handle marks","Tip damage","Blade play","Lock stick","Lock slip","Lock rock","Ano wear","Detent issues","Detent lash","Other","None"];
 const ACC=["Original box","Certificate/papers","Carrying pouch","Kydex sheath","Sheath","Pocket clip","Adjustment tool","Spare scales","Extra hardware","Extra screws","Blade oil","Lanyard","Polishing cloth","Other","None"];
 const BLADE_COND=["Factory edge","Stropped","Honed","Field sharpened","Reprofiled","Dull"];
-const TMPL=["Detailed","Compact","Minimal","Table"];
+const TMPL=["Detailed","Compact","Table"];
 
 // ─── HELPERS ──────────────────────────────────────────────────
 function gid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
@@ -1951,7 +1951,7 @@ function computeDataNerd(){
   for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const k=d.toLocaleDateString("en-US",{month:"short",year:"2-digit"});mKeys.push(k);mSales[k]=0;mRev[k]=0;}
   soldLK.forEach(k=>{if(!k.soldAt)return;const kk=new Date(k.soldAt).toLocaleDateString("en-US",{month:"short",year:"2-digit"});if(mSales.hasOwnProperty(kk)){mSales[kk]++;mRev[kk]+=parseFloat(k.soldPrice||k.price||0);}});
   // Post formats & types
-  const fmts={Detailed:0,Compact:0,Minimal:0,Table:0};const fNames=["Detailed","Compact","Minimal","Table"];
+  const fmts={Detailed:0,Compact:0,Table:0};const fNames=["Detailed","Compact","Table","Table"];
   S.posts.forEach(p=>fmts[fNames[p.variant||0]]++);
   const ktCnt={WTS:0,WTT:0,"WTS/WTT":0};
   allLK.forEach(k=>{const kt=k.knifeType||"WTS";if(ktCnt.hasOwnProperty(kt))ktCnt[kt]++;});
@@ -2240,6 +2240,7 @@ function buildTimestampLine(post){
 
 function buildPost(post,v){
   v=v!==undefined?v:(post.variant||0);
+  if(v===2)v=3; // Minimal removed; variant 2 now maps to Table
   const ts=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
   const payList=post.payment.map(p=>p==="Other"&&post.paymentOther?post.paymentOther:p);
   const pay=payList.join(" | ");
@@ -2379,17 +2380,7 @@ function buildPost(post,v){
     return`${rp?rp.trim()+"\n\n":""}${hdrBlock?hdrBlock.trim()+"\n\n":""}${photoBlock}${soldCommentBlurb}\n\n* * *\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${addonBlock3}${bundleBlock}${selBundleBlock3}${itemsSection3}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${shipSummary3} | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${sig?"\n\n"+sig:""}`;
   }
 
-  // MINIMAL (v=2) - one line per knife
-  const photoLine=buildTimestampLine(post);
-  const headerBlock=ph?`\n${ph}`:"";
-  const bundleLine=bundle?`\nBundle: $${post.bundlePrice} for all`:"";
-  const selBundleLine2=buildBundleLines(post)?`\n${buildBundleLines(post)}`:"";
-  const noshipLine=noShipList.length?` | No ship: ${noShipList.join(", ")}`:"";
-  const tradeFooter=isWTT?(ti?` | Trades: ${ti}`:""):" | No Trades";
-  const sig=un||"";
-  const shipSummary2=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ ins`:`${carrier} w/ ins`;
-  const itemsSection2=buildItemsSection(post);
-  return`${rp?rp.trim()+"\n\n":""}${photoLine}${soldCommentBlurb}${headerBlock}\n\n${post.knives.map((k,i)=>{const kph2=(k.photos||[]).filter(Boolean);const gu=kph2.length?(buildPostGalleryUrl(post,i)||galleryUrl(k)||kph2[0]):null;const nm=gu?`[${k.brand} ${k.model}](${gu})`:(`${k.brand} ${k.model}`);const inlineAddon2=k.addonEnabled&&k.addonPrice?` | Add-on: $${k.addonPrice}`:"";return`${nm}${k.soldElsewhere?(k.soldPrice?` [SOLD ELSEWHERE @ $${k.soldPrice}]`:" [SOLD ELSEWHERE]"):k.withdrawn?" [WITHDRAWN]":k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":""} | ${knifePrice(k)}${inlineAddon2} | ${k.steel||"N/A"}, ${k.bladeCondition}`;}).join("\n")}${bundleLine}${selBundleLine2}${itemsSection2}\n\nPayment: ${pay} | Shipping: ${shipSummary2}${noshipLine}${tradeFooter}${post.notes?"\n"+post.notes:""}${sig?"\n"+sig:""}`;
+  return""; // fallback — should never reach here
 }
 
 // ─── UPLOAD ───────────────────────────────────────────────────
@@ -3813,8 +3804,7 @@ function renderTutorialModal(){
        <li><strong>Detailed</strong>: full condition notes, issues, accessories</li>
        <li><strong>Compact</strong>: clean one-liner per knife</li>
        <li><strong>Table</strong>: markdown table layout</li>
-       <li><strong>Minimal</strong>: bare essentials only</li>
-     </ul>
+       </ul>
      Use the ${chip("Switch")} button on any listing to cycle between them anytime.
      <div style="margin-top:10px;padding:8px 10px;background:var(--orangebg);border-radius:8px;font-size:12px;color:var(--oranget)"><strong>Gear & Extras auto-grouping:</strong> Any non-knife items you add (watches, sunglasses, etc.) are automatically grouped into a labeled <strong>Gear & Extras</strong> section at the bottom of your post.</div>`)}
      <div class="tut-cta-row"><button class="btn btn-pri btn-sm" onclick="tutDone();startCompose()">${icon('pencil',13)} Start a New Listing</button></div>`},
@@ -4031,7 +4021,7 @@ function renderGuide(){
       ${step(2,"Add knives from The Roll","Tap + Add from Roll and select your knife. The picker shows each knife's readiness: incomplete knives display exactly what's missing (e.g. missing Show Side photo, no price) and are blocked with a Fix first badge until the issues are resolved. Or add knives manually if you prefer.")}
       ${step(3,"Add gear items from The Roll (optional)","Tap From Roll: Gear to add watches, sunglasses, or other non-knife items. They are automatically grouped into a labeled Gear & Extras section at the bottom of your post.")}
       ${step(4,"Paste your timestamp URL","Required before you can post.")}
-      ${step(5,"Pick a template","Detailed includes all condition notes. Compact is a clean one-liner. Minimal is bare essentials. Table is a markdown table layout. Hit Switch to cycle between them anytime.")}
+      ${step(5,"Pick a template","Detailed includes all condition notes. Compact is a clean one-liner. Table is a markdown table layout. Hit Switch to cycle between them anytime.")}
       ${step(6,"Review the generated title and body","The tool fills in everything: post type, knife details, gear items, prices, payment methods, and shipping. Check that it looks right.")}
       ${step(7,"Add a custom header (optional)","A personal intro at the top of every post: your house rules, payment requirements, or trade interests. Set it once in Settings and it appears on every listing.")}
       ${tip("Common header example: PayPal G&S only · CONUS · Yolo &gt; Chat · Payment within 24 hours")}
@@ -4185,7 +4175,7 @@ function renderAboutModal(){
       {q:"What is the confirmed trade comment?",a:"After your buyer receives the knife, both parties post in r/Knife_Swap's monthly Confirmed Trade Thread. Hit the Confirm Comment button on any knife in the Shipping tab to copy a pre-formatted comment. Paste it in the thread, your buyer replies 'Confirmed', and u/ksbot records it for both your flair counts."},
       {q:"How does PirateShip work with this tool?",a:"When you mark a knife sold and enter the buyer's address, a Ship on PirateShip button appears in the Shipping tab. Clicking it opens PirateShip in a new tab and copies the buyer's address to your clipboard so you can paste it directly into the label form. PirateShip rates are typically 30-40% cheaper than retail post office pricing."},
       {q:"Can I use this for WTT posts?",a:"Yes. Each knife can be set to WTS, WTT, or WTS/WTT. The tool picks the correct post type for the title automatically based on what you add."},
-      {q:"What are the four templates?",a:"Detailed, Compact, Minimal, and Table. Detailed includes all condition info. Compact is shorter. Minimal is just the essentials. Table lays everything out in a Reddit markdown table. Switch between them with the Switch button on any listing."},
+      {q:"What are the templates?",a:"Detailed, Compact, and Table. Detailed includes all condition info. Compact is shorter. Table lays everything out in a Reddit markdown table. Switch between them with the Switch button on any listing."},
       {q:"What does Pending mean?",a:"Pending flags a knife as payment incoming but not yet cleared. Use it when a buyer has called dibs and you're waiting for funds to arrive. The knife shows as pending in your post and won't be marked sold until you confirm it."},
       {q:"What payment methods should I include?",a:"PayPal G&S (Goods and Services) is required for all sellers until you reach 25 confirmed trades. After 25 trades you can accept Venmo, Cash App, Zelle, and other methods. Add your payment links in Settings and they auto-fill into every dibs message you send."},
       {q:"How does price research work?",a:"After entering a knife's brand, model, and steel, click Check Comps in the knife form. The tool searches r/Knife_Swap for recent sold listings matching that knife and steel, then shows average, median, and price range. You can save any result as a reference comp on that knife."},
@@ -4607,7 +4597,7 @@ function renderList(){
         }).join("");
         return`<div class="krows-hdr" style="margin-top:10px">Gear &amp; Extras</div>${gearItemRows}`;
       })():"";
-      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?` ${icon('alert-triangle',11,'var(--redt)')}`:charLen>30000?` ${icon('zap',11,'var(--oranget)')}`:""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No timestamp"}</span><span class="pmeta"> · ${TMPL[p.variant||0]}</span></div>${postBox}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="openPreflight('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""} title="${!hasPhotos?"Add your timestamp in the pre-flight check":"Copy post text"}">${s.copied===p.id?"✓ Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openPreflight('${p.id}')" title="Post to Reddit">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[((p.variant||0)+1)%TMPL.length]}</button>${hasPhotos?`<button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')">${isRaw?`${icon('eye',13)} Preview`:"&lt;/&gt; Raw"}</button>`:""}${(()=>{const hasSold=p.knives.some(k=>k.sold||k.soldElsewhere)||(p.items||[]).some(it=>it.sold);const scCopied=s.copied==="sc_"+p.id;const scPlainCopied=s.copied==="sc_plain_"+p.id;return hasSold?`<button class="btn btn-sm${scCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}')" title="Copy sold comment with markdown formatting">${scCopied?"✓ Copied!":"Sold Comment MD"}</button><button class="btn btn-sm${scPlainCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}',true)" title="Copy sold comment as plain text">${scPlainCopied?"✓ Copied!":"Sold Comment Plain"}</button>`:"";})()}<button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${checkPostRules(p.id).map(c=>`<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}${gearRows}</div>`;
+      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?` ${icon('alert-triangle',11,'var(--redt)')}`:charLen>30000?` ${icon('zap',11,'var(--oranget)')}`:""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No timestamp"}</span><span class="pmeta"> · ${TMPL[Math.min(p.variant||0,TMPL.length-1)]}</span></div>${postBox}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="openPreflight('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""} title="${!hasPhotos?"Add your timestamp in the pre-flight check":"Copy post text"}">${s.copied===p.id?"✓ Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openPreflight('${p.id}')" title="Post to Reddit">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[(Math.min(p.variant||0,TMPL.length-1)+1)%TMPL.length]}</button>${hasPhotos?`<button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')">${isRaw?`${icon('eye',13)} Preview`:"&lt;/&gt; Raw"}</button>`:""}${(()=>{const hasSold=p.knives.some(k=>k.sold||k.soldElsewhere)||(p.items||[]).some(it=>it.sold);const scCopied=s.copied==="sc_"+p.id;const scPlainCopied=s.copied==="sc_plain_"+p.id;return hasSold?`<button class="btn btn-sm${scCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}')" title="Copy sold comment with markdown formatting">${scCopied?"✓ Copied!":"Sold Comment MD"}</button><button class="btn btn-sm${scPlainCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}',true)" title="Copy sold comment as plain text">${scPlainCopied?"✓ Copied!":"Sold Comment Plain"}</button>`:"";})()}<button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${checkPostRules(p.id).map(c=>`<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}${gearRows}</div>`;
     }
     const da=daysAgo(p.createdAt);
     const ageBadge=!allSold?(da>=7?`<span class="repost-day-badge rdy">Repost ready</span>`:`<span class="repost-day-badge wait">${da}d old</span>`):"";
@@ -5235,7 +5225,7 @@ const TOUR_STEPS=[
    nav:s=>{s.view='roll';s.modal=null;_tourOpenKnife(s);}},
 
   {icon:icon('pencil',48,'var(--t2)'),title:"Your Generated Listing",
-   body:"Here's the auto-generated Reddit post: every knife, price, payment method, and shipping note filled in automatically. Four templates available: Detailed, Compact, Minimal, and Table. Hit Switch to cycle between them anytime.",
+   body:"Here's the auto-generated Reddit post: every knife, price, payment method, and shipping note filled in automatically. Three templates available: Detailed, Compact, and Table. Hit Switch to cycle between them anytime.",
    target:'.post-box',
    nav:s=>{s.view='list';s.expanded=TOUR_DEMO_ID;s.kfOpen=false;s.modal=null;}},
 
