@@ -3351,7 +3351,7 @@ function render(){
     S.view==="guide"?renderGuide():
     renderList();
   const toastHtml=S.undoToast?`<div class="undo-toast">↩ ${esc(S.undoToast)} <button class="undo-toast-btn" onclick="undoLast()">Undo</button></div>`:"";
-  const flairToastHtml=S.flairToast?`<div class="flair-toast">${esc(S.flairToast)}</div>`:"";
+  const flairToastHtml=S.flairToast?`<div class="flair-toast">${S.flairToast}</div>`:"";
   document.getElementById("root").innerHTML=view+(S.modal&&!S.syncingScreen&&!S.showMigrate?renderModal(S.modal):"")+toastHtml+flairToastHtml+(S.tour!=null?renderTourCard():"");
   S._skipRollAnim=false; // reset after DOM update so next non-chip render gets animation back
   // Animate main content when switching views
