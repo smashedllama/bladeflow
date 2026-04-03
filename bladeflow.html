@@ -1482,11 +1482,16 @@ function buildTitleStr(knives,postType,maxLen,items){
   maxLen=maxLen||300;
   const prefix=(postType||"[WTS]")+" ";
   const gearNames=(items||[]).map(x=>x.description||(NI_LABELS[x.itemCategory||"other"]||"Other"));
-  const names=[...knives.map(k=>k.brand+" "+k.model),...gearNames];
-  let joined=names.join(" | ");
-  if((prefix+joined).length<=maxLen)return prefix+joined;
-  // Drop knives from the right until it fits
-  const parts=[...names];
+  // Tier 1: full "Brand Model" names
+  const fullNames=[...knives.map(k=>[k.brand,k.model].filter(Boolean).join(" ")),...gearNames];
+  // Tier 2: model-only (shorter when there are many knives)
+  const shortNames=[...knives.map(k=>k.model||k.brand||""),...gearNames];
+  // Try full names first
+  if((prefix+fullNames.join(" | ")).length<=maxLen)return prefix+fullNames.join(" | ");
+  // Try model-only for all — keeps all knives listed, just shorter
+  if((prefix+shortNames.join(" | ")).length<=maxLen)return prefix+shortNames.join(" | ");
+  // Still too long — drop from right with "& N more" using short names
+  const parts=[...shortNames];
   const dropped=[];
   while(parts.length>1&&(prefix+parts.join(" | ")).length>maxLen){
     dropped.push(parts.pop());
@@ -2230,7 +2235,7 @@ function buildTimestampLine(post){
   const ts=(post.photos||[]).filter(Boolean);
   if(!ts.length)return"[ paste your timestamp photo link here ]";
   const galleryLink=buildPostGalleryUrl(post,undefined)||ts[0];
-  return`[ ](${ts[0]})[TIMESTAMP](${galleryLink})`;
+  return`[\u200B](${ts[0]})[TIMESTAMP](${galleryLink})`;
 }
 
 function buildPost(post,v){
