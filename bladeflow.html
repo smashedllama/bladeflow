@@ -2299,7 +2299,7 @@ function buildPost(post,v){
     const notesLine=post.notes?`\n**Notes:** ${post.notes}`:"";
     const sig="";
     const itemsSection0=buildItemsSection(post);
-    return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}${photoBlock}${soldCommentBlurb}\n\n\u200B\n\n${blocks}${addonBlock}${bundleBlock}${selBundleBlock}${itemsSection0}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${carrier} w/ insurance | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${sig?"\n\n"+sig:""}`;
+    return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}${photoBlock}${soldCommentBlurb}\n\n> &nbsp;\n\n${blocks}${addonBlock}${bundleBlock}${selBundleBlock}${itemsSection0}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${carrier} w/ insurance | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${sig?"\n\n"+sig:""}`;
   }
 
   if(v===1){
@@ -2332,7 +2332,7 @@ function buildPost(post,v){
     const sig="";
     const shipSummary1=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
     const itemsSection1=buildItemsSection(post);
-    return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}${photoLine}${soldCommentBlurb}\n\n\u200B\n\n${lines}${addonBlock1}${bundleLine}${selBundleLine1}${itemsSection1}\n\nPayment: ${pay} | Shipping: ${shipSummary1}${noshipLine}${tradeFooter}${post.notes?"\nNotes: "+post.notes:""}${sig?"\n"+sig:""}`;
+    return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}${photoLine}${soldCommentBlurb}\n\n> &nbsp;\n\n${lines}${addonBlock1}${bundleLine}${selBundleLine1}${itemsSection1}\n\nPayment: ${pay} | Shipping: ${shipSummary1}${noshipLine}${tradeFooter}${post.notes?"\nNotes: "+post.notes:""}${sig?"\n"+sig:""}`;
   }
 
   // TABLE (v=3) - Reddit markdown table
@@ -2377,7 +2377,7 @@ function buildPost(post,v){
     }).join("\n");
     const shipSummary3=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
     const itemsSection3=buildItemsSection(post);
-    return`${rp?rp.trim()+"\n\n":""}${hdrBlock?hdrBlock.trim()+"\n\n":""}${photoBlock}${soldCommentBlurb}\n\n\u200B\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${addonBlock3}${bundleBlock}${selBundleBlock3}${itemsSection3}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${shipSummary3} | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${sig?"\n\n"+sig:""}`;
+    return`${rp?rp.trim()+"\n\n":""}${hdrBlock?hdrBlock.trim()+"\n\n":""}${photoBlock}${soldCommentBlurb}\n\n> &nbsp;\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${addonBlock3}${bundleBlock}${selBundleBlock3}${itemsSection3}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${shipSummary3} | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${sig?"\n\n"+sig:""}`;
   }
 
   return""; // fallback — should never reach here
