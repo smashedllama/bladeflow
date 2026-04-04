@@ -179,6 +179,9 @@ textarea{resize:vertical;line-height:1.55}
 .pc-chev.open{transform:rotate(180deg)}
 .pc-body{border-top:.5px solid var(--b1);padding:16px}
 .post-box{background:var(--bg);border:.5px solid var(--b1);border-radius:var(--rs);padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--t1);line-height:1.75;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow-y:auto;margin-bottom:12px;box-shadow:inset 0 1px 3px rgba(0,0,0,.04)}
+.title-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.title-field{flex:1;background:var(--bg);border:.5px solid var(--b1);border-radius:var(--rs);padding:8px 12px;font-family:var(--mono);font-size:11.5px;color:var(--t1);outline:none;min-width:0}
+.title-field:focus{border-color:var(--blue)}
 .post-box.preview{font-family:var(--font);font-size:13px;line-height:1.7;white-space:normal;color:var(--t1)}
 .post-box.preview .md-line{margin:1px 0}
 .post-box.preview .md-gap{height:7px}
@@ -3135,6 +3138,13 @@ async function copySoldComment(pid,plain=false){
   setTimeout(()=>{if(S.copied===key){S.copied=null;render();}},2000);
 }
 function cycleTmpl(pid){up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;p.variant=((p.variant||0)+1)%TMPL.length;p.postText=buildPost(p)});}
+function getPostTitle(p){return p.postTitle!==undefined?p.postTitle:buildTitleStr(p.knives,p.postType,300,p.items);}
+function updateTitle(pid,val){up(s=>{const p=s.posts.find(x=>x.id===pid);if(p)p.postTitle=val;});}
+async function copyTitle(pid){
+  const p=S.posts.find(x=>x.id===pid);if(!p)return;
+  try{await navigator.clipboard.writeText(getPostTitle(p));}catch(e){}
+  S.copied="ttl_"+pid;render();setTimeout(()=>{if(S.copied==="ttl_"+pid){S.copied=null;render();}},2000);
+}
 function deletePost(pid){
   if(!confirm("Delete this listing?"))return;
   pushUndo("Listing deleted");
@@ -3176,7 +3186,7 @@ function startSamePriceRepost(pid){
 }
 async function openRedditPost(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
-  const title=buildTitleStr(p.knives,p.postType,300,p.items);
+  const title=getPostTitle(p);
   let url="https://www.reddit.com/r/Knife_Swap/submit?selftext=true&title="+encodeURIComponent(title);
   if(p.repost)url+="&flair_text="+encodeURIComponent("Price Reduced");
   // Also copy to clipboard — new Reddit ignores &text= but old Reddit uses it; clipboard covers both
@@ -4597,7 +4607,10 @@ function renderList(){
         }).join("");
         return`<div class="krows-hdr" style="margin-top:10px">Gear &amp; Extras</div>${gearItemRows}`;
       })():"";
-      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?` ${icon('alert-triangle',11,'var(--redt)')}`:charLen>30000?` ${icon('zap',11,'var(--oranget)')}`:""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No timestamp"}</span><span class="pmeta"> · ${TMPL[Math.min(p.variant||0,TMPL.length-1)]}</span></div>${postBox}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="openPreflight('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""} title="${!hasPhotos?"Add your timestamp in the pre-flight check":"Copy post text"}">${s.copied===p.id?"✓ Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openPreflight('${p.id}')" title="Post to Reddit">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[(Math.min(p.variant||0,TMPL.length-1)+1)%TMPL.length]}</button>${hasPhotos?`<button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')">${isRaw?`${icon('eye',13)} Preview`:"&lt;/&gt; Raw"}</button>`:""}${(()=>{const hasSold=p.knives.some(k=>k.sold||k.soldElsewhere)||(p.items||[]).some(it=>it.sold);const scCopied=s.copied==="sc_"+p.id;const scPlainCopied=s.copied==="sc_plain_"+p.id;return hasSold?`<button class="btn btn-sm${scCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}')" title="Copy sold comment with markdown formatting">${scCopied?"✓ Copied!":"Sold Comment MD"}</button><button class="btn btn-sm${scPlainCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}',true)" title="Copy sold comment as plain text">${scPlainCopied?"✓ Copied!":"Sold Comment Plain"}</button>`:"";})()}<button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${checkPostRules(p.id).map(c=>`<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}${gearRows}</div>`;
+      const titleVal=esc(getPostTitle(p));
+      const ttlCopied=s.copied==="ttl_"+p.id;
+      const titleRow=`<div class="title-row"><input class="title-field" value="${titleVal}" oninput="updateTitle('${p.id}',this.value)" placeholder="Post title"/><button class="btn btn-sm${ttlCopied?" btn-gn":" btn-sec"}" onclick="copyTitle('${p.id}')">${ttlCopied?"✓ Copied!":"Copy Title"}</button></div>`;
+      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?` ${icon('alert-triangle',11,'var(--redt)')}`:charLen>30000?` ${icon('zap',11,'var(--oranget)')}`:""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No timestamp"}</span><span class="pmeta"> · ${TMPL[Math.min(p.variant||0,TMPL.length-1)]}</span></div>${titleRow}${postBox}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="openPreflight('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""} title="${!hasPhotos?"Add your timestamp in the pre-flight check":"Copy post text"}">${s.copied===p.id?"✓ Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openPreflight('${p.id}')" title="Post to Reddit">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[(Math.min(p.variant||0,TMPL.length-1)+1)%TMPL.length]}</button>${hasPhotos?`<button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')">${isRaw?`${icon('eye',13)} Preview`:"&lt;/&gt; Raw"}</button>`:""}${(()=>{const hasSold=p.knives.some(k=>k.sold||k.soldElsewhere)||(p.items||[]).some(it=>it.sold);const scCopied=s.copied==="sc_"+p.id;const scPlainCopied=s.copied==="sc_plain_"+p.id;return hasSold?`<button class="btn btn-sm${scCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}')" title="Copy sold comment with markdown formatting">${scCopied?"✓ Copied!":"Sold Comment MD"}</button><button class="btn btn-sm${scPlainCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}',true)" title="Copy sold comment as plain text">${scPlainCopied?"✓ Copied!":"Sold Comment Plain"}</button>`:"";})()}<button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${checkPostRules(p.id).map(c=>`<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`).join("")}</div>${repostSection}<div class="krows-hdr">Knives in this post</div>${krows}${gearRows}</div>`;
     }
     const da=daysAgo(p.createdAt);
     const ageBadge=!allSold?(da>=7?`<span class="repost-day-badge rdy">Repost ready</span>`:`<span class="repost-day-badge wait">${da}d old</span>`):"";
