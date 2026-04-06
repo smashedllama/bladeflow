@@ -1170,6 +1170,7 @@ function _scheduleSbSync(immediate){
     try{
       await _doSbSync();
       _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+      try{localStorage.removeItem("ks_dirty");}catch(e){}
     }catch(e){
       _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
       console.warn('[sync] failed:',e.message);
@@ -1190,6 +1191,7 @@ async function manualSync(){
   try{
     await _doSbSync();
     _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+    try{localStorage.removeItem("ks_dirty");}catch(e){}
   }catch(e){
     _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
     console.warn('[sync] manual failed:',e.message);
@@ -1200,22 +1202,26 @@ async function manualSync(){
 }
 async function save(){
   if(!S.loaded)return;
+  try{localStorage.setItem("ks_dirty","1");}catch(e){}
   try{await window.storage.set("ks_v4",JSON.stringify(S.posts.filter(p=>!p._tourDemo)));}catch(e){}
   _scheduleSbSync();
 }
 async function saveInv(){
   if(!S.loaded)return;
+  try{localStorage.setItem("ks_dirty","1");}catch(e){}
   try{await window.storage.set("ks_inv_v1",JSON.stringify(S.inventory.filter(k=>!k._tourDemo)));}catch(e){}
   _scheduleSbSync();
 }
 // Immediate-sync variants for structural changes (sold, tracking, add/remove knife)
 async function saveNow(){
   if(!S.loaded)return;
+  try{localStorage.setItem("ks_dirty","1");}catch(e){}
   try{await window.storage.set("ks_v4",JSON.stringify(S.posts.filter(p=>!p._tourDemo)));}catch(e){}
   _scheduleSbSync(true);
 }
 async function saveInvNow(){
   if(!S.loaded)return;
+  try{localStorage.setItem("ks_dirty","1");}catch(e){}
   try{await window.storage.set("ks_inv_v1",JSON.stringify(S.inventory.filter(k=>!k._tourDemo)));}catch(e){}
   _scheduleSbSync(true);
 }
@@ -1223,6 +1229,7 @@ function up(fn){fn(S);save();render();}
 function upInv(fn){fn(S);saveInv();render();}
 function upNow(fn){fn(S);saveNow();render();}
 function upInvNow(fn){fn(S);saveInvNow();render();}
+function upPost(fn,pid){fn(S);if(S.loaded){try{localStorage.setItem("ks_dirty","1");}catch(e){}try{window.storage.set("ks_v4",JSON.stringify(S.posts.filter(p=>!p._tourDemo)));}catch(e){}}render();_syncPostOnly(pid);}
 
 // ─── UNDO ─────────────────────────────────────────────────────
 function pushUndo(msg){
@@ -1366,15 +1373,34 @@ async function _sbLoad(){
       return;
     }
     if(prof?.settings&&Object.keys(prof.settings).length)SETTINGS={...DS(),...prof.settings};
+    const _dirty=localStorage.getItem("ks_dirty")==="1";
     const {data:posts}=await _sb.from("posts").select("data").eq("user_id",currentUser.id);
-    if(posts&&posts.length)S.posts=posts.map(r=>r.data).filter(p=>!p._tourDemo).sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).map(p=>{if(!p.postText)p.postText=buildPost(p);return p;});
+    if(posts&&posts.length){
+      const sbPosts=posts.map(r=>r.data).filter(p=>!p._tourDemo);
+      if(_dirty){
+        const localMap=new Map(S.posts.map(p=>[p.id,p]));
+        const newFromSb=sbPosts.filter(p=>!localMap.has(p.id)).map(p=>{if(!p.postText)p.postText=buildPost(p);return p;});
+        if(newFromSb.length)S.posts=[...S.posts,...newFromSb].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+      }else{
+        S.posts=sbPosts.sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).map(p=>{if(!p.postText)p.postText=buildPost(p);return p;});
+      }
+    }
     const {data:inv}=await _sb.from("inventory").select("data").eq("user_id",currentUser.id);
-    if(inv&&inv.length)S.inventory=inv.map(r=>r.data).filter(k=>!k._tourDemo);
+    if(inv&&inv.length){
+      if(_dirty){
+        const localInvMap=new Map(S.inventory.map(k=>[k.id,k]));
+        const newInvFromSb=inv.map(r=>r.data).filter(k=>!k._tourDemo&&!localInvMap.has(k.id));
+        if(newInvFromSb.length)S.inventory=[...S.inventory,...newInvFromSb];
+      }else{
+        S.inventory=inv.map(r=>r.data).filter(k=>!k._tourDemo);
+      }
+    }
     S.loaded=true;
     reconcileInventory();
     _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
     // Mirror to localStorage and mark this device as synced for this user
     try{localStorage.setItem("ks_v4",JSON.stringify(S.posts));localStorage.setItem("ks_inv_v1",JSON.stringify(S.inventory));localStorage.setItem("ks_settings",JSON.stringify(SETTINGS));localStorage.setItem("ks_synced_uid",currentUser.id);}catch(e){}
+    if(_dirty){_scheduleSbSync(true);}
   }catch(e){console.warn("Supabase load failed:",e);S.loaded=true;_syncStatus='error';_syncErrMsg='Could not load cloud data';}
 }
 async function _sbUpsertPost(post){
@@ -1400,6 +1426,7 @@ async function _syncPostOnly(pid){
       clearTimeout(tid);
       if(error)throw new Error(error.message||error.code);
       _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+      if(_sbSyncTid){clearTimeout(_sbSyncTid);_sbSyncTid=null;}
     }catch(e){
       clearTimeout(tid);
       _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
@@ -2993,21 +3020,19 @@ function saveGearTracking(pid,gi){
   const carr=document.getElementById(`gcarr-${pid}-${gi}`)?.value||"USPS";
   if(!trk){alert("Please enter a tracking number.");return;}
   pushUndo("Gear tracking added");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=it.shippedAt||new Date().toISOString();it.shippingAddress=null;});
-  _syncPostOnly(pid);S.trackingFlow=null;render();
+  S.trackingFlow=null;
+  upPost(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=it.shippedAt||new Date().toISOString();it.shippingAddress=null;},pid);
 }
 function markGearShipped(pid,gi){
   const trk=(document.getElementById(`gtrk-${pid}-${gi}`)?.value||"").trim();
   const carr=document.getElementById(`gcarr-${pid}-${gi}`)?.value||"USPS";
   if(!trk){alert("Please enter a tracking number first.");return;}
   pushUndo("Gear marked shipped");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=new Date().toISOString();it.shippingAddress=null;});
-  _syncPostOnly(pid);render();
+  upPost(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=new Date().toISOString();it.shippingAddress=null;},pid);
 }
 function markGearDelivered(pid,gi){
   pushUndo("Gear marked delivered");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;p.items[gi].deliveredAt=new Date().toISOString();});
-  _syncPostOnly(pid);render();
+  upPost(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;p.items[gi].deliveredAt=new Date().toISOString();},pid);
 }
 function markGearConfirmed(pid,gi){
   pushUndo("Gear trade confirmed");
@@ -4689,8 +4714,8 @@ function saveTracking(pid,ki){
   const carr=document.getElementById(`st-carr-${pid}-${ki}`)?.value||"USPS";
   if(!trk){alert("Please enter a tracking number.");return;}
   pushUndo("Tracking added");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=k.shippedAt||new Date().toISOString();k.shippingAddress=null;});
-  _syncPostOnly(pid);S.trackingFlow=null;render();
+  S.trackingFlow=null;
+  upPost(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=k.shippedAt||new Date().toISOString();k.shippingAddress=null;},pid);
 }
 async function copyTrackingLink(pid,ki){
   const p=S.posts.find(x=>x.id===pid);
@@ -4706,13 +4731,11 @@ function markShipped(pid,ki){
   const carr=document.getElementById(`carr-${pid}-${ki}`)?.value||"USPS";
   if(!trk){alert("Please enter a tracking number first.");return;}
   pushUndo("Knife marked shipped");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=new Date().toISOString();k.shippingAddress=null;});
-  _syncPostOnly(pid);render();
+  upPost(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=new Date().toISOString();k.shippingAddress=null;},pid);
 }
 function markDelivered(pid,ki){
   pushUndo("Knife marked delivered");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.deliveredAt=new Date().toISOString();});
-  _syncPostOnly(pid);render();
+  upPost(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.deliveredAt=new Date().toISOString();},pid);
 }
 function markConfirmedTrade(pid,ki){
   pushUndo("Trade confirmed");
