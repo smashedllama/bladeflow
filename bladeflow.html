@@ -1111,7 +1111,7 @@ async function _doSbSync(){
   // (Promise.race left zombie requests running, causing attempt 2 to compete with attempt 1)
   const upsertWithRetry=async(table,payload,label)=>{
     for(let attempt=1;attempt<=2;attempt++){
-      const ms=attempt===1?25000:35000;
+      const ms=attempt===1?8000:12000;
       const ctrl=new AbortController();
       const tid=setTimeout(()=>ctrl.abort(),ms);
       try{
@@ -1380,6 +1380,36 @@ async function _sbLoad(){
 async function _sbUpsertPost(post){
   if(!_sb||!currentUser)return;
   try{const{postText:_,...rest}=post;const{error}=await _sb.from("posts").upsert({id:post.id,user_id:currentUser.id,data:rest,updated_at:new Date().toISOString()});if(error)console.warn("Post upsert error:",error);}catch(e){console.warn("Post upsert exception:",e);}
+}
+// Targeted single-post sync — used for tracking/shipping ops where only one post changes.
+// Much faster than _doSbSync (sends one row instead of all posts+inventory).
+async function _syncPostOnly(pid){
+  if(!currentUser||!_sb)return;
+  if(_sbSyncTid){clearTimeout(_sbSyncTid);_sbSyncTid=null;} // cancel pending full sync
+  if(_syncInFlight){_syncPending=true;return;}
+  _syncInFlight=true;
+  _syncStatus='syncing';render();
+  const p=S.posts.find(x=>x.id===pid);
+  if(p){
+    const now=new Date().toISOString();
+    const{postText:_,...rest}=p;
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),10000);
+    try{
+      const{error}=await _sb.from('posts').upsert({id:p.id,user_id:currentUser.id,data:rest,updated_at:now},{onConflict:'id'}).abortSignal(ctrl.signal);
+      clearTimeout(tid);
+      if(error)throw new Error(error.message||error.code);
+      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+    }catch(e){
+      clearTimeout(tid);
+      _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
+      console.warn('[sync] post-only sync failed, queuing full sync:',e.message);
+      _syncInFlight=false;_scheduleSbSync(true);render();return;
+    }
+  }
+  _syncInFlight=false;
+  if(_syncPending){_syncPending=false;_scheduleSbSync();}
+  render();
 }
 async function _sbDeletePost(id){
   if(!_sb||!currentUser)return;
@@ -2964,7 +2994,7 @@ function saveGearTracking(pid,gi){
   if(!trk){alert("Please enter a tracking number.");return;}
   pushUndo("Gear tracking added");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=it.shippedAt||new Date().toISOString();it.shippingAddress=null;});
-  saveInvNow();S.trackingFlow=null;render();
+  _syncPostOnly(pid);S.trackingFlow=null;render();
 }
 function markGearShipped(pid,gi){
   const trk=(document.getElementById(`gtrk-${pid}-${gi}`)?.value||"").trim();
@@ -2972,12 +3002,12 @@ function markGearShipped(pid,gi){
   if(!trk){alert("Please enter a tracking number first.");return;}
   pushUndo("Gear marked shipped");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const it=p.items[gi];it.trackingNumber=trk;it.trackingCarrier=carr;it.shippedAt=new Date().toISOString();it.shippingAddress=null;});
-  saveInvNow();render();
+  _syncPostOnly(pid);render();
 }
 function markGearDelivered(pid,gi){
   pushUndo("Gear marked delivered");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;p.items[gi].deliveredAt=new Date().toISOString();});
-  saveInvNow();render();
+  _syncPostOnly(pid);render();
 }
 function markGearConfirmed(pid,gi){
   pushUndo("Gear trade confirmed");
@@ -4660,7 +4690,7 @@ function saveTracking(pid,ki){
   if(!trk){alert("Please enter a tracking number.");return;}
   pushUndo("Tracking added");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=k.shippedAt||new Date().toISOString();k.shippingAddress=null;});
-  saveInvNow();S.trackingFlow=null;render();
+  _syncPostOnly(pid);S.trackingFlow=null;render();
 }
 async function copyTrackingLink(pid,ki){
   const p=S.posts.find(x=>x.id===pid);
@@ -4677,12 +4707,12 @@ function markShipped(pid,ki){
   if(!trk){alert("Please enter a tracking number first.");return;}
   pushUndo("Knife marked shipped");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.trackingNumber=trk;k.trackingCarrier=carr;k.shippedAt=new Date().toISOString();k.shippingAddress=null;});
-  saveInvNow();render();
+  _syncPostOnly(pid);render();
 }
 function markDelivered(pid,ki){
   pushUndo("Knife marked delivered");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.deliveredAt=new Date().toISOString();});
-  saveInvNow();render();
+  _syncPostOnly(pid);render();
 }
 function markConfirmedTrade(pid,ki){
   pushUndo("Trade confirmed");
