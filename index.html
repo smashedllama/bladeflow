@@ -3255,9 +3255,9 @@ function buildConfirmComment(pid,ki){
   const rawBuyer=(k.soldTo||"").trim().replace(/^@/,"").replace(/^\/?u\//i,"");
   const buyer=rawBuyer?`u/${rawBuyer}`:"u/[buyer username]";
   const salePrice=k.soldPrice||k.price;
-  if(type==="[WTT]"){const tv=k.tradeValue?` (TV: $${k.tradeValue})`:"";return`u/ksbot traded ${kStr}${tv} with ${buyer}.`;}
+  if(type==="[WTT]"){const tv=k.tradeValue?` (TV: $${k.tradeValue})`:"";return`u/ksbot traded ${kStr}${tv} with ${buyer}`;}
   const priceStr=salePrice?` for $${salePrice}`:"";
-  return`u/ksbot sold ${kStr} to ${buyer}${priceStr}.`;
+  return`u/ksbot sold ${kStr} to ${buyer}${priceStr}`;
 }
 function buildDibsMessage(pid,ki){
   const p=S.posts.find(x=>x.id===pid);if(!p)return"";
