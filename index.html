@@ -1434,6 +1434,21 @@ function openSyncFeedback(type){
   S.modal='feedback';S.feedbackTab='bug';render();
 }
 window.openSyncFeedback=openSyncFeedback;
+// ── Focus-restore helper ───────────────────────────────────────
+// Problem: onblur with syncKF()+render() nukes the DOM before the
+// just-clicked element can receive focus, forcing a second click.
+// Solution: capture the mousedown target id BEFORE blur fires,
+// then re-focus that element in the freshly-rendered DOM.
+let _kfNextFocusId=null;
+document.addEventListener('mousedown',e=>{_kfNextFocusId=e.target.id||null;},true);
+function blurSyncRender(){
+  const fid=_kfNextFocusId;
+  _kfNextFocusId=null;
+  syncKF();
+  render();
+  if(fid){const el=document.getElementById(fid);if(el)el.focus();}
+}
+window.blurSyncRender=blurSyncRender;
 let _sbLoadCancelled=false;
 async function _sbLoad(){
   if(!_sb||!currentUser)return;
@@ -4765,18 +4780,18 @@ function kfFormHtml(){
     prPanel=`<div class="pr-panel"><div style="padding:10px 12px;font-size:12px;color:var(--t3);display:flex;align-items:center;gap:8px">${icon('alert-triangle',13,'var(--orange)')} Couldn't load inline. <a href="${esc(pr.fallbackUrl||"https://www.reddit.com/r/Knife_Swap/search")}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;text-decoration:none">Search Reddit manually →</a></div></div>`;
   }
   return`<div class="kf" style="margin-top:10px"><div class="kf-hdr"><div class="kf-title">${s.kfIdx>=0?"Edit Knife":(isLock?"Add to The Roll":"Add a Knife")}</div>${badge}</div>
-    <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Brand</label><input type="text" id="kf-brand" list="dl-brands" value="${esc(f.brand)}" placeholder="e.g. Spyderco" oninput="updateModelList()" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-brand','dl-brands');updateModelList();}"/></div><div class="field"><label>Model</label><input type="text" id="kf-model" list="dl-models" value="${esc(f.model)}" placeholder="e.g. Para 3 LW" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-model','dl-models');}"/></div></div>
-    <div class="field" style="margin-bottom:11px"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-steel','dl-steels');}"/></div>
+    <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Brand</label><input type="text" id="kf-brand" list="dl-brands" value="${esc(f.brand)}" placeholder="e.g. Spyderco" oninput="updateModelList()" onblur="blurSyncRender()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-brand','dl-brands');updateModelList();}"/></div><div class="field"><label>Model</label><input type="text" id="kf-model" list="dl-models" value="${esc(f.model)}" placeholder="e.g. Para 3 LW" onblur="blurSyncRender()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-model','dl-models');}"/></div></div>
+    <div class="field" style="margin-bottom:11px"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390" onblur="blurSyncRender()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-steel','dl-steels');}"/></div>
     <div class="kf-type-sel"><button class="kf-type-btn${kt==="WTS"?" on wts":""}" onclick="syncKF();S.kf.knifeType='WTS';render()">WTS - For Sale</button><button class="kf-type-btn${kt==="WTT"?" on wtt":""}" onclick="syncKF();S.kf.knifeType='WTT';render()">WTT - For Trade</button><button class="kf-type-btn${kt==="WTS/WTT"?" on wtstt":""}" onclick="syncKF();S.kf.knifeType='WTS/WTT';render()">WTS/WTT - Both</button></div>
     <div class="fr2" style="margin-bottom:13px">
-      ${kt!=="WTT"?`<div class="field"><label>Sale Price / SV ($)</label><input type="number" id="kf-price" value="${esc(f.price)}" placeholder="175" min="0" onblur="syncKF();render()"/></div>`:`<div></div>`}
-      ${kt!=="WTS"?`<div class="field"><label>Trade Value / TV ($)</label><input type="number" id="kf-tradeValue" value="${esc(f.tradeValue||"")}" placeholder="175" min="0" onblur="syncKF();render()"/></div>`:`<div class="field" style="display:flex;align-items:flex-end;padding-bottom:10px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO</label></div>`}
+      ${kt!=="WTT"?`<div class="field"><label>Sale Price / SV ($)</label><input type="number" id="kf-price" value="${esc(f.price)}" placeholder="175" min="0" onblur="blurSyncRender()"/></div>`:`<div></div>`}
+      ${kt!=="WTS"?`<div class="field"><label>Trade Value / TV ($)</label><input type="number" id="kf-tradeValue" value="${esc(f.tradeValue||"")}" placeholder="175" min="0" onblur="blurSyncRender()"/></div>`:`<div class="field" style="display:flex;align-items:flex-end;padding-bottom:10px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO</label></div>`}
     </div>
     ${kt==="WTS"?"":`<div style="margin-bottom:11px;margin-top:-6px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO on prices</label></div>`}
     ${kt!=="WTT"?`<div class="field" style="margin-bottom:11px">
       <label class="cblk"><input type="checkbox" id="kf-addonEnabled" ${f.addonEnabled?"checked":""} onchange="syncKF();S.kf.addonEnabled=this.checked;render()"/> Add-on price</label>
       <div style="font-size:11px;color:var(--t3);margin-top:2px">Lower price when bundled with another purchase - too small/cheap to ship alone.</div>
-      ${f.addonEnabled?`<div style="margin-top:8px"><label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block">Add-on price ($)</label><input type="number" id="kf-addonPrice" min="0" value="${esc(String(f.addonPrice||""))}" placeholder="e.g. 25" style="width:120px" onblur="syncKF();render()"/></div>`:""}
+      ${f.addonEnabled?`<div style="margin-top:8px"><label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block">Add-on price ($)</label><input type="number" id="kf-addonPrice" min="0" value="${esc(String(f.addonPrice||""))}" placeholder="e.g. 25" style="width:120px" onblur="blurSyncRender()"/></div>`:""}
     </div>`:""}
     <div class="field" style="margin-bottom:11px">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><label style="margin:0">Price Research</label><button class="pr-btn" onclick="syncKF();doFetchPriceResearch()" type="button">${icon("search",14)} Search r/Knife_Swap${pr.status==="loading"?"...":""}</button>${f.steel&&pr.status==="idle"?`<span style="font-size:10.5px;color:var(--t3)">will search ${esc(f.brand?f.brand+" ":"")}${esc(f.model||"")} + ${esc(f.steel)}</span>`:""}</div>
