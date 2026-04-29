@@ -251,46 +251,9 @@ textarea{resize:vertical;line-height:1.55}
 @keyframes viewIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 .main.view-entering{animation:viewIn .23s cubic-bezier(.25,.46,.45,.94) both}
 /* Modal entrance */
+/* Modal overlay subtle fade only — panel itself is static to avoid re-render bounce */
 @keyframes modalOverlayIn{from{opacity:0}to{opacity:1}}
-@keyframes modalPanelIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.modal-overlay{animation:modalOverlayIn .18s ease both}
-.modal{animation:modalPanelIn .26s cubic-bezier(.34,1.56,.64,1) both}
-/* Post card body expand */
-@keyframes pcBodyIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.pc-body{animation:pcBodyIn .2s cubic-bezier(.25,.46,.45,.94) both}
-/* Price research rows stagger in */
-@keyframes prRowIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
-.pr-row{animation:prRowIn .16s ease both}
-.pr-row:nth-child(2){animation-delay:22ms}
-.pr-row:nth-child(3){animation-delay:44ms}
-.pr-row:nth-child(4){animation-delay:66ms}
-.pr-row:nth-child(n+5){animation-delay:88ms}
-/* Locker (Roll) card entrance - transform-only so re-renders feel like a snap, not a flash */
-@keyframes lkCardIn{from{transform:scale(.97) translateY(5px)}to{transform:scale(1) translateY(0)}}
-.lk-card:nth-child(1){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) both}
-.lk-card:nth-child(2){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .04s both}
-.lk-card:nth-child(3){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .08s both}
-.lk-card:nth-child(4){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .12s both}
-.lk-card:nth-child(n+5){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .16s both}
-/* Post card entrance */
-@keyframes pcIn{from{transform:translateY(6px)}to{transform:translateY(0)}}
-.pc:nth-child(1){animation:pcIn .2s ease both}
-.pc:nth-child(2){animation:pcIn .2s ease .05s both}
-.pc:nth-child(3){animation:pcIn .2s ease .10s both}
-.pc:nth-child(n+4){animation:pcIn .2s ease .15s both}
-/* Knife row stagger inside listings */
-@keyframes krowIn{from{transform:translateY(4px)}to{transform:translateY(0)}}
-.krow:nth-child(1){animation:krowIn .16s ease both}
-.krow:nth-child(2){animation:krowIn .16s ease .04s both}
-.krow:nth-child(3){animation:krowIn .16s ease .08s both}
-.krow:nth-child(n+4){animation:krowIn .16s ease .12s both}
-/* Checklist items - opacity allowed here, form is opened intentionally */
-@keyframes clItemIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
-.cl-item:nth-child(1){animation:clItemIn .16s ease both}
-.cl-item:nth-child(2){animation:clItemIn .16s ease .03s both}
-.cl-item:nth-child(3){animation:clItemIn .16s ease .06s both}
-.cl-item:nth-child(4){animation:clItemIn .16s ease .09s both}
-.cl-item:nth-child(n+5){animation:clItemIn .16s ease .12s both}
+.modal-overlay{animation:modalOverlayIn .15s ease both}
 /* Undo / flair toast slide-up */
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .undo-toast{animation:toastIn .22s cubic-bezier(.34,1.56,.64,1) both}
@@ -364,11 +327,6 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .ni-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:10px}
 .ni-card{background:var(--card);border:.5px solid var(--b1);border-radius:var(--r);padding:17px;box-shadow:var(--sh);transition:box-shadow var(--tr)}
 .ni-card:hover{box-shadow:var(--shm)}
-.ni-card:nth-child(1){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) both}
-.ni-card:nth-child(2){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .04s both}
-.ni-card:nth-child(3){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .08s both}
-.ni-card:nth-child(4){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .12s both}
-.ni-card:nth-child(n+5){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .16s both}
 .ni-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .ni-icon{font-size:18px;flex-shrink:0}
 .ni-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)}
