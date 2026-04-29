@@ -1398,9 +1398,27 @@ function _showSyncOfflineToast(){
   document.body.appendChild(t);
 }
 let _toastFeedbackNote='';
+// Ring buffer for recent console.warn / console.error entries
+const _consoleBuf=[];
+(()=>{
+  const _cap=(l,args)=>{
+    const msg=args.map(a=>{try{return typeof a==='object'?JSON.stringify(a).slice(0,200):String(a);}catch(e){return'[object]';}}).join(' ').slice(0,300);
+    _consoleBuf.push({t:Date.now(),l,m:msg});
+    if(_consoleBuf.length>30)_consoleBuf.shift();
+  };
+  const _w=console.warn.bind(console),_e=console.error.bind(console);
+  console.warn=(...args)=>{_cap('warn',args);_w(...args);};
+  console.error=(...args)=>{_cap('error',args);_e(...args);};
+})();
 function openSyncFeedback(type){
   const posts=S.posts.filter(p=>!p._tourDemo).length;
   const inv=S.inventory.filter(k=>!k._tourDemo).length;
+  const consoleLogs=_consoleBuf.length
+    ?'\n\nRecent console:\n'+_consoleBuf.slice(-15).map(e=>{
+        const ago=Math.round((Date.now()-e.t)/1000);
+        return`[${e.l} ${ago}s ago] ${e.m}`;
+      }).join('\n')
+    :'';
   _toastFeedbackNote=[
     type==='timeout'?'Cloud sync timed out at startup.':'Cloud sync failed to connect at startup.',
     '',
@@ -1408,18 +1426,20 @@ function openSyncFeedback(type){
     'Browser: '+navigator.userAgent,
     'Auth: '+(S.authStatus==='signed_in'?S.authEmail||'signed in':'guest'),
     'Data: '+posts+' post(s), '+inv+' inventory item(s)',
+    'Online: '+navigator.onLine,
     'Time: '+new Date().toISOString(),
-  ].join('\n');
+  ].join('\n')+consoleLogs;
   document.getElementById('_syncErrToast')?.remove();
   document.getElementById('_syncOfflineToast')?.remove();
   S.modal='feedback';S.feedbackTab='bug';render();
-  _toastFeedbackNote='';
 }
 window.openSyncFeedback=openSyncFeedback;
+let _sbLoadCancelled=false;
 async function _sbLoad(){
   if(!_sb||!currentUser)return;
+  _sbLoadCancelled=false;
   let _tid;
-  const _timeout=new Promise((_,reject)=>{_tid=setTimeout(()=>reject(new Error('_sbLoad timed out')),10000);});
+  const _timeout=new Promise((_,reject)=>{_tid=setTimeout(()=>{_sbLoadCancelled=true;reject(new Error('_sbLoad timed out'));},10000);});
   try{
     await Promise.race([_sbLoadCore(),_timeout]);
   }catch(e){
@@ -1470,6 +1490,7 @@ async function _sbLoadCore(){
   }
   S.loaded=true;
   reconcileInventory();
+  if(_sbLoadCancelled)return; // timed out — don't overwrite error state with stale synced
   _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
   try{localStorage.setItem("ks_v4",JSON.stringify(S.posts));localStorage.setItem("ks_inv_v1",JSON.stringify(S.inventory));localStorage.setItem("ks_settings",JSON.stringify(SETTINGS));localStorage.setItem("ks_synced_uid",currentUser.id);}catch(e){}
   if(_dirty){_scheduleSbSync(true);}
@@ -3860,10 +3881,13 @@ function renderFeedbackModal(){
   const submitLabel=_feedbackBusy?`${icon('refresh-cw',13)} Sending...`:`${icon('send',13)} Send Feedback`;
   const tabBtn=(id,label)=>`<button onclick="S.feedbackTab='${id}';S.err='';render()" style="flex:1;padding:8px 0;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font);border-radius:8px;transition:all var(--tr);${tab===id?"background:var(--blue);color:#fff":"background:transparent;color:var(--t2)"}">${label}</button>`;
   const inputStyle="width:100%;box-sizing:border-box;font-family:var(--font);font-size:13px;padding:9px 11px;border-radius:10px;border:.5px solid var(--b2);background:var(--bg);color:var(--t1)";
+  // Preserve any content the user has already typed (or pre-filled by openSyncFeedback) across re-renders
+  const _fbWhatVal=document.getElementById('fb-what')?.value;
+  const _fbWhatContent=_fbWhatVal!==undefined?_fbWhatVal:_toastFeedbackNote;
   const bugFields=`
     <div style="margin-bottom:14px">
       <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">What happened?</label>
-      <textarea id="fb-what" rows="3" placeholder="Describe the bug..." style="${inputStyle};resize:vertical">${esc(_toastFeedbackNote)}</textarea>
+      <textarea id="fb-what" rows="3" placeholder="Describe the bug..." style="${inputStyle};resize:vertical">${esc(_fbWhatContent)}</textarea>
     </div>
     <div style="margin-bottom:14px">
       <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">Steps to reproduce <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
