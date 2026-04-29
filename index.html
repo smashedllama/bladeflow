@@ -1413,23 +1413,25 @@ async function _sbLoad(){
   clearTimeout(_tid);
 }
 async function _sbLoadCore(){
-  // Check profile first — catches soft-deleted accounts before loading any data
-  const {data:prof}=await _sb.from("profiles").select("settings,deleted_at,purge_at").eq("id",currentUser.id).single();
+  // Fire all three queries in parallel — cuts load time to a single round-trip
+  const [profRes,postsRes,invRes]=await Promise.all([
+    _sb.from("profiles").select("settings,deleted_at,purge_at").eq("id",currentUser.id).single(),
+    _sb.from("posts").select("data").eq("user_id",currentUser.id),
+    _sb.from("inventory").select("data").eq("user_id",currentUser.id)
+  ]);
+  const {data:prof}=profRes;
   if(prof?.deleted_at){
-    // Account is in purgatory — wipe everything and show deleted screen
     S.accountDeleted=true;S.loaded=true;
     S.posts=[];S.inventory=[];
     try{localStorage.removeItem("ks_v4");localStorage.removeItem("ks_inv_v1");}catch(e){}
     return;
   }
   if(prof?.settings&&Object.keys(prof.settings).length)SETTINGS={...DS(),...prof.settings};
-  // If local data is dirty (unsaved changes), merge instead of overwrite so nothing is lost
   const _dirty=localStorage.getItem("ks_dirty")==="1";
-  const {data:posts}=await _sb.from("posts").select("data").eq("user_id",currentUser.id);
+  const {data:posts}=postsRes;
   if(posts&&posts.length){
     const sbPosts=posts.map(r=>r.data).filter(p=>!p._tourDemo);
     if(_dirty){
-      // Prefer local for existing posts; only add posts that exist in Supabase but not locally
       const localMap=new Map(S.posts.map(p=>[p.id,p]));
       const newFromSb=sbPosts.filter(p=>!localMap.has(p.id)).map(p=>{if(!p.postText)p.postText=buildPost(p);return p;});
       if(newFromSb.length)S.posts=[...S.posts,...newFromSb].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
@@ -1437,7 +1439,7 @@ async function _sbLoadCore(){
       S.posts=sbPosts.sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).map(p=>{if(!p.postText)p.postText=buildPost(p);return p;});
     }
   }
-  const {data:inv}=await _sb.from("inventory").select("data").eq("user_id",currentUser.id);
+  const {data:inv}=invRes;
   if(inv&&inv.length){
     if(_dirty){
       const localInvMap=new Map(S.inventory.map(k=>[k.id,k]));
@@ -1450,9 +1452,7 @@ async function _sbLoadCore(){
   S.loaded=true;
   reconcileInventory();
   _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
-  // Mirror to localStorage and mark this device as synced for this user
   try{localStorage.setItem("ks_v4",JSON.stringify(S.posts));localStorage.setItem("ks_inv_v1",JSON.stringify(S.inventory));localStorage.setItem("ks_settings",JSON.stringify(SETTINGS));localStorage.setItem("ks_synced_uid",currentUser.id);}catch(e){}
-  // If dirty, push the merged local data up to Supabase now
   if(_dirty){_scheduleSbSync(true);}
 }
 async function _sbUpsertPost(post){
