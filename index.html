@@ -4937,7 +4937,7 @@ function renderList(){
   const s=S;
   const ak=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn).length,0);
   const sk=s.posts.reduce((n,p)=>n+p.knives.filter(k=>k.sold||k.soldElsewhere).length,0);
-  const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn).reduce((a,k)=>a+parseFloat(k.price||0),0),0);
+  const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn).reduce((a,k)=>a+parseFloat(((k.knifeType||"WTS")==="WTT"?k.tradeValue:k.price)||0),0),0);
   const hdr=mainHdr();
   if(!s.posts.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">${icon('clipboard',40,'var(--t4)')}</div><div class="empty-h">No listings yet</div><div class="empty-p">Create your first r/Knife_Swap post. Add a single knife or bundle several into one listing.</div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn btn-pri" onclick="startCompose()">+ Create First Listing</button><button class="btn btn-sec" onclick="startTour()">${icon('film',13)} Take the Tour</button></div></div></div>`;
   const lf=s.listFilter||"all";
