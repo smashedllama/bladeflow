@@ -1385,7 +1385,7 @@ function _showSyncErrorToast(){
   const t=document.createElement("div");
   t.id="_syncErrToast";
   t.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1C1C1E;border:0.5px solid rgba(255,59,48,.3);border-radius:12px;padding:12px 16px;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;color:#F2F2F7;line-height:1.5;max-width:320px;width:calc(100% - 40px);box-shadow:0 4px 24px rgba(0,0,0,.4);z-index:9999;text-align:center";
-  t.innerHTML=`<div style="margin-bottom:6px">Cloud sync is taking longer than expected.</div><a href="https://www.reddit.com/message/compose/?to=smashedllama&subject=BladeFlow+sync+timeout" target="_blank" style="color:#0A84FF;text-decoration:none;font-weight:500">Let u/smashedllama know</a><button onclick="this.parentNode.remove()" style="display:block;margin:8px auto 0;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer">Dismiss</button>`;
+  t.innerHTML=`<div style="margin-bottom:6px">Cloud sync is taking longer than expected.</div><button onclick="window.openSyncFeedback('timeout')" style="display:block;margin:0 auto 0;background:none;border:none;color:#0A84FF;font-weight:500;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;cursor:pointer;padding:0">Let u/smashedllama know</button><button onclick="this.parentNode.remove()" style="display:block;margin:8px auto 0;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;cursor:pointer">Dismiss</button>`;
   document.body.appendChild(t);
   setTimeout(()=>{if(t.parentNode)t.remove();},15000);
 }
@@ -1394,9 +1394,28 @@ function _showSyncOfflineToast(){
   const t=document.createElement("div");
   t.id="_syncOfflineToast";
   t.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1C1C1E;border:0.5px solid rgba(255,255,255,.15);border-radius:12px;padding:12px 16px;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;color:#F2F2F7;line-height:1.5;max-width:320px;width:calc(100% - 40px);box-shadow:0 4px 24px rgba(0,0,0,.4);z-index:9999;text-align:center";
-  t.innerHTML=`<div style="margin-bottom:6px">Cloud sync is having trouble connecting right now.</div><a href="https://www.reddit.com/message/compose/?to=smashedllama&subject=BladeFlow+sync+issue" target="_blank" style="color:#0A84FF;text-decoration:none;font-weight:500">Let u/smashedllama know</a><button onclick="this.parentNode.remove()" style="display:block;margin:8px auto 0;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer">Dismiss</button>`;
+  t.innerHTML=`<div style="margin-bottom:6px">Cloud sync is having trouble connecting right now.</div><button onclick="window.openSyncFeedback('offline')" style="display:block;margin:0 auto 0;background:none;border:none;color:#0A84FF;font-weight:500;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;cursor:pointer;padding:0">Let u/smashedllama know</button><button onclick="this.parentNode.remove()" style="display:block;margin:8px auto 0;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;cursor:pointer">Dismiss</button>`;
   document.body.appendChild(t);
 }
+let _toastFeedbackNote='';
+function openSyncFeedback(type){
+  const posts=S.posts.filter(p=>!p._tourDemo).length;
+  const inv=S.inventory.filter(k=>!k._tourDemo).length;
+  _toastFeedbackNote=[
+    type==='timeout'?'Cloud sync timed out at startup.':'Cloud sync failed to connect at startup.',
+    '',
+    '--- Diagnostic info (auto-filled) ---',
+    'Browser: '+navigator.userAgent,
+    'Auth: '+(S.authStatus==='signed_in'?S.authEmail||'signed in':'guest'),
+    'Data: '+posts+' post(s), '+inv+' inventory item(s)',
+    'Time: '+new Date().toISOString(),
+  ].join('\n');
+  document.getElementById('_syncErrToast')?.remove();
+  document.getElementById('_syncOfflineToast')?.remove();
+  S.modal='feedback';S.feedbackTab='bug';render();
+  _toastFeedbackNote='';
+}
+window.openSyncFeedback=openSyncFeedback;
 async function _sbLoad(){
   if(!_sb||!currentUser)return;
   let _tid;
@@ -1963,7 +1982,7 @@ function buildAddonsSection(addonKnives,carrier,v){
       const pl=knifePrice(k,{addonMode:true});
       const hdr=`**${k.brand} ${k.model}** | **${pl}**`;
       const sc=k.shippingClass||"Priority";
-      const lines=[`- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}`,`- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut}`,`- **Issues:** ${iss} | **Accessories:** ${ac}`,`- **Shipping:** ${carrier} ${sc} w/ insurance`];
+      const lines=[`- **Steel:** ${k.steel||"N/A"} | **Edge Condition:** ${k.bladeCondition}`,`- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut}`,`- **Issues:** ${iss} | **Accessories:** ${ac}`,`- **Shipping:** ${carrier} ${sc} w/ insurance`];
       if(k.notes)lines.push(`- **Notes:** ${k.notes}`);
       return`${hdr}\n${lines.join("\n")}`;
     }).join("\n\n---\n\n");
@@ -2394,7 +2413,7 @@ function buildPost(post,v){
         :`**${num}. ${nameLinked}${statusLabel?" "+statusLabel:""}** | **${pl}**`;
       const sc=k.shippingClass||"Priority";
       const lines=[
-        `- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}`,
+        `- **Steel:** ${k.steel||"N/A"} | **Edge Condition:** ${k.bladeCondition}`,
         `- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut}`,
         `- **Centering:** ${k.centering} | **Lockup:** ${k.lockup}${k.lockupNotes?" - "+k.lockupNotes:""}`,
         `- **Issues:** ${iss} | **Accessories:** ${ac}`,
@@ -3844,7 +3863,7 @@ function renderFeedbackModal(){
   const bugFields=`
     <div style="margin-bottom:14px">
       <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">What happened?</label>
-      <textarea id="fb-what" rows="3" placeholder="Describe the bug..." style="${inputStyle};resize:vertical"></textarea>
+      <textarea id="fb-what" rows="3" placeholder="Describe the bug..." style="${inputStyle};resize:vertical">${esc(_toastFeedbackNote)}</textarea>
     </div>
     <div style="margin-bottom:14px">
       <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">Steps to reproduce <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
@@ -4650,7 +4669,7 @@ function mainHdr(){
 }
 function kfFormHtml(){
   const s=S;const f=s.kf;const isLock=s.kfMode==="locker";
-  const advHtml=`<div class="adv-box"><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Owners</label><select id="kf-owners">${["1","2","3","4+"].map(v=>`<option${f.owners===v?" selected":""}>${v}</option>`).join("")}</select></div><div class="field"><label>Centering</label><select id="kf-centering">${["Perfect","Favoring show side","Favoring clip side","Off-center"].map(v=>`<option${f.centering===v?" selected":""}>${v}</option>`).join("")}</select></div></div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Lockup</label><select id="kf-lockup">${["Solid","Early","Mid","Late","Slight play","Lock stick","Other (describe)"].map(v=>`<option${f.lockup===v?" selected":""}>${v}</option>`).join("")}</select></div>${f.lockup==="Other (describe)"?`<div class="field"><label>Describe</label><input type="text" id="kf-lockupNotes" value="${esc(f.lockupNotes)}" placeholder="Describe..."/></div>`:`<div></div>`}</div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Issues</label><div class="chips" style="margin-top:4px">${ISSUES.map(v=>`<button class="chip sm mul${f.issues.includes(v)?" on":""}" onclick="syncKF();S.kf.issues=tmx(S.kf.issues,'${v}','None');render()">${v}</button>`).join("")}</div>${f.issues.includes("Other")?`<input type="text" id="kf-issuesOther" value="${esc(f.issuesOther)}" placeholder="Describe issue(s)…" style="margin-top:6px;width:100%" oninput="S.kf.issuesOther=this.value"/>`:`<input type="hidden" id="kf-issuesOther" value=""/>`}</div><div class="field"><label>Accessories</label><div class="chips" style="margin-top:4px">${ACC.map(v=>`<button class="chip sm mul${f.accessories.includes(v)?" on":""}" onclick="syncKF();S.kf.accessories=tmx(S.kf.accessories,'${v}','None');render()">${v}</button>`).join("")}</div>${f.accessories.includes("Other")?`<input type="text" id="kf-accessoriesOther" value="${esc(f.accessoriesOther)}" placeholder="Describe accessory(s)…" style="margin-top:6px;width:100%" oninput="S.kf.accessoriesOther=this.value"/>`:`<input type="hidden" id="kf-accessoriesOther" value=""/>`}</div></div><div class="field"><label>Notes <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><textarea id="kf-notes" rows="3" placeholder="Upgraded hardware, extra scales..." style="resize:vertical;min-height:60px;font-family:var(--font);font-size:13px;padding:8px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);width:100%;box-sizing:border-box" oninput="S.kf.notes=this.value">${esc(f.notes)}</textarea></div></div>`;
+  const advHtml=`<div class="adv-box"><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Edge Condition</label><select id="kf-bladeCondition">${[...new Set([...BLADE_COND,...(f.bladeCondition&&!BLADE_COND.includes(f.bladeCondition)?[f.bladeCondition]:[])])].map(v=>`<option${f.bladeCondition===v?" selected":""}>${v}</option>`).join("")}</select></div><div class="field"><label>Owners</label><select id="kf-owners">${["1","2","3","4+"].map(v=>`<option${f.owners===v?" selected":""}>${v}</option>`).join("")}</select></div></div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Centering</label><select id="kf-centering">${["Perfect","Favoring show side","Favoring clip side","Off-center"].map(v=>`<option${f.centering===v?" selected":""}>${v}</option>`).join("")}</select></div><div class="field"><label>Lockup</label><select id="kf-lockup">${["Solid","Early","Mid","Late","Slight play","Lock stick","Other (describe)"].map(v=>`<option${f.lockup===v?" selected":""}>${v}</option>`).join("")}</select></div></div>${f.lockup==="Other (describe)"?`<div class="field" style="margin-bottom:11px"><label>Describe lockup</label><input type="text" id="kf-lockupNotes" value="${esc(f.lockupNotes)}" placeholder="Describe..."/></div>`:""}<div class="fr2" style="margin-bottom:11px"><div class="field"><label>Issues</label><div class="chips" style="margin-top:4px">${ISSUES.map(v=>`<button class="chip sm mul${f.issues.includes(v)?" on":""}" onclick="syncKF();S.kf.issues=tmx(S.kf.issues,'${v}','None');render()">${v}</button>`).join("")}</div>${f.issues.includes("Other")?`<input type="text" id="kf-issuesOther" value="${esc(f.issuesOther)}" placeholder="Describe issue(s)…" style="margin-top:6px;width:100%" oninput="S.kf.issuesOther=this.value"/>`:`<input type="hidden" id="kf-issuesOther" value=""/>`}</div><div class="field"><label>Accessories</label><div class="chips" style="margin-top:4px">${ACC.map(v=>`<button class="chip sm mul${f.accessories.includes(v)?" on":""}" onclick="syncKF();S.kf.accessories=tmx(S.kf.accessories,'${v}','None');render()">${v}</button>`).join("")}</div>${f.accessories.includes("Other")?`<input type="text" id="kf-accessoriesOther" value="${esc(f.accessoriesOther)}" placeholder="Describe accessory(s)…" style="margin-top:6px;width:100%" oninput="S.kf.accessoriesOther=this.value"/>`:`<input type="hidden" id="kf-accessoriesOther" value=""/>`}</div></div><div class="field"><label>Notes <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><textarea id="kf-notes" rows="3" placeholder="Upgraded hardware, extra scales..." style="resize:vertical;min-height:60px;font-family:var(--font);font-size:13px;padding:8px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);width:100%;box-sizing:border-box" oninput="S.kf.notes=this.value">${esc(f.notes)}</textarea></div></div>`;
   const kt=f.knifeType||"WTS";
   const badge=isLock?`<span class="kf-badge lk">The Roll</span>`:`<span class="kf-badge dr">${s.kfIdx>=0?"Knife #"+(s.kfIdx+1):"New"}</span>`;
   // Price research panel
@@ -4723,7 +4742,7 @@ function kfFormHtml(){
   }
   return`<div class="kf" style="margin-top:10px"><div class="kf-hdr"><div class="kf-title">${s.kfIdx>=0?"Edit Knife":(isLock?"Add to The Roll":"Add a Knife")}</div>${badge}</div>
     <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Brand</label><input type="text" id="kf-brand" list="dl-brands" value="${esc(f.brand)}" placeholder="e.g. Spyderco" oninput="updateModelList()" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-brand','dl-brands');updateModelList();}"/></div><div class="field"><label>Model</label><input type="text" id="kf-model" list="dl-models" value="${esc(f.model)}" placeholder="e.g. Para 3 LW" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-model','dl-models');}"/></div></div>
-    <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-steel','dl-steels');}"/></div><div class="field"><label>Blade Edge</label><select id="kf-bladeCondition">${[...new Set([...BLADE_COND,...(f.bladeCondition&&!BLADE_COND.includes(f.bladeCondition)?[f.bladeCondition]:[])])].map(v=>`<option${f.bladeCondition===v?" selected":""}>${v}</option>`).join("")}</select></div></div>
+    <div class="field" style="margin-bottom:11px"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-steel','dl-steels');}"/></div>
     <div class="kf-type-sel"><button class="kf-type-btn${kt==="WTS"?" on wts":""}" onclick="syncKF();S.kf.knifeType='WTS';render()">WTS - For Sale</button><button class="kf-type-btn${kt==="WTT"?" on wtt":""}" onclick="syncKF();S.kf.knifeType='WTT';render()">WTT - For Trade</button><button class="kf-type-btn${kt==="WTS/WTT"?" on wtstt":""}" onclick="syncKF();S.kf.knifeType='WTS/WTT';render()">WTS/WTT - Both</button></div>
     <div class="fr2" style="margin-bottom:13px">
       ${kt!=="WTT"?`<div class="field"><label>Sale Price / SV ($)</label><input type="number" id="kf-price" value="${esc(f.price)}" placeholder="175" min="0" onblur="syncKF();render()"/></div>`:`<div></div>`}
