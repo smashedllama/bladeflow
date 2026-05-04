@@ -1166,7 +1166,6 @@ function _scheduleSbSync(immediate){
     }catch(e){
       _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
       console.warn('[sync] failed:',e.message);
-      if((e.message||'').includes('timed out'))_showSyncErrorToast();
     }
     _syncInFlight=false;
     if(_syncPending){_syncPending=false;_scheduleSbSync();}
@@ -1187,7 +1186,6 @@ async function manualSync(){
   }catch(e){
     _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
     console.warn('[sync] manual failed:',e.message);
-    if((e.message||'').includes('timed out'))_showSyncErrorToast();
   }
   _syncInFlight=false;
   render();
@@ -1430,8 +1428,8 @@ async function _sbLoad(){
     console.warn("Supabase load failed:",e);
     S.loaded=true;
     _syncStatus='error';
-    _syncErrMsg=(e.message||'').includes('timed out')?'Cloud sync timed out — using local data':'Could not load cloud data';
-    if((e.message||'').includes('timed out'))_showSyncErrorToast();
+    _syncErrMsg=_sbLoadCancelled?'Cloud sync timed out — using local data':'Could not load cloud data';
+    if(_sbLoadCancelled)_showSyncErrorToast(); // only show toast when OUR timer fired, not for server-side errors
   }
   clearTimeout(_tid);
 }
