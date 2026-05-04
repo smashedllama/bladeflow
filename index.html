@@ -1423,7 +1423,7 @@ async function _sbLoad(){
   if(!_sb||!currentUser)return;
   _sbLoadCancelled=false;
   let _tid;
-  const _timeout=new Promise((_,reject)=>{_tid=setTimeout(()=>{_sbLoadCancelled=true;reject(new Error('_sbLoad timed out'));},10000);});
+  const _timeout=new Promise((_,reject)=>{_tid=setTimeout(()=>{_sbLoadCancelled=true;reject(new Error('_sbLoad timed out'));},20000);});
   try{
     await Promise.race([_sbLoadCore(),_timeout]);
   }catch(e){
@@ -1474,8 +1474,9 @@ async function _sbLoadCore(){
   }
   S.loaded=true;
   reconcileInventory();
-  if(_sbLoadCancelled)return; // timed out — don't overwrite error state with stale synced
+  // If the timeout fired but load eventually finished, recover — remove the toast and clear error state
   _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';_syncWarnDismissed=false;
+  if(_sbLoadCancelled){document.getElementById('_syncErrToast')?.remove();_sbLoadCancelled=false;}
   try{localStorage.setItem("ks_v4",JSON.stringify(S.posts));localStorage.setItem("ks_inv_v1",JSON.stringify(S.inventory));localStorage.setItem("ks_settings",JSON.stringify(SETTINGS));localStorage.setItem("ks_synced_uid",currentUser.id);}catch(e){}
   if(_dirty){_scheduleSbSync(true);}
 }
