@@ -1161,7 +1161,7 @@ function _scheduleSbSync(immediate){
     _syncStatus='syncing';render();
     try{
       await _doSbSync();
-      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';_syncWarnDismissed=false;
       try{localStorage.removeItem("ks_dirty");}catch(e){}
     }catch(e){
       _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
@@ -1182,7 +1182,7 @@ async function manualSync(){
   _syncStatus='syncing';render();
   try{
     await _doSbSync();
-    _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+    _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';_syncWarnDismissed=false;
     try{localStorage.removeItem("ks_dirty");}catch(e){}
   }catch(e){
     _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
@@ -1407,6 +1407,17 @@ function blurSyncRender(){
   if(fid){const el=document.getElementById(fid);if(el)el.focus();}
 }
 window.blurSyncRender=blurSyncRender;
+// ── Unsaved-data protection ────────────────────────────────────
+let _syncWarnDismissed=false;
+// beforeunload: browser native "Leave site?" dialog when cloud sync is unsettled
+window.addEventListener('beforeunload',e=>{
+  if(!currentUser||!_sb)return;
+  const hasData=S.posts.filter(p=>!p._tourDemo).length>0||S.inventory.filter(k=>!k._tourDemo).length>0;
+  if(!hasData)return;
+  const dirty=(()=>{try{return localStorage.getItem('ks_dirty')==='1';}catch(e){return false;}})();
+  const unsettled=_syncStatus==='pending'||_syncStatus==='syncing'||_syncStatus==='error';
+  if(dirty||unsettled){e.preventDefault();e.returnValue='';}
+});
 let _sbLoadCancelled=false;
 async function _sbLoad(){
   if(!_sb||!currentUser)return;
@@ -1464,7 +1475,7 @@ async function _sbLoadCore(){
   S.loaded=true;
   reconcileInventory();
   if(_sbLoadCancelled)return; // timed out — don't overwrite error state with stale synced
-  _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+  _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';_syncWarnDismissed=false;
   try{localStorage.setItem("ks_v4",JSON.stringify(S.posts));localStorage.setItem("ks_inv_v1",JSON.stringify(S.inventory));localStorage.setItem("ks_settings",JSON.stringify(SETTINGS));localStorage.setItem("ks_synced_uid",currentUser.id);}catch(e){}
   if(_dirty){_scheduleSbSync(true);}
 }
@@ -1490,7 +1501,7 @@ async function _syncPostOnly(pid){
       const{error}=await _sb.from('posts').upsert({id:p.id,user_id:currentUser.id,data:rest,updated_at:now},{onConflict:'id'}).abortSignal(ctrl.signal);
       clearTimeout(tid);
       if(error)throw new Error(error.message||error.code);
-      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';_syncWarnDismissed=false;
       // Cancel any full-sync timer set by save() during the async gap — prevents spurious full sync
       if(_sbSyncTid){clearTimeout(_sbSyncTid);_sbSyncTid=null;}
     }catch(e){
@@ -3568,7 +3579,11 @@ function render(){
     renderList();
   const toastHtml=S.undoToast?`<div class="undo-toast">↩ ${esc(S.undoToast)} <button class="undo-toast-btn" onclick="undoLast()">Undo</button></div>`:"";
   const flairToastHtml=S.flairToast?`<div class="flair-toast">${S.flairToast}</div>`:"";
-  document.getElementById("root").innerHTML=view+(S.modal&&!S.syncingScreen&&!S.showMigrate?renderModal(S.modal):"")+toastHtml+flairToastHtml+(S.tour!=null?renderTourCard():"")+(S.guide!=null?renderGuideCard():"")+(S.onboarding?renderOnboarding():"");
+  const _btnBase="border:none;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;white-space:nowrap";
+  const syncWarnHtml=(currentUser&&_sb&&_syncStatus==='error'&&!_syncWarnDismissed)
+    ?`<div style="position:fixed;bottom:0;left:0;right:0;z-index:5000;background:#1C1C1E;border-top:.5px solid rgba(255,59,48,.35);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--font);font-size:13px;color:#F2F2F7;box-shadow:0 -4px 20px rgba(0,0,0,.35)"><span style="flex:1;min-width:160px;display:flex;align-items:center;gap:7px">${icon('alert-triangle',14,'#FF453A')} Cloud sync failed — recent changes may not be saved.</span><button onclick="exportAllData()" style="${_btnBase};background:#2C2C2E;color:#F2F2F7;border:.5px solid rgba(255,255,255,.12)">${icon('download',13)} Download Backup</button><button onclick="manualSync();render()" style="${_btnBase};background:#0A84FF;color:#fff">${icon('refresh-cw',13)} Retry Sync</button><button onclick="_syncWarnDismissed=true;render()" style="${_btnBase};background:none;color:rgba(255,255,255,.4);padding:6px 8px" title="Dismiss">✕</button></div>`
+    :"";
+  document.getElementById("root").innerHTML=view+(S.modal&&!S.syncingScreen&&!S.showMigrate?renderModal(S.modal):"")+toastHtml+flairToastHtml+syncWarnHtml+(S.tour!=null?renderTourCard():"")+(S.guide!=null?renderGuideCard():"")+(S.onboarding?renderOnboarding():"");
   S._skipRollAnim=false; // reset after DOM update so next non-chip render gets animation back
   // Animate main content when switching views
   if(S._prevView!==S.view){
