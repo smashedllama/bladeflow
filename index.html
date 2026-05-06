@@ -1307,6 +1307,7 @@ async function initSupabase(){
     }
     _sb.auth.onAuthStateChange(async(event,session)=>{
       if(event==="SIGNED_IN"&&session){
+        const prevUserId=currentUser?.id; // capture before overwrite to detect token refreshes
         const wasGuest=!currentUser;
         currentUser=session.user;
         S.authStatus="signed_in";
@@ -1315,11 +1316,12 @@ async function initSupabase(){
         if(wasGuest&&(S.posts.length>0||S.inventory.length>0)){
           // In-page sign-in (no redirect) with local data
           S.showMigrate=true;render();
-        } else if(!S.showMigrate){
-          // No local data conflict — just load from cloud
+        } else if(!S.showMigrate&&(wasGuest||prevUserId!==currentUser.id)){
+          // Genuine new sign-in — load from cloud.
+          // Skip if same user (Supabase fires SIGNED_IN on every token refresh).
           await _sbLoad();render();
         } else {
-          render(); // migrate banner already showing
+          render(); // token refresh for same user, or migrate banner already showing
         }
       } else if(event==="SIGNED_OUT"){
         currentUser=null;S.authStatus="guest";S.authEmail="";S.showMigrate=false;
@@ -1417,21 +1419,25 @@ window.addEventListener('beforeunload',e=>{
   if(dirty||unsettled){e.preventDefault();e.returnValue='';}
 });
 let _sbLoadCancelled=false;
+let _sbLoadCorePromise=null; // non-null while _sbLoadCore is running; guards against concurrent loads
 async function _sbLoad(){
   if(!_sb||!currentUser)return;
+  if(_sbLoadCorePromise){console.log('[load] already in-flight — skipping');return;} // prevent concurrent loads
   _sbLoadCancelled=false;
   let _tid;
   const _timeout=new Promise((_,reject)=>{_tid=setTimeout(()=>{_sbLoadCancelled=true;reject(new Error('_sbLoad timed out'));},20000);});
+  _sbLoadCorePromise=_sbLoadCore().finally(()=>{_sbLoadCorePromise=null;});
   try{
-    await Promise.race([_sbLoadCore(),_timeout]);
+    await Promise.race([_sbLoadCorePromise,_timeout]);
   }catch(e){
     console.warn("Supabase load failed:",e);
     S.loaded=true;
     _syncStatus='error';
     _syncErrMsg=_sbLoadCancelled?'Cloud sync timed out — using local data':'Could not load cloud data';
     if(_sbLoadCancelled)_showSyncErrorToast(); // only show toast when OUR timer fired, not for server-side errors
+  }finally{
+    clearTimeout(_tid);
   }
-  clearTimeout(_tid);
 }
 async function _sbLoadCore(){
   // Fire all three queries in parallel — cuts load time to a single round-trip
