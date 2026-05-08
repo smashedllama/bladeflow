@@ -1006,7 +1006,7 @@ async function saveSettings(){
 
 // ─── STATE ────────────────────────────────────────────────────
 const EK=()=>({brand:"",model:"",steel:"",price:"",soldPrice:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",inventoryId:null,prevPrice:"",photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",soldElsewhere:false,soldElsewhereTrackShip:false,withdrawn:false});
-const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:""});
+const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",listedAt:null});
 const ENI=()=>({id:gid(),itemCategory:"other",description:"",condition:"Excellent",owners:"1",price:"",tradeValue:"",saleType:"WTS",photos:[],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,pending:false,soldTo:null,soldPrice:"",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const isNI=item=>!!item.itemCategory;
 const ICONS={
@@ -2862,8 +2862,10 @@ function knifePickerIssues(k){
 }
 function addFromLocker(invIdx){
   const k=S.inventory[invIdx];if(!k)return;
-  const copy={...JSON.parse(JSON.stringify(k)),inventoryId:k.id};
-  delete copy.status;delete copy.addedAt;delete copy.soldAt;
+  const inCooldown=k.listedAt&&daysAgo(k.listedAt)<7;
+  const copy={...JSON.parse(JSON.stringify(k)),inventoryId:k.id,
+    prevPrice:inCooldown?k.price:(k.prevPrice||'')};
+  delete copy.status;delete copy.addedAt;delete copy.soldAt;delete copy.listedAt;
   S.draft.knives.push(copy);
   S.draft.postType=autoPostType(S.draft.knives);
   S.inventory[invIdx].status="listed";
@@ -3074,7 +3076,7 @@ function submitPost(){
   const post={id:gid(),createdAt:new Date().toISOString(),timestampAddedAt:new Date().toISOString(),variant:0,...JSON.parse(JSON.stringify(d))};
   post.postText=buildPost(post,0);
   // Update inventory status for any linked knives
-  post.knives.forEach(k=>{if(k.inventoryId){const inv=S.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="listed";}});
+  post.knives.forEach(k=>{if(k.inventoryId){const inv=S.inventory.find(x=>x.id===k.inventoryId);if(inv){inv.status="listed";inv.listedAt=post.createdAt;}}});
   S.posts=[post,...S.posts];
   S.view="list";S.expanded=post.id;S.draft=ED();S.uploadFiles=[];saveNow();saveInvNow();render();
 }
@@ -6131,10 +6133,16 @@ function renderCompose(){
     </div></div>
     <div style="margin-bottom:12px">
       <label class="cblk"><input type="checkbox" ${d.repost?"checked":""} onchange="S.draft.repost=this.checked;render()"/> Price drop / repost</label>
-      ${d.repost?`<div class="pdc">
-        <div class="pdc-hdr">${icon('trending-down',13)} Price Drop Calculator</div>
-        <div class="pdc-rule">Each knife must drop by <strong>10%</strong> or <strong>$25</strong> - your choice, whichever you prefer. Alternatively, you can repost at the <strong>same price after 7 days</strong> with no reduction required.</div>
-        ${d.knives.map((k,i)=>{
+      ${(()=>{
+        const cooldownKnives=d.knives.map((k,i)=>({k,i})).filter(({k})=>!!k.prevPrice);
+        const showSection=d.repost||cooldownKnives.length>0;
+        if(!showSection)return"";
+        const isCooldownOnly=!d.repost&&cooldownKnives.length>0;
+        const knivesToShow=isCooldownOnly?cooldownKnives:d.knives.map((k,i)=>({k,i}));
+        return`<div class="pdc">
+        <div class="pdc-hdr">${isCooldownOnly?icon('alert-triangle',13,'var(--oranget)'):icon('trending-down',13)} ${isCooldownOnly?'Knife Cooldown':'Price Drop Calculator'}</div>
+        <div class="pdc-rule">${isCooldownOnly?`One or more knives were listed within the last 7 days. r/Knife_Swap requires a <strong>10% or $25 price drop</strong> to relist before 7 days are up.`:`Each knife must drop by <strong>10%</strong> or <strong>$25</strong> - your choice, whichever you prefer. Alternatively, you can repost at the <strong>same price after 7 days</strong> with no reduction required.`}</div>
+        ${knivesToShow.map(({k,i})=>{
           const prev=parseFloat(k.prevPrice||0);
           const curr=parseFloat(k.price||0);
           const drop10=prev>0?Math.floor(prev*0.9*100)/100:null;
@@ -6143,7 +6151,7 @@ function renderCompose(){
           const passes25=prev>0&&curr<=(prev-25)+0.001;
           const passes=passes10||passes25;
           const hasData=prev>0&&curr>0;
-          const statusHtml=!hasData?`<div class="pdc-status none">Enter previous price to check</div>`:passes?`<div class="pdc-status ok">✓ Meets requirement${passes10?" (−10%)":""}${passes25&&!passes10?" (−$25)":""}</div>`:`<div class="pdc-status fail">✗ Must drop to $${Math.min(drop10,drop25).toFixed(0)} or less - or repost same price after 7 days</div>`;
+          const statusHtml=!hasData?`<div class="pdc-status none">Enter previous price to check</div>`:passes?`<div class="pdc-status ok">✓ Meets requirement${passes10?" (−10%)":""}${passes25&&!passes10?" (−$25)":""}</div>`:`<div class="pdc-status fail">✗ Must drop to $${Math.min(drop10,drop25).toFixed(0)} or less - or relist at same price after 7 days</div>`;
           return`<div class="pdc-knife">
             <div class="pdc-name">${esc(k.brand)} ${esc(k.model)} - currently $${esc(k.price)}</div>
             <div class="pdc-inputs">
@@ -6151,10 +6159,11 @@ function renderCompose(){
               ${prev>0?`<button class="pdc-suggest" onclick="applyDropPrice(${i},'${drop10}')">Use $${drop10?.toFixed(0)} (−10%)</button><button class="pdc-suggest alt" onclick="applyDropPrice(${i},'${drop25}')">Use $${drop25?.toFixed(0)} (−$25)</button>`:""}
             </div>
             ${statusHtml}
-            ${hasData&&!passes?`<div class="pdc-same">Or: repost at $${curr.toFixed(0)} after waiting 7 days from your original listing date.</div>`:""}
+            ${hasData&&!passes?`<div class="pdc-same">Or: relist at $${curr.toFixed(0)} after waiting 7 days from your original listing date.</div>`:""}
           </div>`;
         }).join("")}
-      </div>`:""}
+      </div>`;
+      })()}
     </div>
     <div class="field" style="margin-bottom:12px"><label>Additional notes</label><input type="text" id="d-notes" value="${esc(d.notes)}" placeholder="Open to offers, prefer local pickup, etc."/></div>
     ${d.postType.includes("WTT")?`<div class="field" style="margin-bottom:12px"><label>Trade Interests <span style="font-weight:400;color:var(--t4);font-size:11px">(what are you looking for?)</span></label><input type="text" id="d-tradeInterests" value="${esc(d.tradeInterests||"")}" placeholder="Spyderco Para 3, Benchmade Bugout, CRK Sebenza..." oninput="syncDraft()"/><div class="field-hint">Will appear in the generated post under "Trade Interests:"</div></div>`:`<input type="hidden" id="d-tradeInterests" value="${esc(d.tradeInterests||"")}"/>`}
