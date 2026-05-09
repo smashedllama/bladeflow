@@ -1242,16 +1242,26 @@ function undoLast(){
 // Runs at load time so stale statuses from old bugs are self-healing.
 function reconcileInventory(){
   let changed=false;
+  // One-time backfill: gear items added to posts before the inventoryId fix (May 2026)
+  // had no inventoryId set — their id === the Roll item's id, so we can backfill here.
+  S.posts.forEach(p=>{
+    (p.items||[]).forEach(it=>{
+      if(!it.inventoryId&&it.id){
+        const match=S.inventory.find(inv=>inv.id===it.id&&isNI(inv));
+        if(match){it.inventoryId=it.id;changed=true;}
+      }
+    });
+  });
   S.inventory.forEach(inv=>{
     if(inv.status==="listed"){
       const claimedByActivePost=S.posts.some(p=>
         p.knives.some(k=>k.inventoryId===inv.id&&!k.sold)||
-        (p.items||[]).some(it=>it.inventoryId===inv.id&&!it.sold)
+        (p.items||[]).some(it=>it.inventoryId===inv.id&&!it.sold&&!it.withdrawn)
       );
       if(!claimedByActivePost){inv.status="available";changed=true;}
     }
   });
-  if(changed)saveInv();
+  if(changed){saveInv();saveNow();}
 }
 
 // ─── SUPABASE FUNCTIONS ───────────────────────────────────────
@@ -2977,7 +2987,7 @@ function renderNIForm(){
       <input id="ni-file-input" type="file" accept="image/*" multiple style="display:none" onchange="handleNIFileInput(event)"/>
     </div>
     ${S.err?`<div class="err">${esc(S.err)}</div>`:""}
-    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-pri" onclick="saveNI()">Done - ${S.niIdx===-1?"Add":"Update"} Item</button><button class="btn btn-sec" onclick="closeNI()">Cancel</button></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-pri" onclick="saveNI()">Done - ${S.niIdx===-1&&S.niPostId===null?"Add":"Update"} Item</button><button class="btn btn-sec" onclick="closeNI()">Cancel</button></div>
   </div>`;
 }
 
@@ -3418,7 +3428,7 @@ function startPriceDropRepost(pid){
   d.payment=[...(p.payment||SETTINGS.payment)];d.paymentOther=p.paymentOther||"";
   d.noShip=[...(p.noShip||SETTINGS.noShip)];d.noShipOther=p.noShipOther||"";
   d.notes=p.notes||"";
-  d.knives=p.knives.filter(k=>!k.sold).map(k=>({...JSON.parse(JSON.stringify(k)),prevPrice:k.price}));
+  d.knives=p.knives.filter(k=>!k.sold&&!k.soldElsewhere).map(k=>({...JSON.parse(JSON.stringify(k)),prevPrice:k.price,withdrawn:false,pending:false}));
   S.draft=d;S.view="compose";S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kf=EK();S.kfMode="draft";S.adv=false;S.err="";S.lockerPicker=false;S.gearPicker=false;S.uploadFiles=[];render();
 }
 function startSamePriceRepost(pid){
@@ -3428,7 +3438,7 @@ function startSamePriceRepost(pid){
   d.payment=[...(p.payment||SETTINGS.payment)];d.paymentOther=p.paymentOther||"";
   d.noShip=[...(p.noShip||SETTINGS.noShip)];d.noShipOther=p.noShipOther||"";
   d.notes=p.notes||"";
-  d.knives=p.knives.filter(k=>!k.sold).map(k=>JSON.parse(JSON.stringify(k)));
+  d.knives=p.knives.filter(k=>!k.sold&&!k.soldElsewhere).map(k=>({...JSON.parse(JSON.stringify(k)),withdrawn:false,pending:false}));
   S.draft=d;S.view="compose";S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kf=EK();S.kfMode="draft";S.adv=false;S.err="";S.lockerPicker=false;S.gearPicker=false;S.uploadFiles=[];render();
 }
 async function openRedditPost(pid){
@@ -5154,7 +5164,7 @@ function kShipStatus(k){
   return"ready";
 }
 function gShipStatus(item){
-  if(!item.sold)return null;
+  if(item.withdrawn||!item.sold)return null;
   if(item.confirmedAt)return"confirmed";
   if(item.deliveredAt)return"delivered";
   if(item.trackingNumber)return"shipped";
@@ -6139,7 +6149,7 @@ function renderCompose(){
     const bundleTag=bndl?`<span class="bundle-tag">Bundle</span>`:"";
     return`<div class="ki"><span class="ki-num">${i+1}</span><div class="ki-info"><div class="ki-name">${esc(k.brand)} ${esc(k.model)}${typeTag}${bundleTag}${k.inventoryId?`<span class="ki-fromlock">The Roll</span>`:""}</div><div class="ki-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}</div></div><span class="ki-price">${priceStr}</span><button class="btn btn-sec btn-xs" onclick="openKF(${i},'draft')">Edit</button><button class="btn btn-rd btn-xs" onclick="removeKnife(${i})">Remove</button></div>`;
   }).join(""):`<div style="text-align:center;padding:20px 16px;color:var(--t4);font-size:13px;border:1px dashed rgba(0,0,0,.13);border-radius:var(--rs)">No knives added yet</div>`;
-  const lockerPickerHtml=s.lockerPicker&&availInLocker.length?`<div class="lk-picker" style="margin-top:6px">${availInLocker.map((k,i)=>{const ri=s.inventory.indexOf(k);const issues=knifePickerIssues(k);const ok=issues.length===0;const issueText=issues.slice(0,2).join(" · ")+(issues.length>2?` +${issues.length-2} more`:"");return ok?`<div class="lk-pick-row" onclick="addFromLocker(${ri})"><div><div class="lk-pick-name">${esc(k.brand)} ${esc(k.model)}</div><div class="lk-pick-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)} · $${esc(k.price)}</div></div><button class="btn btn-gn btn-xs" style="pointer-events:none">Add</button></div>`:`<div class="lk-pick-row" style="cursor:not-allowed;opacity:.75" title="${esc(issueText)}"><div style="flex:1;min-width:0"><div class="lk-pick-name">${esc(k.brand)} ${esc(k.model)}</div><div class="lk-pick-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}</div><div style="font-size:10px;color:var(--redt);margin-top:3px;font-weight:500;display:flex;align-items:center;gap:3px">${icon('alert-triangle',10,'var(--redt)')} ${esc(issueText)}</div></div><button class="btn btn-xs" style="pointer-events:none;flex-shrink:0;background:var(--orangebg);color:var(--oranget);border:.5px solid var(--oranget)">Fix first</button></div>`;}).join("")}<div style="padding:8px 14px;font-size:11px;color:var(--t4);border-top:.5px solid var(--b2);cursor:pointer" onclick="S.lockerPicker=false;render()">Close picker</div></div>`:s.lockerPicker&&!availInLocker.length?`<div style="padding:12px 14px;background:var(--bg);border-radius:var(--rs);font-size:12.5px;color:var(--t3);margin-top:6px">No available knives in The Roll. <span style="color:var(--blue);cursor:pointer" onclick="S.view='roll';render()">Add some first.</span></div>`:"";
+  const lockerPickerHtml=s.lockerPicker&&availInLocker.length?`<div class="lk-picker" style="margin-top:6px">${availInLocker.map((k,i)=>{const ri=s.inventory.indexOf(k);const issues=knifePickerIssues(k);const ok=issues.length===0;const issueText=issues.slice(0,2).join(" · ")+(issues.length>2?` +${issues.length-2} more`:"");const _pCd=k.listedAt&&daysAgo(k.listedAt)<7;const _pCdLeft=_pCd?7-daysAgo(k.listedAt):null;const _cdBadge=_pCdLeft!==null?`<span style="display:inline-flex;align-items:center;font-size:10px;font-weight:700;color:var(--oranget);background:var(--orangebg);border:.5px solid rgba(255,159,10,.3);border-radius:20px;padding:1px 6px;margin-left:4px" title="Price drop required — ${_pCdLeft}d left">⏱ ${_pCdLeft}d</span>`:"";return ok?`<div class="lk-pick-row" onclick="addFromLocker(${ri})"><div><div class="lk-pick-name">${esc(k.brand)} ${esc(k.model)}${_cdBadge}</div><div class="lk-pick-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)} · $${esc(k.price)}</div></div><button class="btn btn-gn btn-xs" style="pointer-events:none">Add</button></div>`:`<div class="lk-pick-row" style="cursor:not-allowed;opacity:.75" title="${esc(issueText)}"><div style="flex:1;min-width:0"><div class="lk-pick-name">${esc(k.brand)} ${esc(k.model)}${_cdBadge}</div><div class="lk-pick-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}</div><div style="font-size:10px;color:var(--redt);margin-top:3px;font-weight:500;display:flex;align-items:center;gap:3px">${icon('alert-triangle',10,'var(--redt)')} ${esc(issueText)}</div></div><button class="btn btn-xs" style="pointer-events:none;flex-shrink:0;background:var(--orangebg);color:var(--oranget);border:.5px solid var(--oranget)">Fix first</button></div>`;}).join("")}<div style="padding:8px 14px;font-size:11px;color:var(--t4);border-top:.5px solid var(--b2);cursor:pointer" onclick="S.lockerPicker=false;render()">Close picker</div></div>`:s.lockerPicker&&!availInLocker.length?`<div style="padding:12px 14px;background:var(--bg);border-radius:var(--rs);font-size:12.5px;color:var(--t3);margin-top:6px">No available knives in The Roll. <span style="color:var(--blue);cursor:pointer" onclick="S.view='roll';render()">Add some first.</span></div>`:"";
   const gearPickerHtml=s.gearPicker&&availGearInLocker.length?`<div class="lk-picker" style="margin-top:6px">${availGearInLocker.map((item)=>{const ri=s.inventory.indexOf(item);const icn=NI_ICONS[item.itemCategory||"other"]||icon("package",14);const label=NI_LABELS[item.itemCategory||"other"]||"Other";const gissues=gearPickerIssues(item);const gok=gissues.length===0;const gissueText=gissues.join(" · ");return gok?`<div class="lk-pick-row" onclick="addGearFromRoll(${ri})"><div><div class="lk-pick-name">${icn} ${esc(label)}: ${esc(item.description||"")}</div><div class="lk-pick-meta">${esc(item.condition||"")}${item.price?" · $"+esc(item.price):""}</div></div><button class="btn btn-gn btn-xs" style="pointer-events:none">Add</button></div>`:`<div class="lk-pick-row" style="cursor:not-allowed;opacity:.75" title="${esc(gissueText)}"><div style="flex:1;min-width:0"><div class="lk-pick-name">${icn} ${esc(label)}: ${esc(item.description||"")}</div><div class="lk-pick-meta">${esc(item.condition||"")}</div><div style="font-size:10px;color:var(--redt);margin-top:3px;font-weight:500;display:flex;align-items:center;gap:3px">${icon('alert-triangle',10,'var(--redt)')} ${esc(gissueText)}</div></div><button class="btn btn-xs" style="pointer-events:none;flex-shrink:0;background:var(--orangebg);color:var(--oranget);border:.5px solid var(--oranget)">Fix first</button></div>`;}).join("")}<div style="padding:8px 14px;font-size:11px;color:var(--t4);border-top:.5px solid var(--b2);cursor:pointer" onclick="S.gearPicker=false;render()">Close picker</div></div>`:s.gearPicker&&!availGearInLocker.length?`<div style="padding:12px 14px;background:var(--bg);border-radius:var(--rs);font-size:12.5px;color:var(--t3);margin-top:6px">No available gear in The Roll. <span style="color:var(--blue);cursor:pointer" onclick="S.view='roll';render()">Add some first.</span></div>`:"";
   const gearItemsList=(d.items||[]).length?`<div style="margin-top:10px"><div class="krows-hdr">Gear &amp; Extras</div>${(d.items||[]).map((item,di)=>{const gicn=NI_ICONS[item.itemCategory||"other"]||icon("package",14);const label=NI_LABELS[item.itemCategory||"other"]||"Other";const priceStr=item.saleType!=="WTT"&&item.price?`SV: $${item.price}`:item.saleType!=="WTS"&&item.tradeValue?`TV: $${item.tradeValue}`:"$TBD";return`<div class="ki"><span class="ki-num" style="background:var(--surf);color:var(--t2);font-size:13px;width:28px;height:28px">${gicn}</span><div class="ki-info"><div class="ki-name">${esc(label)}: ${esc(item.description||"")}</div><div class="ki-meta">${esc(item.condition||"")} · ${esc(item.saleType||"WTS")}</div></div><span class="ki-price">${priceStr}</span><button class="btn btn-rd btn-xs" onclick="removeGearItem(${di})">Remove</button></div>`;}).join("")}</div>`:"";
   const addBtns=!s.kfOpen?`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-sec" style="flex:1;justify-content:center;border-radius:var(--rs)" onclick="openKF(-1,'draft')">+ New Knife</button>${availInLocker.length?`<button class="btn btn-pu" style="border-radius:var(--rs)" onclick="S.lockerPicker=!S.lockerPicker;S.gearPicker=false;render()">From Roll: Knives${s.lockerPicker?" &#9650;":" &#9660;"}</button>`:""}${availGearInLocker.length?`<button class="btn btn-pu" style="border-radius:var(--rs)" onclick="S.gearPicker=!S.gearPicker;S.lockerPicker=false;render()">From Roll: Gear${s.gearPicker?" &#9650;":" &#9660;"}</button>`:""}</div>${lockerPickerHtml}${gearPickerHtml}${gearItemsList}`:"";
@@ -6707,12 +6717,13 @@ function checkPostRules(pid){
   const mixedLotsOk=(p.items||[]).length===0||totalActive===0||(activeKnives.length/totalActive)>=0.5;
   const noExtLinks=!BANNED_LINK_RE.test(txt);
   const missingSlots=activeKnives.filter(k=>{const ph=(k.photos||[]).filter(Boolean);const ext=ph.filter(u=>!u.includes("res.cloudinary.com"));const vid=ph.filter(u=>isCdnVideo(u));const img=ph.filter(u=>u.includes("res.cloudinary.com")&&!isCdnVideo(u));return!(!!(k.imgurLink)||ext.length>=1||vid.length>=1||img.length>=2);});
-  const missingGearPhotos=(p.items||[]).filter(it=>!it.sold&&!(it.photos||[]).filter(Boolean).length);
-  const activeGear=(p.items||[]).filter(it=>!it.sold);
+  const missingGearPhotos=(p.items||[]).filter(it=>!it.sold&&!it.withdrawn&&!(it.photos||[]).filter(Boolean).length);
+  const activeGear=(p.items||[]).filter(it=>!it.sold&&!it.withdrawn);
   const hasActiveItems=activeKnives.length>0||activeGear.length>0;
   const tsDateOk=!p.timestampAddedAt||new Date(p.timestampAddedAt).toDateString()===new Date().toDateString();
   const tsDateMsg=tsDateOk?"Timestamp date is current":`Timestamp is from ${new Date(p.timestampAddedAt).toLocaleDateString("en-US",{month:"long",day:"numeric"})} - a new one with today's date is required`;
   return[
+    {ok:hasActiveItems,msg:hasActiveItems?"Post has active items":"No active items remain — all knives and gear are sold or withdrawn"},
     {ok:(p.photos||[]).filter(Boolean).length>0,msg:"Timestamp photo link in post"},
     ...(p.timestampAddedAt&&hasActiveItems?[{ok:tsDateOk,msg:tsDateMsg,tsUpdate:!tsDateOk}]:[]),
     {ok:missingSlots.length===0,msg:missingSlots.length===0?"All knives have photos":`Needs more photos: ${missingSlots.map(k=>k.brand+" "+k.model).join(", ")} (2 Cloudinary photos, 1 video, or 1 Imgur link)`},
