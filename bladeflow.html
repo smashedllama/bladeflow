@@ -3618,7 +3618,7 @@ function render(){
   }
 }
 function openPreflight(pid){S.preflight=pid;S.modal="preflight";try{if(localStorage.getItem("ks_rules_ok")==="1")S.rulesConfirmed=true;}catch(e){}render();}
-function closePreflight(){S.modal=null;S.preflight=null;render();}
+function closePreflight(){S.modal=null;S.preflight=null;S.updateBypass=false;render();}
 function addTimestampToPreflight(pid){
   const url=(document.getElementById("pf-ts-input")?.value||"").trim();
   if(!url||!url.startsWith("http")){alert("Please enter a valid URL starting with http");return;}
@@ -3656,13 +3656,13 @@ async function uploadTsPhoto(pid,file){
 async function copyFromPreflight(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
   let copied=false;try{await navigator.clipboard.writeText(p.postText||"");copied=true;}catch(e){}
-  S.copied=pid;S.modal=null;S.preflight=null;
+  S.copied=pid;S.modal=null;S.preflight=null;S.updateBypass=false;
   S.flairToast=copied?`${icon('clipboard',13)} Post text copied. On Reddit: switch to Markdown editor (bottom-right of the text box), then paste.`:`${icon('alert-triangle',13,'var(--oranget)')} Couldn't auto-copy. On Reddit: switch to Markdown editor first, then paste your post text.`;
   clearTimeout(S._flairTid);S._flairTid=setTimeout(()=>{S.flairToast=null;render();},9000);
   render();setTimeout(()=>{if(S.copied===pid){S.copied=null;render();}},2000);
 }
 async function openRedditFromPreflight(pid){
-  S.modal=null;S.preflight=null;render();
+  S.modal=null;S.preflight=null;S.updateBypass=false;render();
   await openRedditPost(pid);
 }
 function renderPreflightModal(){
@@ -3670,9 +3670,10 @@ function renderPreflightModal(){
   const p=S.posts.find(x=>x.id===pid);if(!p)return"";
   const rules=checkPostRules(pid);
   const rulesConfirmed=!!S.rulesConfirmed;
+  const updateBypass=!!S.updateBypass;
   // All failures are hard - timestamp is required
   const hardFails=rules.filter(r=>!r.ok);
-  const canPost=hardFails.length===0&&rulesConfirmed;
+  const canPost=(hardFails.length===0&&rulesConfirmed)||updateBypass;
   const checkRows=rules.map((r,i)=>{
     if(i===0){
       return`<div style="padding:10px 0;border-bottom:.5px solid var(--b2)">
@@ -3700,18 +3701,22 @@ function renderPreflightModal(){
     </div>
     <div class="modal-body">
       ${checkRows}
-      <div style="padding:12px 0 4px">
+      <div style="padding:12px 0 4px;display:flex;flex-direction:column;gap:10px">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
           <input type="checkbox" ${rulesConfirmed?"checked":""} onchange="S.rulesConfirmed=this.checked;if(this.checked){try{localStorage.setItem('ks_rules_ok','1');}catch(e){}}render()" style="width:16px;height:16px;margin-top:2px;flex-shrink:0;cursor:pointer"/>
           <span style="font-size:13px;color:var(--t1);line-height:1.5">I've read the <a href="https://www.reddit.com/r/Knife_Swap/wiki/rules" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">r/Knife_Swap rules</a> and my post follows them</span>
         </label>
+        ${hardFails.length?`<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+          <input type="checkbox" ${updateBypass?"checked":""} onchange="S.updateBypass=this.checked;render()" style="width:16px;height:16px;margin-top:2px;flex-shrink:0;cursor:pointer"/>
+          <span style="font-size:13px;color:var(--t1);line-height:1.5">Marking items as sold and updating an existing listing</span>
+        </label>`:""}
       </div>
       <div style="display:flex;gap:8px;margin-top:14px">
         <button class="btn btn-sec btn-sm" style="flex:1" onclick="closePreflight()">Cancel</button>
         <button class="btn btn-pri" style="flex:2;justify-content:center${canPost?"":"opacity:.45;cursor:not-allowed"}" onclick="${canPost?`copyFromPreflight('${pid}')`:""}"${canPost?"":" disabled"}>${icon('clipboard',13)} Copy Post</button>
         <button class="btn btn-gn btn-sm" style="${canPost?"":"opacity:.45;cursor:not-allowed"}" onclick="${canPost?`openRedditFromPreflight('${pid}')`:""}"${canPost?"":" disabled"}>Post to Reddit ↗</button>
       </div>
-      ${hardFails.length?`<div style="font-size:11px;color:var(--redt);text-align:center;margin-top:8px">${hardFails.length} issue${hardFails.length!==1?"s":""} must be fixed first</div>`:!rulesConfirmed?`<div style="font-size:11px;color:var(--oranget);text-align:center;margin-top:8px">Check the box above to confirm rules</div>`:""}
+      ${!canPost&&!updateBypass?(hardFails.length?`<div style="font-size:11px;color:var(--redt);text-align:center;margin-top:8px">${hardFails.length} issue${hardFails.length!==1?"s":""} must be fixed — or check the update box above</div>`:!rulesConfirmed?`<div style="font-size:11px;color:var(--oranget);text-align:center;margin-top:8px">Check the box above to confirm rules</div>`:""): ""}
     </div>
   </div>
 </div>`;
