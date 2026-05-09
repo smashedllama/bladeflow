@@ -5438,7 +5438,7 @@ function renderRoll(){
     const _listedMs=k.listedAt?new Date(k.listedAt).getTime():null;
     const _dSinceListed=_listedMs?Math.floor((Date.now()-_listedMs)/864e5):null;
     const _dLeftCooldown=_dSinceListed!==null&&_dSinceListed<7?(7-_dSinceListed):null;
-    const cooldownBadge=k.status==="listed"&&_dLeftCooldown!==null?`<span class="lk-badge" style="background:var(--orangebg);color:var(--oranget);border-color:rgba(255,149,0,.2);font-size:10px;cursor:help" title="Same-price repost requires 7 days. ${_dLeftCooldown}d remaining.">⏱ ${_dLeftCooldown}d</span>`:"";
+    const cooldownBadge=k.status==="listed"&&_dLeftCooldown!==null?`<span class="days-badge" style="background:var(--orangebg);color:var(--oranget);cursor:help" title="Same-price repost requires 7 days. ${_dLeftCooldown}d remaining.">⏱ ${_dLeftCooldown}d</span>`:"";
     // Price history sparkline (text-based)
     const ph=(k.priceHistory||[]);
     const phHtml=ph.length?`<div class="ph-line">${ph.slice(-3).map((h,i,arr)=>`<span class="ph-old">$${esc(h.price)}</span>${i<arr.length-1?`<span style="font-size:9px;color:var(--t4)">›</span>`:""}`).join("")}<span style="font-size:9px;color:var(--t4)">›</span><span style="font-size:10.5px;font-weight:700;color:var(--greent)">$${esc(k.price)}</span></div>`:"";
