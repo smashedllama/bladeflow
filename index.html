@@ -2785,7 +2785,7 @@ function openKF(idx,mode,postId){
   S.priceResearch={status:"idle",results:[],query:""};
   render();setTimeout(()=>document.getElementById("kf-brand")?.focus(),60);
 }
-function closeKF(){S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kfExtraSlots=0;S.err="";S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};render();}
+function closeKF(){S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kfExtraSlots=0;S.kfPDCOpen=false;S.err="";S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};render();}
 function syncKF(){
   const g=id=>document.getElementById(id);const f=S.kf;
   ["brand","model","steel","price","tradeValue","lockupNotes","notes","addonPrice","issuesOther","accessoriesOther","prevPrice","dob"].forEach(k=>{const e=g("kf-"+k);if(e)f[k]=e.value});
@@ -2813,16 +2813,16 @@ function saveKF(){
     }
     if(S.kfIdx>=0)S.inventory[S.kfIdx]=JSON.parse(JSON.stringify(f));
     else S.inventory.push(JSON.parse(JSON.stringify(f)));
-    S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kfExtraSlots=0;S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};saveInv();render();
+    S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kfExtraSlots=0;S.kfPDCOpen=false;S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};saveInv();render();
   }else if(S.kfMode==="post"){
     const _pp=S.posts.find(p=>p.id===S.kfPostId);
     if(_pp&&S.kfIdx>=0&&S.kfIdx<_pp.knives.length){_pp.knives[S.kfIdx]=JSON.parse(JSON.stringify(f));_pp.postText=buildPost(_pp);}
-    S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kfExtraSlots=0;S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};save();render();
+    S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kfExtraSlots=0;S.kfPDCOpen=false;S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};save();render();
   }else{
     if(S.kfIdx>=0)S.draft.knives[S.kfIdx]=JSON.parse(JSON.stringify(f));
     else S.draft.knives.push(JSON.parse(JSON.stringify(f)));
     S.draft.postType=autoPostType(S.draft.knives);
-    S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kfExtraSlots=0;S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};render();
+    S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kfExtraSlots=0;S.kfPDCOpen=false;S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};render();
   }
 }
 function removeKnife(i){
@@ -2841,6 +2841,8 @@ function removeKnife(i){
 }
 function setPrevPrice(i,v){syncDraft();S.draft.knives[i].prevPrice=v;render();}
 function applyDropPrice(i,p){syncDraft();S.draft.knives[i].price=String(p);render();}
+function setKfPrevPrice(v){S.kf.prevPrice=v;render();}
+function applyKfDropPrice(p){syncKF();S.kf.price=String(Math.round(parseFloat(p)*100)/100);render();}
 function gearPickerIssues(item){
   const issues=[];
   if(!item.description?.trim())issues.push("missing description");
@@ -4742,9 +4744,8 @@ function kfFormHtml(){
     </div>
     ${kt==="WTS"?"":`<div style="margin-bottom:11px;margin-top:-6px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO on prices</label></div>`}
     ${kt!=="WTT"?`<div class="field" style="margin-bottom:11px">
-      <label>Previous price <span style="font-weight:400;color:var(--t4);font-size:11px">(price drop — optional)</span></label>
-      <input type="number" id="kf-prevPrice" min="0" value="${esc(String(f.prevPrice||""))}" placeholder="e.g. 175" style="width:140px" onblur="syncKF();render()"/>
-      ${f.prevPrice&&f.price?`<div style="margin-top:7px;font-size:12.5px;color:var(--t3)">Markdown preview: <code style="background:var(--surf);padding:3px 8px;border-radius:5px;font-size:12.5px;color:var(--t1)">~~$${esc(f.prevPrice)}~~ $${esc(f.price)}</code></div>`:`<div style="margin-top:4px;font-size:11px;color:var(--t4)">Enter to see ~~strikethrough~~ markdown preview</div>`}
+      <label class="cblk"><input type="checkbox" ${(S.kfPDCOpen||!!(f.prevPrice))?"checked":""} onchange="syncKF();S.kfPDCOpen=this.checked;if(!this.checked)S.kf.prevPrice='';render()"/> Price drop / repost</label>
+      ${(S.kfPDCOpen||!!(f.prevPrice))?(()=>{const prev=parseFloat(f.prevPrice||0);const curr=parseFloat(f.price||0);const drop10=prev>0?Math.floor(prev*0.9*100)/100:null;const drop25=prev>0?Math.max(0,prev-25):null;const passes10=prev>0&&curr<=prev*0.9+0.001;const passes25=prev>0&&curr<=(prev-25)+0.001;const passes=passes10||passes25;const hasData=prev>0&&curr>0;const statusHtml=!hasData?`<div class="pdc-status none">Enter previous price to check</div>`:passes?`<div class="pdc-status ok">✓ Meets requirement${passes10?" (−10%)":""}${passes25&&!passes10?" (−$25)":""}</div>`:`<div class="pdc-status fail">✗ Must drop to $${Math.min(drop10,drop25).toFixed(0)} or less</div>`;return`<div class="pdc" style="margin-top:10px"><div class="pdc-hdr">${icon('trending-down',13)} Price Drop Calculator</div><div class="pdc-rule">Must drop by <strong>10%</strong> or <strong>$25</strong> — whichever you prefer. Or repost at the <strong>same price after 7 days</strong>.</div><div class="pdc-knife" style="border-top:none;padding-top:0"><div class="pdc-inputs"><div class="field pdc-prev"><label>Previous price ($)</label><input type="number" id="kf-prevPrice" placeholder="e.g. 175" min="0" value="${esc(f.prevPrice||"")}" oninput="setKfPrevPrice(this.value)"/></div>${prev>0?`<button class="pdc-suggest" onclick="applyKfDropPrice(${drop10})">Use $${drop10?.toFixed(0)} (−10%)</button><button class="pdc-suggest alt" onclick="applyKfDropPrice(${drop25})">Use $${drop25?.toFixed(0)} (−$25)</button>`:""}</div>${statusHtml}${hasData&&!passes?`<div class="pdc-same">Or: repost same price after 7 days from original listing date.</div>`:""}</div></div>`;})():""}
     </div>`:""}
     ${kt!=="WTT"?`<div class="field" style="margin-bottom:11px">
       <label class="cblk"><input type="checkbox" id="kf-addonEnabled" ${f.addonEnabled?"checked":""} onchange="syncKF();S.kf.addonEnabled=this.checked;render()"/> Add-on price</label>
@@ -6366,7 +6367,7 @@ window.S=S;window.SETTINGS=SETTINGS;window.tm=tm;window.tmx=tmx;
 window.undoLast=undoLast;window.pushUndo=pushUndo;
 window.startCompose=startCompose;window.cancelCompose=cancelCompose;
 window.openKF=openKF;window.closeKF=closeKF;window.syncKF=syncKF;window.saveKF=saveKF;
-window.removeKnife=removeKnife;window.setPrevPrice=setPrevPrice;window.applyDropPrice=applyDropPrice;window.addFromLocker=addFromLocker;window.removeFromInventory=removeFromInventory;window.markInvSold=markInvSold;
+window.removeKnife=removeKnife;window.setPrevPrice=setPrevPrice;window.applyDropPrice=applyDropPrice;window.setKfPrevPrice=setKfPrevPrice;window.applyKfDropPrice=applyKfDropPrice;window.addFromLocker=addFromLocker;window.removeFromInventory=removeFromInventory;window.markInvSold=markInvSold;
 window.syncDraft=syncDraft;window.submitPost=submitPost;window.addTimestampUrl=addTimestampUrl;window.removeTimestampUrl=removeTimestampUrl;
 window.openBundlePicker=openBundlePicker;window.closeBundlePicker=closeBundlePicker;window.toggleBundleKnife=toggleBundleKnife;window.confirmBundleCreate=confirmBundleCreate;window.removeBundle=removeBundle;
 window.openNI=openNI;window.closeNI=closeNI;window.saveNI=saveNI;window.removeNI=removeNI;window.markNISold=markNISold;window.addGearFromRoll=addGearFromRoll;window.removeGearItem=removeGearItem;window.markNIPending=markNIPending;window.triggerNIUpload=triggerNIUpload;window.handleNIFileInput=handleNIFileInput;window.removeNIUpload=removeNIUpload;window.addNIPhotoUrl=addNIPhotoUrl;window.markGearSold=markGearSold;window.confirmGearSoldFlow=confirmGearSoldFlow;window.cancelGearSoldFlow=cancelGearSoldFlow;window.markGearPending=markGearPending;window.lookupZipGear=lookupZipGear;window.saveGearTracking=saveGearTracking;window.markGearShipped=markGearShipped;window.markGearDelivered=markGearDelivered;window.markGearConfirmed=markGearConfirmed;window.copyGearConfirmComment=copyGearConfirmComment;window.gearShipCard=gearShipCard;window.gearAddrDisplayHtml=gearAddrDisplayHtml;window.gearPickerIssues=gearPickerIssues;window.gearSoldFlowHtml=gearSoldFlowHtml;
