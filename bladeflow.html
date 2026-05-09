@@ -1972,7 +1972,7 @@ function buildAddonsSection(addonKnives,carrier,v){
   return"";
 }
 
-function buildItemsSection(post){
+function buildItemsSection(post,v=0){
   if(!(post.items||[]).length)return"";
   const CAT_ORDER=["watch","sunglasses","flashlight","multi-tool","bag","clothing","other"];
   const NI_PLURAL={watch:"Watches",sunglasses:"Sunglasses",flashlight:"Flashlights","multi-tool":"Multi-tools",bag:"Bags / Cases",clothing:"Clothing",other:"Other Gear"};
@@ -1986,9 +1986,47 @@ function buildItemsSection(post){
       const priceStr=[price,tv].filter(Boolean).join(" | ")||"$TBD";
       const gurl=gearItemGalleryUrl(x);
       const desc=x.description||(NI_LABELS[cat]||"Item");
-      const nameStr=gurl?`[${desc}](${gurl})`:`**${desc}**`;
-      return`${nameStr} | ${priceStr}\nCondition: ${x.condition||"N/A"} | Owners: ${x.owners||"1"}${x.notes?". "+x.notes:""}`;
+      const soldLabel=x.sold?(x.soldPrice?`[SOLD @ $${x.soldPrice}]`:"[SOLD]"):x.withdrawn?"[WITHDRAWN]":x.pending?"[PENDING]":"";
+      const isGone=x.sold||x.withdrawn;
+
+      if(v===0){
+        // Detailed — bold header + bullet lines, matches knife v=0 style
+        const nameLinked=gurl?`[${desc}](${gurl})`:`${desc}`;
+        const hdr=isGone
+          ?`~~**${nameLinked}**~~ **${soldLabel}** | ~~${priceStr}~~`
+          :`**${nameLinked}${soldLabel?" "+soldLabel:""}** | **${priceStr}**`;
+        const lines=[`- **Condition:** ${x.condition||"N/A"} | **Owners:** ${x.owners||"1"}`];
+        if(x.notes)lines.push(`- **Notes:** ${x.notes}`);
+        return`${hdr}\n${lines.join("\n")}`;
+      }
+
+      if(v===1){
+        // Compact — header line + detail line, matches knife v=1 style
+        const nameLinked=gurl?`[${desc}](${gurl})`:`${desc}`;
+        const statusLabel=isGone?` ${soldLabel}`:x.pending?" [PENDING]":"";
+        let block=`**${nameLinked}**${statusLabel} | ${priceStr}`;
+        block+=`\nCondition: ${x.condition||"N/A"} | ${x.owners||"1"} owner`;
+        if(x.notes)block+=`\n${x.notes}`;
+        return block;
+      }
+
+      if(v===3){
+        // Table row — matches knife v=3 table style
+        const nameCell=gurl
+          ?`[${desc}](${gurl})${soldLabel?" "+soldLabel.replace(/\[/g,"\\[").replace(/\]/g,"\\]"):""}`
+          :`${desc}${soldLabel?" "+soldLabel.replace(/\[/g,"\\[").replace(/\]/g,"\\]"):""}`;
+        const parts=[];
+        parts.push(`${x.owners||"1"} owner`);
+        if(x.condition&&x.condition!=="Excellent")parts.push(x.condition);
+        if(x.notes)parts.push(x.notes);
+        return`| ${nameCell} | ${priceStr} | ${parts.join(". ")}${parts.length?".":""} |`;
+      }
+
+      // Fallback
+      const nameLinked=gurl?`[${desc}](${gurl})`:`**${desc}**`;
+      return`${nameLinked} | ${priceStr}\nCondition: ${x.condition||"N/A"} | Owners: ${x.owners||"1"}${x.notes?". "+x.notes:""}`;
     });
+    if(v===3)return`${header}\n\n| Item | Price | Description |\n|:--|:--|:--|\n${rows.join("\n")}`;
     return`${header}\n\n${rows.join("\n\n")}`;
   });
   return`\n\n---\n\n**Gear & Extras:**\n\n${sections.join("\n\n")}`;
@@ -2404,7 +2442,7 @@ function buildPost(post,v){
     const tradeFooter=isWTT?(ti?`\n**Trade Interests:** ${ti}`:""):"\n**No Trades**";
     const notesLine=post.notes?`\n**Notes:** ${post.notes}`:"";
     const sig="";
-    const itemsSection0=buildItemsSection(post);
+    const itemsSection0=buildItemsSection(post,0);
     return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}${photoBlock}${soldCommentBlurb}\n\n> &nbsp;\n\n${blocks}${addonBlock}${bundleBlock}${selBundleBlock}${itemsSection0}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${carrier} w/ insurance | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${sig?"\n\n"+sig:""}`;
   }
 
@@ -2438,7 +2476,7 @@ function buildPost(post,v){
     const tradeFooter=isWTT?(ti?`\nTrade Interests: ${ti}`:""):"\nNo Trades";
     const sig="";
     const shipSummary1=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
-    const itemsSection1=buildItemsSection(post);
+    const itemsSection1=buildItemsSection(post,1);
     return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}${photoLine}${soldCommentBlurb}\n\n> &nbsp;\n\n${lines}${addonBlock1}${bundleLine}${selBundleLine1}${itemsSection1}\n\nPayment: ${pay} | Shipping: ${shipSummary1}${noshipLine}${tradeFooter}${post.notes?"\nNotes: "+post.notes:""}${sig?"\n"+sig:""}`;
   }
 
@@ -2484,7 +2522,7 @@ function buildPost(post,v){
       return`| ${nameCell} | ${priceCell} | ${parts.join(". ")}${parts.length?".":""} |`;
     }).join("\n");
     const shipSummary3=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
-    const itemsSection3=buildItemsSection(post);
+    const itemsSection3=buildItemsSection(post,3);
     return`${rp?rp.trim()+"\n\n":""}${hdrBlock?hdrBlock.trim()+"\n\n":""}${photoBlock}${soldCommentBlurb}\n\n> &nbsp;\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${addonBlock3}${bundleBlock}${selBundleBlock3}${itemsSection3}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${shipSummary3} | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${sig?"\n\n"+sig:""}`;
   }
 
