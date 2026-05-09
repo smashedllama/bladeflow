@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://api.cloudinary.com https://corsproxy.io https://www.reddit.com https://steelhardnesslab.com; font-src 'self'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co https://api.cloudinary.com https://corsproxy.io https://www.reddit.com; font-src 'self'; object-src 'none'; base-uri 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>BladeFlow</title>
 <!-- PWA -->
@@ -251,9 +251,46 @@ textarea{resize:vertical;line-height:1.55}
 @keyframes viewIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 .main.view-entering{animation:viewIn .23s cubic-bezier(.25,.46,.45,.94) both}
 /* Modal entrance */
-/* Modal overlay subtle fade only — panel itself is static to avoid re-render bounce */
 @keyframes modalOverlayIn{from{opacity:0}to{opacity:1}}
-.modal-overlay{animation:modalOverlayIn .15s ease both}
+@keyframes modalPanelIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-overlay{animation:modalOverlayIn .18s ease both}
+.modal{animation:modalPanelIn .26s cubic-bezier(.34,1.56,.64,1) both}
+/* Post card body expand */
+@keyframes pcBodyIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.pc-body{animation:pcBodyIn .2s cubic-bezier(.25,.46,.45,.94) both}
+/* Price research rows stagger in */
+@keyframes prRowIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+.pr-row{animation:prRowIn .16s ease both}
+.pr-row:nth-child(2){animation-delay:22ms}
+.pr-row:nth-child(3){animation-delay:44ms}
+.pr-row:nth-child(4){animation-delay:66ms}
+.pr-row:nth-child(n+5){animation-delay:88ms}
+/* Locker (Roll) card entrance - transform-only so re-renders feel like a snap, not a flash */
+@keyframes lkCardIn{from{transform:scale(.97) translateY(5px)}to{transform:scale(1) translateY(0)}}
+.lk-card:nth-child(1){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) both}
+.lk-card:nth-child(2){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .04s both}
+.lk-card:nth-child(3){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .08s both}
+.lk-card:nth-child(4){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .12s both}
+.lk-card:nth-child(n+5){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .16s both}
+/* Post card entrance */
+@keyframes pcIn{from{transform:translateY(6px)}to{transform:translateY(0)}}
+.pc:nth-child(1){animation:pcIn .2s ease both}
+.pc:nth-child(2){animation:pcIn .2s ease .05s both}
+.pc:nth-child(3){animation:pcIn .2s ease .10s both}
+.pc:nth-child(n+4){animation:pcIn .2s ease .15s both}
+/* Knife row stagger inside listings */
+@keyframes krowIn{from{transform:translateY(4px)}to{transform:translateY(0)}}
+.krow:nth-child(1){animation:krowIn .16s ease both}
+.krow:nth-child(2){animation:krowIn .16s ease .04s both}
+.krow:nth-child(3){animation:krowIn .16s ease .08s both}
+.krow:nth-child(n+4){animation:krowIn .16s ease .12s both}
+/* Checklist items - opacity allowed here, form is opened intentionally */
+@keyframes clItemIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:translateX(0)}}
+.cl-item:nth-child(1){animation:clItemIn .16s ease both}
+.cl-item:nth-child(2){animation:clItemIn .16s ease .03s both}
+.cl-item:nth-child(3){animation:clItemIn .16s ease .06s both}
+.cl-item:nth-child(4){animation:clItemIn .16s ease .09s both}
+.cl-item:nth-child(n+5){animation:clItemIn .16s ease .12s both}
 /* Undo / flair toast slide-up */
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .undo-toast{animation:toastIn .22s cubic-bezier(.34,1.56,.64,1) both}
@@ -285,6 +322,11 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .krow{display:flex;flex-direction:column;padding:10px 13px;border-radius:var(--rs);background:var(--bg);border:.5px solid var(--b1);margin-bottom:7px}
 .krow-top{display:flex;align-items:center;gap:8px}
 .krow-acts{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:.5px solid var(--b2)}
+.krow-more{position:relative;display:inline-block}
+.krow-more>summary{list-style:none;cursor:pointer}
+.krow-more>summary::-webkit-details-marker{display:none}
+.krow-more-menu{position:absolute;bottom:calc(100% + 5px);left:0;background:var(--card);border:.5px solid var(--b1);border-radius:var(--rs);box-shadow:var(--shm);z-index:50;min-width:140px;padding:4px;display:flex;flex-direction:column;gap:3px}
+.krow-more-menu button{text-align:left;border-radius:6px}
 .krow.sold{background:var(--greenbg);border-color:rgba(52,199,89,.2)}
 .krow.pending-row{background:var(--orangebg);border-color:rgba(255,149,0,.25)}
 .krow.withdrawn-row{background:var(--bg);border-color:var(--b2);opacity:.7}
@@ -293,7 +335,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .krow-name{font-size:13px;font-weight:600;letter-spacing:-.01em}
 .krow-name.s{text-decoration:line-through;color:var(--t3)}
 .krow-meta{font-size:11px;color:var(--t3);margin-top:1px}
-.krow-price{font-size:14px;font-weight:800;color:var(--oranget);flex-shrink:0;letter-spacing:-.02em}
+.krow-price{font-size:14px;font-weight:800;color:var(--t1);flex-shrink:0;letter-spacing:-.02em}
 .krow-price.s{color:var(--greent)}
 .sold-chip{font-size:10px;font-weight:700;background:var(--greenbg);color:var(--greent);border:.5px solid rgba(52,199,89,.3);padding:2px 8px;border-radius:20px;flex-shrink:0}
 .move-picker{background:var(--card);border:.5px solid rgba(0,113,227,.25);border-radius:var(--rs);margin:4px 0 8px 0;overflow:hidden;box-shadow:var(--shm)}
@@ -316,7 +358,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .lk-brand{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
 .lk-model{font-size:15px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;line-height:1.2}
 .lk-steel{font-size:11.5px;color:var(--t3);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lk-price{font-size:17px;font-weight:800;color:var(--oranget);letter-spacing:-.02em;margin-bottom:9px}
+.lk-price{font-size:17px;font-weight:800;color:var(--t1);letter-spacing:-.02em;margin-bottom:9px}
 .lk-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;margin-bottom:9px;border:.5px solid transparent}
 .lk-badge.av{background:var(--greenbg);color:var(--greent);border-color:rgba(52,199,89,.25)}
 .lk-badge.li{background:var(--orangebg);color:var(--oranget);border-color:rgba(255,149,0,.2)}
@@ -327,11 +369,16 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .ni-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:10px}
 .ni-card{background:var(--card);border:.5px solid var(--b1);border-radius:var(--r);padding:17px;box-shadow:var(--sh);transition:box-shadow var(--tr)}
 .ni-card:hover{box-shadow:var(--shm)}
+.ni-card:nth-child(1){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) both}
+.ni-card:nth-child(2){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .04s both}
+.ni-card:nth-child(3){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .08s both}
+.ni-card:nth-child(4){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .12s both}
+.ni-card:nth-child(n+5){animation:lkCardIn .22s cubic-bezier(.34,1.56,.64,1) .16s both}
 .ni-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .ni-icon{font-size:18px;flex-shrink:0}
 .ni-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)}
 .ni-desc{font-size:15px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;line-height:1.2;color:var(--t1)}
-.ni-price{font-size:17px;font-weight:800;color:var(--oranget);letter-spacing:-.02em;margin-bottom:9px}
+.ni-price{font-size:17px;font-weight:800;color:var(--t1);letter-spacing:-.02em;margin-bottom:9px}
 .lk-picker{background:var(--card);border:1px solid var(--b1);border-radius:var(--rs);margin-top:8px;max-height:280px;overflow-y:auto;box-shadow:var(--sh)}
 .lk-pick-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--b2);cursor:pointer;transition:background var(--tr)}
 .lk-pick-row:hover{background:var(--bluebg)}
@@ -656,7 +703,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
   .dark-video-slot span[style*="color:#7c3aed"]{color:#c4b5fd !important}
   .dark-video-slot span[style*="background:#ede9fe"]{background:#3b1f6e !important;color:#c4b5fd !important}
   /* Header */
-  .hdr{background:rgba(28,28,30,.9);border-bottom-color:rgba(255,255,255,.1)}
+  .hdr{background:rgba(28,28,30,.95);border-bottom-color:rgba(255,255,255,.12)}
   .hdr-ico-btn{background:rgba(255,255,255,.1);color:var(--t2)}
   .hdr-ico-btn:hover{background:rgba(255,255,255,.16)}
   .sync-chip{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12)}
@@ -1005,8 +1052,8 @@ async function saveSettings(){
 }
 
 // ─── STATE ────────────────────────────────────────────────────
-const EK=()=>({brand:"",model:"",steel:"",price:"",soldPrice:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",inventoryId:null,prevPrice:"",photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",soldElsewhere:false,soldElsewhereTrackShip:false,withdrawn:false});
-const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",listedAt:null});
+const EK=()=>({brand:"",model:"",steel:"",price:"",soldPrice:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",inventoryId:null,prevPrice:"",photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",soldElsewhere:false,soldElsewhereTrackShip:false,withdrawn:false,dob:""});
+const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,listedAt:null,photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",dob:""});
 const ENI=()=>({id:gid(),itemCategory:"other",description:"",condition:"Excellent",owners:"1",price:"",tradeValue:"",saleType:"WTS",photos:[],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,pending:false,soldTo:null,soldPrice:"",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const isNI=item=>!!item.itemCategory;
 const ICONS={
@@ -1068,7 +1115,7 @@ const NI_ICONS={watch:icon("watch",14),sunglasses:icon("glasses",14),flashlight:
 const NI_LABELS={watch:"Watch",sunglasses:"Sunglasses",flashlight:"Flashlight","multi-tool":"Multi-tool",bag:"Bag / Case",clothing:"Clothing",other:"Other"};
 const SYNC_SAYINGS=["Sharpening the sync edge…","Honing your data to a razor's edge…","Applying the Scary Sharp protocol…","Stropping your listings clean…","Deburring your inventory…","Heat treating your data for maximum retention…","Running a paper test on your posts…","Putting a hair-whittling edge on your backup…","Your collection is in good hands…","Checking the grind geometry…","Buffing out the data scratches…","No false edges on this backup…","Setting the bevel on your backup…","Full flat grind on your file transfer…","Convex-grinding your cloud storage…","Making sure your data has no microbevels…"];
 const ED=()=>({postType:"[WTS]",knives:[],items:[],payment:[...SETTINGS.payment],paymentOther:"",noShip:[...SETTINGS.noShip],noShipOther:"",repost:false,photos:[],notes:"",rulesConfirmed:false,bundleEnabled:false,bundlePrice:"",bundles:[],groupAddons:false,tradeInterests:SETTINGS.tradeInterests||"",shippingCarrier:SETTINGS.shippingCarrier||"USPS"});
-let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kfPostId:null,kf:EK(),kfMode:"draft",tsUploads:{},kfExtraSlots:0,adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],kfPhotoTag:"other",niUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,gearSoldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",soldFilter:"all",listFilter:"all",shipFilter:"all",soldExpanded:new Set(),tutStep:0,aboutTab:"about",feedbackTab:"bug",acctPopover:false,trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,niPostId:null,niPostGi:-1,gearPicker:false,_skipRollAnim:false,rollKnivesOpen:true,rollGearOpen:true,emailChangeOpen:false,emailChangeNotice:false,accountDeleted:false,migrateConfirm:null,syncingScreen:false,syncMsg:0,vidBwTip:false,onboarding:false,onboardStep:0,guide:null,guideCounts:null,_sessionStart:Date.now(),_renderCount:0,_loadTime:null,_copyCount:0,_viewChanges:0,_lastView:""};
+let S={posts:[],inventory:[],loaded:false,view:"list",expanded:null,copied:null,draft:ED(),kfOpen:false,kfIdx:-1,kfPostId:null,kf:EK(),kfMode:"draft",tsUploads:{},kfExtraSlots:0,adv:false,err:"",saveNotice:false,lockerFilter:"all",lockerPicker:false,movingKnife:null,uploadFiles:[],kfUploads:[],kfPhotoTag:"other",niUploads:[],priceResearch:{status:"idle",results:[],query:""},modal:null,authStatus:"guest",authEmail:"",showMigrate:false,soldFlow:null,gearSoldFlow:null,delFlowEmail:null,authLoading:true,mdPreview:new Set(),undoStack:[],undoToast:null,_undoTid:null,flairToast:null,_flairTid:null,rollSort:"added",soldFilter:"all",listFilter:"all",shipFilter:"all",soldExpanded:new Set(),tutStep:0,aboutTab:"about",feedbackTab:"bug",acctPopover:false,trackingFlow:null,preflight:null,priceFilter:"sold",tour:null,bundlePicker:null,niOpen:false,ni:null,niIdx:-1,gearPicker:false,_skipRollAnim:false,rollKnivesOpen:true,rollGearOpen:true,emailChangeOpen:false,emailChangeNotice:false,accountDeleted:false,migrateConfirm:null,syncingScreen:false,syncMsg:0,vidBwTip:false,onboarding:false,onboardStep:0,guide:null,guideCounts:null,_sessionStart:Date.now(),_renderCount:0,_loadTime:null,_copyCount:0,_viewChanges:0,_lastView:""};
 
 // ─── STORAGE ──────────────────────────────────────────────────
 async function load(){
@@ -1161,11 +1208,12 @@ function _scheduleSbSync(immediate){
     _syncStatus='syncing';render();
     try{
       await _doSbSync();
-      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';_syncWarnDismissed=false;
+      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
       try{localStorage.removeItem("ks_dirty");}catch(e){}
     }catch(e){
       _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
       console.warn('[sync] failed:',e.message);
+      if((e.message||'').includes('timed out'))_showSyncErrorToast();
     }
     _syncInFlight=false;
     if(_syncPending){_syncPending=false;_scheduleSbSync();}
@@ -1181,11 +1229,12 @@ async function manualSync(){
   _syncStatus='syncing';render();
   try{
     await _doSbSync();
-    _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';_syncWarnDismissed=false;
+    _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
     try{localStorage.removeItem("ks_dirty");}catch(e){}
   }catch(e){
     _syncStatus='error';_syncErrMsg=e.message||'Sync failed';
     console.warn('[sync] manual failed:',e.message);
+    if((e.message||'').includes('timed out'))_showSyncErrorToast();
   }
   _syncInFlight=false;
   render();
@@ -1242,31 +1291,20 @@ function undoLast(){
 // Runs at load time so stale statuses from old bugs are self-healing.
 function reconcileInventory(){
   let changed=false;
-  // One-time backfill: gear items added to posts before the inventoryId fix (May 2026)
-  // had no inventoryId set — their id === the Roll item's id, so we can backfill here.
-  S.posts.forEach(p=>{
-    (p.items||[]).forEach(it=>{
-      if(!it.inventoryId&&it.id){
-        const match=S.inventory.find(inv=>inv.id===it.id&&isNI(inv));
-        if(match){it.inventoryId=it.id;changed=true;}
-      }
-    });
-  });
   S.inventory.forEach(inv=>{
     if(inv.status==="listed"){
       const claimedByActivePost=S.posts.some(p=>
         p.knives.some(k=>k.inventoryId===inv.id&&!k.sold)||
-        (p.items||[]).some(it=>it.inventoryId===inv.id&&!it.sold&&!it.withdrawn)
+        (p.items||[]).some(it=>it.inventoryId===inv.id&&!it.sold)
       );
       if(!claimedByActivePost){inv.status="available";changed=true;}
     }
   });
-  if(changed){saveInv();saveNow();}
+  if(changed)saveInv();
 }
 
 // ─── SUPABASE FUNCTIONS ───────────────────────────────────────
 async function initSupabase(){
-  if(!window.supabase){console.warn('[auth] Supabase JS library not loaded — running in local-only mode');S.authLoading=false;return;}
   if(!SUPABASE_URL||SUPABASE_URL.includes("YOUR_PROJECT")||!SUPABASE_ANON_KEY||SUPABASE_ANON_KEY.includes("YOUR_ANON")){S.authLoading=false;return;}
   try{
     // Read hash tokens BEFORE createClient — Supabase's detectSessionInUrl may clear the hash
@@ -1317,7 +1355,6 @@ async function initSupabase(){
     }
     _sb.auth.onAuthStateChange(async(event,session)=>{
       if(event==="SIGNED_IN"&&session){
-        const prevUserId=currentUser?.id; // capture before overwrite to detect token refreshes
         const wasGuest=!currentUser;
         currentUser=session.user;
         S.authStatus="signed_in";
@@ -1326,12 +1363,11 @@ async function initSupabase(){
         if(wasGuest&&(S.posts.length>0||S.inventory.length>0)){
           // In-page sign-in (no redirect) with local data
           S.showMigrate=true;render();
-        } else if(!S.showMigrate&&(wasGuest||prevUserId!==currentUser.id)){
-          // Genuine new sign-in — load from cloud.
-          // Skip if same user (Supabase fires SIGNED_IN on every token refresh).
+        } else if(!S.showMigrate){
+          // No local data conflict — just load from cloud
           await _sbLoad();render();
         } else {
-          render(); // token refresh for same user, or migrate banner already showing
+          render(); // migrate banner already showing
         }
       } else if(event==="SIGNED_OUT"){
         currentUser=null;S.authStatus="guest";S.authEmail="";S.showMigrate=false;
@@ -1352,8 +1388,8 @@ function _showSyncErrorToast(){
   if(document.getElementById("_syncErrToast"))return;
   const t=document.createElement("div");
   t.id="_syncErrToast";
-  t.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1C1C1E;border:0.5px solid rgba(255,59,48,.3);border-radius:12px;padding:12px 16px;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;color:#F2F2F7;line-height:1.5;max-width:320px;width:calc(100% - 40px);box-shadow:0 4px 24px rgba(0,0,0,.4);z-index:9999;text-align:center";
-  t.innerHTML=`<div style="margin-bottom:6px">Cloud sync is taking longer than expected.</div><button onclick="window.openSyncFeedback('timeout')" style="display:block;margin:0 auto 0;background:none;border:none;color:#0A84FF;font-weight:500;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;cursor:pointer;padding:0">Let u/smashedllama know</button><button onclick="this.parentNode.remove()" style="display:block;margin:8px auto 0;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;cursor:pointer">Dismiss</button>`;
+  t.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1C1C1E;border:0.5px solid rgba(255,59,48,.3);border-radius:12px;padding:12px 16px;font-size:13px;color:#F2F2F7;line-height:1.5;max-width:320px;width:calc(100% - 40px);box-shadow:0 4px 24px rgba(0,0,0,.4);z-index:9999;text-align:center";
+  t.innerHTML=`<div style="margin-bottom:6px">Cloud sync is taking longer than expected.</div><a href="https://www.reddit.com/message/compose/?to=smashedllama&subject=BladeFlow+sync+timeout" target="_blank" style="color:#0A84FF;text-decoration:none;font-weight:500">Let u/smashedllama know</a><button onclick="this.parentNode.remove()" style="display:block;margin:8px auto 0;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer">Dismiss</button>`;
   document.body.appendChild(t);
   setTimeout(()=>{if(t.parentNode)t.remove();},15000);
 }
@@ -1361,138 +1397,55 @@ function _showSyncOfflineToast(){
   if(document.getElementById("_syncOfflineToast"))return;
   const t=document.createElement("div");
   t.id="_syncOfflineToast";
-  t.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1C1C1E;border:0.5px solid rgba(255,255,255,.15);border-radius:12px;padding:12px 16px;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;color:#F2F2F7;line-height:1.5;max-width:320px;width:calc(100% - 40px);box-shadow:0 4px 24px rgba(0,0,0,.4);z-index:9999;text-align:center";
-  t.innerHTML=`<div style="margin-bottom:6px">Cloud sync is having trouble connecting right now.</div><button onclick="window.openSyncFeedback('offline')" style="display:block;margin:0 auto 0;background:none;border:none;color:#0A84FF;font-weight:500;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;cursor:pointer;padding:0">Let u/smashedllama know</button><button onclick="this.parentNode.remove()" style="display:block;margin:8px auto 0;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;cursor:pointer">Dismiss</button>`;
+  t.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1C1C1E;border:0.5px solid rgba(255,255,255,.15);border-radius:12px;padding:12px 16px;font-size:13px;color:#F2F2F7;line-height:1.5;max-width:320px;width:calc(100% - 40px);box-shadow:0 4px 24px rgba(0,0,0,.4);z-index:9999;text-align:center";
+  t.innerHTML=`<div style="margin-bottom:6px">Cloud sync is having trouble connecting right now.</div><a href="https://www.reddit.com/message/compose/?to=smashedllama&subject=BladeFlow+sync+issue" target="_blank" style="color:#0A84FF;text-decoration:none;font-weight:500">Let u/smashedllama know</a><button onclick="this.parentNode.remove()" style="display:block;margin:8px auto 0;background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer">Dismiss</button>`;
   document.body.appendChild(t);
 }
-let _toastFeedbackNote='';
-// Ring buffer for recent console.warn / console.error entries
-const _consoleBuf=[];
-(()=>{
-  const _cap=(l,args)=>{
-    const msg=args.map(a=>{try{return typeof a==='object'?JSON.stringify(a).slice(0,200):String(a);}catch(e){return'[object]';}}).join(' ').slice(0,300);
-    _consoleBuf.push({t:Date.now(),l,m:msg});
-    if(_consoleBuf.length>30)_consoleBuf.shift();
-  };
-  const _w=console.warn.bind(console),_e=console.error.bind(console);
-  console.warn=(...args)=>{_cap('warn',args);_w(...args);};
-  console.error=(...args)=>{_cap('error',args);_e(...args);};
-})();
-function openSyncFeedback(type){
-  const posts=S.posts.filter(p=>!p._tourDemo).length;
-  const inv=S.inventory.filter(k=>!k._tourDemo).length;
-  const consoleLogs=_consoleBuf.length
-    ?'\n\nRecent console:\n'+_consoleBuf.slice(-15).map(e=>{
-        const ago=Math.round((Date.now()-e.t)/1000);
-        return`[${e.l} ${ago}s ago] ${e.m}`;
-      }).join('\n')
-    :'';
-  _toastFeedbackNote=[
-    type==='timeout'?'Cloud sync timed out at startup.':'Cloud sync failed to connect at startup.',
-    '',
-    '--- Diagnostic info (auto-filled) ---',
-    'Browser: '+navigator.userAgent,
-    'Auth: '+(S.authStatus==='signed_in'?S.authEmail||'signed in':'guest'),
-    'Data: '+posts+' post(s), '+inv+' inventory item(s)',
-    'Online: '+navigator.onLine,
-    'Time: '+new Date().toISOString(),
-  ].join('\n')+consoleLogs;
-  document.getElementById('_syncErrToast')?.remove();
-  document.getElementById('_syncOfflineToast')?.remove();
-  S.modal='feedback';S.feedbackTab='bug';render();
-}
-window.openSyncFeedback=openSyncFeedback;
-// ── Focus-restore helper ───────────────────────────────────────
-// Problem: onblur with syncKF()+render() nukes the DOM before the
-// just-clicked element can receive focus, forcing a second click.
-// Solution: capture the mousedown target id BEFORE blur fires,
-// then re-focus that element in the freshly-rendered DOM.
-let _kfNextFocusId=null;
-document.addEventListener('mousedown',e=>{_kfNextFocusId=e.target.id||null;},true);
-function blurSyncRender(){
-  const fid=_kfNextFocusId;
-  _kfNextFocusId=null;
-  syncKF();
-  render();
-  if(fid){const el=document.getElementById(fid);if(el)el.focus();}
-}
-window.blurSyncRender=blurSyncRender;
-// ── Unsaved-data protection ────────────────────────────────────
-let _syncWarnDismissed=false;
-// beforeunload: browser native "Leave site?" dialog when cloud sync is unsettled
-window.addEventListener('beforeunload',e=>{
-  if(!currentUser||!_sb)return;
-  const hasData=S.posts.filter(p=>!p._tourDemo).length>0||S.inventory.filter(k=>!k._tourDemo).length>0;
-  if(!hasData)return;
-  const dirty=(()=>{try{return localStorage.getItem('ks_dirty')==='1';}catch(e){return false;}})();
-  const unsettled=_syncStatus==='pending'||_syncStatus==='syncing'||_syncStatus==='error';
-  if(dirty||unsettled){e.preventDefault();e.returnValue='';}
-});
-let _sbLoadCancelled=false;
-let _sbLoadCorePromise=null; // non-null while _sbLoadCore is running; guards against concurrent loads
 async function _sbLoad(){
   if(!_sb||!currentUser)return;
-  if(_sbLoadCorePromise){console.log('[load] already in-flight — skipping');return;} // prevent concurrent loads
-  _sbLoadCancelled=false;
-  let _tid;
-  const _timeout=new Promise((_,reject)=>{_tid=setTimeout(()=>{_sbLoadCancelled=true;reject(new Error('_sbLoad timed out'));},20000);});
-  _sbLoadCorePromise=_sbLoadCore().finally(()=>{_sbLoadCorePromise=null;});
   try{
-    await Promise.race([_sbLoadCorePromise,_timeout]);
-  }catch(e){
-    console.warn("Supabase load failed:",e);
+    // Check profile first — catches soft-deleted accounts before loading any data
+    const {data:prof}=await _sb.from("profiles").select("settings,deleted_at,purge_at").eq("id",currentUser.id).single();
+    if(prof?.deleted_at){
+      // Account is in purgatory — wipe everything and show deleted screen
+      S.accountDeleted=true;S.loaded=true;
+      S.posts=[];S.inventory=[];
+      try{localStorage.removeItem("ks_v4");localStorage.removeItem("ks_inv_v1");}catch(e){}
+      return;
+    }
+    if(prof?.settings&&Object.keys(prof.settings).length)SETTINGS={...DS(),...prof.settings};
+    // If local data is dirty (unsaved changes), merge instead of overwrite so nothing is lost
+    const _dirty=localStorage.getItem("ks_dirty")==="1";
+    const {data:posts}=await _sb.from("posts").select("data").eq("user_id",currentUser.id);
+    if(posts&&posts.length){
+      const sbPosts=posts.map(r=>r.data).filter(p=>!p._tourDemo);
+      if(_dirty){
+        // Prefer local for existing posts; only add posts that exist in Supabase but not locally
+        const localMap=new Map(S.posts.map(p=>[p.id,p]));
+        const newFromSb=sbPosts.filter(p=>!localMap.has(p.id)).map(p=>{if(!p.postText)p.postText=buildPost(p);return p;});
+        if(newFromSb.length)S.posts=[...S.posts,...newFromSb].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+      }else{
+        S.posts=sbPosts.sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).map(p=>{if(!p.postText)p.postText=buildPost(p);return p;});
+      }
+    }
+    const {data:inv}=await _sb.from("inventory").select("data").eq("user_id",currentUser.id);
+    if(inv&&inv.length){
+      if(_dirty){
+        const localInvMap=new Map(S.inventory.map(k=>[k.id,k]));
+        const newInvFromSb=inv.map(r=>r.data).filter(k=>!k._tourDemo&&!localInvMap.has(k.id));
+        if(newInvFromSb.length)S.inventory=[...S.inventory,...newInvFromSb];
+      }else{
+        S.inventory=inv.map(r=>r.data).filter(k=>!k._tourDemo);
+      }
+    }
     S.loaded=true;
-    _syncStatus='error';
-    _syncErrMsg=_sbLoadCancelled?'Cloud sync timed out — using local data':'Could not load cloud data';
-    if(_sbLoadCancelled)_showSyncErrorToast(); // only show toast when OUR timer fired, not for server-side errors
-  }finally{
-    clearTimeout(_tid);
-  }
-}
-async function _sbLoadCore(){
-  // Fire all three queries in parallel — cuts load time to a single round-trip
-  const [profRes,postsRes,invRes]=await Promise.all([
-    _sb.from("profiles").select("settings,deleted_at,purge_at").eq("id",currentUser.id).single(),
-    _sb.from("posts").select("data").eq("user_id",currentUser.id),
-    _sb.from("inventory").select("data").eq("user_id",currentUser.id)
-  ]);
-  const {data:prof}=profRes;
-  if(prof?.deleted_at){
-    S.accountDeleted=true;S.loaded=true;
-    S.posts=[];S.inventory=[];
-    try{localStorage.removeItem("ks_v4");localStorage.removeItem("ks_inv_v1");}catch(e){}
-    return;
-  }
-  if(prof?.settings&&Object.keys(prof.settings).length)SETTINGS={...DS(),...prof.settings};
-  const _dirty=localStorage.getItem("ks_dirty")==="1";
-  const {data:posts}=postsRes;
-  if(posts&&posts.length){
-    const sbPosts=posts.map(r=>r.data).filter(p=>!p._tourDemo);
-    if(_dirty){
-      const localMap=new Map(S.posts.map(p=>[p.id,p]));
-      const newFromSb=sbPosts.filter(p=>!localMap.has(p.id)).map(p=>{if(!p.postText)p.postText=buildPost(p);return p;});
-      if(newFromSb.length)S.posts=[...S.posts,...newFromSb].sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
-    }else{
-      S.posts=sbPosts.sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||"")).map(p=>{if(!p.postText)p.postText=buildPost(p);return p;});
-    }
-  }
-  const {data:inv}=invRes;
-  if(inv&&inv.length){
-    if(_dirty){
-      const localInvMap=new Map(S.inventory.map(k=>[k.id,k]));
-      const newInvFromSb=inv.map(r=>r.data).filter(k=>!k._tourDemo&&!localInvMap.has(k.id));
-      if(newInvFromSb.length)S.inventory=[...S.inventory,...newInvFromSb];
-    }else{
-      S.inventory=inv.map(r=>r.data).filter(k=>!k._tourDemo);
-    }
-  }
-  S.loaded=true;
-  reconcileInventory();
-  // If the timeout fired but load eventually finished, recover — remove the toast and clear error state
-  _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';_syncWarnDismissed=false;
-  if(_sbLoadCancelled){document.getElementById('_syncErrToast')?.remove();_sbLoadCancelled=false;}
-  try{localStorage.setItem("ks_v4",JSON.stringify(S.posts));localStorage.setItem("ks_inv_v1",JSON.stringify(S.inventory));localStorage.setItem("ks_settings",JSON.stringify(SETTINGS));localStorage.setItem("ks_synced_uid",currentUser.id);}catch(e){}
-  if(_dirty){_scheduleSbSync(true);}
+    reconcileInventory();
+    _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
+    // Mirror to localStorage and mark this device as synced for this user
+    try{localStorage.setItem("ks_v4",JSON.stringify(S.posts));localStorage.setItem("ks_inv_v1",JSON.stringify(S.inventory));localStorage.setItem("ks_settings",JSON.stringify(SETTINGS));localStorage.setItem("ks_synced_uid",currentUser.id);}catch(e){}
+    // If dirty, push the merged local data up to Supabase now
+    if(_dirty){_scheduleSbSync(true);}
+  }catch(e){console.warn("Supabase load failed:",e);S.loaded=true;_syncStatus='error';_syncErrMsg='Could not load cloud data';}
 }
 async function _sbUpsertPost(post){
   if(!_sb||!currentUser)return;
@@ -1516,7 +1469,7 @@ async function _syncPostOnly(pid){
       const{error}=await _sb.from('posts').upsert({id:p.id,user_id:currentUser.id,data:rest,updated_at:now},{onConflict:'id'}).abortSignal(ctrl.signal);
       clearTimeout(tid);
       if(error)throw new Error(error.message||error.code);
-      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';_syncWarnDismissed=false;
+      _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
       // Cancel any full-sync timer set by save() during the async gap — prevents spurious full sync
       if(_sbSyncTid){clearTimeout(_sbSyncTid);_sbSyncTid=null;}
     }catch(e){
@@ -2002,7 +1955,7 @@ function buildAddonsSection(addonKnives,carrier,v){
       const pl=knifePrice(k,{addonMode:true});
       const hdr=`**${k.brand} ${k.model}** | **${pl}**`;
       const sc=k.shippingClass||"Priority";
-      const lines=[`- **Steel:** ${k.steel||"N/A"} | **Edge Condition:** ${k.bladeCondition}`,`- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut}`,`- **Issues:** ${iss} | **Accessories:** ${ac}`,`- **Shipping:** ${carrier} ${sc} w/ insurance`];
+      const lines=[`- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}`,`- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut}`,`- **Issues:** ${iss} | **Accessories:** ${ac}`,`- **Shipping:** ${carrier} ${sc} w/ insurance`];
       if(k.notes)lines.push(`- **Notes:** ${k.notes}`);
       return`${hdr}\n${lines.join("\n")}`;
     }).join("\n\n---\n\n");
@@ -2019,7 +1972,7 @@ function buildAddonsSection(addonKnives,carrier,v){
   return"";
 }
 
-function buildItemsSection(post){
+function buildItemsSection(post,v=0){
   if(!(post.items||[]).length)return"";
   const CAT_ORDER=["watch","sunglasses","flashlight","multi-tool","bag","clothing","other"];
   const NI_PLURAL={watch:"Watches",sunglasses:"Sunglasses",flashlight:"Flashlights","multi-tool":"Multi-tools",bag:"Bags / Cases",clothing:"Clothing",other:"Other Gear"};
@@ -2033,9 +1986,47 @@ function buildItemsSection(post){
       const priceStr=[price,tv].filter(Boolean).join(" | ")||"$TBD";
       const gurl=gearItemGalleryUrl(x);
       const desc=x.description||(NI_LABELS[cat]||"Item");
-      const nameStr=gurl?`[${desc}](${gurl})`:`**${desc}**`;
-      return`${nameStr} | ${priceStr}\nCondition: ${x.condition||"N/A"} | Owners: ${x.owners||"1"}${x.notes?". "+x.notes:""}`;
+      const soldLabel=x.sold?(x.soldPrice?`[SOLD @ $${x.soldPrice}]`:"[SOLD]"):x.withdrawn?"[WITHDRAWN]":x.pending?"[PENDING]":"";
+      const isGone=x.sold||x.withdrawn;
+
+      if(v===0){
+        // Detailed — bold header + bullet lines, matches knife v=0 style
+        const nameLinked=gurl?`[${desc}](${gurl})`:`${desc}`;
+        const hdr=isGone
+          ?`~~**${nameLinked}**~~ **${soldLabel}** | ~~${priceStr}~~`
+          :`**${nameLinked}${soldLabel?" "+soldLabel:""}** | **${priceStr}**`;
+        const lines=[`- **Condition:** ${x.condition||"N/A"} | **Owners:** ${x.owners||"1"}`];
+        if(x.notes)lines.push(`- **Notes:** ${x.notes}`);
+        return`${hdr}\n${lines.join("\n")}`;
+      }
+
+      if(v===1){
+        // Compact — header line + detail line, matches knife v=1 style
+        const nameLinked=gurl?`[${desc}](${gurl})`:`${desc}`;
+        const statusLabel=isGone?` ${soldLabel}`:x.pending?" [PENDING]":"";
+        let block=`**${nameLinked}**${statusLabel} | ${priceStr}`;
+        block+=`\nCondition: ${x.condition||"N/A"} | ${x.owners||"1"} owner`;
+        if(x.notes)block+=`\n${x.notes}`;
+        return block;
+      }
+
+      if(v===3){
+        // Table row — matches knife v=3 table style
+        const nameCell=gurl
+          ?`[${desc}](${gurl})${soldLabel?" "+soldLabel.replace(/\[/g,"\\[").replace(/\]/g,"\\]"):""}`
+          :`${desc}${soldLabel?" "+soldLabel.replace(/\[/g,"\\[").replace(/\]/g,"\\]"):""}`;
+        const parts=[];
+        parts.push(`${x.owners||"1"} owner`);
+        if(x.condition&&x.condition!=="Excellent")parts.push(x.condition);
+        if(x.notes)parts.push(x.notes);
+        return`| ${nameCell} | ${priceStr} | ${parts.join(". ")}${parts.length?".":""} |`;
+      }
+
+      // Fallback
+      const nameLinked=gurl?`[${desc}](${gurl})`:`**${desc}**`;
+      return`${nameLinked} | ${priceStr}\nCondition: ${x.condition||"N/A"} | Owners: ${x.owners||"1"}${x.notes?". "+x.notes:""}`;
     });
+    if(v===3)return`${header}\n\n| Item | Price | Description |\n|:--|:--|:--|\n${rows.join("\n")}`;
     return`${header}\n\n${rows.join("\n\n")}`;
   });
   return`\n\n---\n\n**Gear & Extras:**\n\n${sections.join("\n\n")}`;
@@ -2433,13 +2424,14 @@ function buildPost(post,v){
         :`**${num}. ${nameLinked}${statusLabel?" "+statusLabel:""}** | **${pl}**`;
       const sc=k.shippingClass||"Priority";
       const lines=[
-        `- **Steel:** ${k.steel||"N/A"} | **Edge Condition:** ${k.bladeCondition}`,
+        `- **Steel:** ${k.steel||"N/A"} | **Condition:** ${k.bladeCondition}`,
         `- **Owners:** ${k.owners} | **Carried:** ${k.carried} | **Cut:** ${k.usedCut}`,
         `- **Centering:** ${k.centering} | **Lockup:** ${k.lockup}${k.lockupNotes?" - "+k.lockupNotes:""}`,
         `- **Issues:** ${iss} | **Accessories:** ${ac}`,
         `- **Shipping:** ${carrier} ${sc} w/ insurance`,
       ];
       if(k.notes)lines.push(`- **Notes:** ${k.notes}`);
+      if(k.dob)lines.push(`- **Born:** ${k.dob}`);
       return`${hdr}\n${lines.join("\n")}`;
     }).join("\n\n---\n\n");
     const addonBlock=buildAddonsSection(addonKnives,carrier,0);
@@ -2450,7 +2442,7 @@ function buildPost(post,v){
     const tradeFooter=isWTT?(ti?`\n**Trade Interests:** ${ti}`:""):"\n**No Trades**";
     const notesLine=post.notes?`\n**Notes:** ${post.notes}`:"";
     const sig="";
-    const itemsSection0=buildItemsSection(post);
+    const itemsSection0=buildItemsSection(post,0);
     return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}${photoBlock}${soldCommentBlurb}\n\n> &nbsp;\n\n${blocks}${addonBlock}${bundleBlock}${selBundleBlock}${itemsSection0}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${carrier} w/ insurance | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${sig?"\n\n"+sig:""}`;
   }
 
@@ -2474,6 +2466,7 @@ function buildPost(post,v){
       if(iss!=="None")block+=` | Issues: ${iss}`;
       if(ac!=="None")block+=` | Accessories: ${ac}`;
       if(k.notes)block+=`\n${k.notes}`;
+      if(k.dob)block+=`\nBorn: ${k.dob}`;
       return block;
     }).join("\n\n");
     const addonBlock1=buildAddonsSection(addonKnives1,carrier,1);
@@ -2483,7 +2476,7 @@ function buildPost(post,v){
     const tradeFooter=isWTT?(ti?`\nTrade Interests: ${ti}`:""):"\nNo Trades";
     const sig="";
     const shipSummary1=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
-    const itemsSection1=buildItemsSection(post);
+    const itemsSection1=buildItemsSection(post,1);
     return`${rp?rp.trim()+"\n\n":""}${headerBlock?headerBlock.trim()+"\n\n":""}${photoLine}${soldCommentBlurb}\n\n> &nbsp;\n\n${lines}${addonBlock1}${bundleLine}${selBundleLine1}${itemsSection1}\n\nPayment: ${pay} | Shipping: ${shipSummary1}${noshipLine}${tradeFooter}${post.notes?"\nNotes: "+post.notes:""}${sig?"\n"+sig:""}`;
   }
 
@@ -2525,10 +2518,11 @@ function buildPost(post,v){
       const acc=(k.accessories||[]).filter(x=>x&&x!=="None").map(x=>x==="Other"&&k.accessoriesOther?k.accessoriesOther:x);
       if(acc.length)parts.push("Includes: "+acc.join(", "));
       if(k.notes)parts.push(k.notes);
+      if(k.dob)parts.push(`Born: ${k.dob}`);
       return`| ${nameCell} | ${priceCell} | ${parts.join(". ")}${parts.length?".":""} |`;
     }).join("\n");
     const shipSummary3=post.knives.every(k=>(k.shippingClass||"Priority")===(post.knives[0].shippingClass||"Priority"))?`${carrier} ${post.knives[0].shippingClass||"Priority"} w/ insurance`:`${carrier} w/ insurance`;
-    const itemsSection3=buildItemsSection(post);
+    const itemsSection3=buildItemsSection(post,3);
     return`${rp?rp.trim()+"\n\n":""}${hdrBlock?hdrBlock.trim()+"\n\n":""}${photoBlock}${soldCommentBlurb}\n\n> &nbsp;\n\n| Knife | Price | Description |\n|:--|:--|:--|\n${rows}${addonBlock3}${bundleBlock}${selBundleBlock3}${itemsSection3}\n\n---\n\n**Payment:** ${pay}\n**Shipping:** ${shipSummary3} | Included in price (CONUS)${noshipLine}${tradeFooter}${notesLine}${sig?"\n\n"+sig:""}`;
   }
 
@@ -2794,7 +2788,7 @@ function openKF(idx,mode,postId){
 function closeKF(){S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kfExtraSlots=0;S.err="";S.kfUploads=[];S.priceResearch={status:"idle",results:[],query:""};render();}
 function syncKF(){
   const g=id=>document.getElementById(id);const f=S.kf;
-  ["brand","model","steel","price","tradeValue","lockupNotes","notes","addonPrice","issuesOther","accessoriesOther"].forEach(k=>{const e=g("kf-"+k);if(e)f[k]=e.value});
+  ["brand","model","steel","price","tradeValue","lockupNotes","notes","addonPrice","issuesOther","accessoriesOther","prevPrice","dob"].forEach(k=>{const e=g("kf-"+k);if(e)f[k]=e.value});
   ["bladeCondition","owners","centering","lockup"].forEach(k=>{const e=g("kf-"+k);if(e)f[k]=e.value});
 }
 function saveKF(){
@@ -2872,48 +2866,23 @@ function knifePickerIssues(k){
 }
 function addFromLocker(invIdx){
   const k=S.inventory[invIdx];if(!k)return;
-  const inCooldown=k.listedAt&&daysAgo(k.listedAt)<7;
-  const copy={...JSON.parse(JSON.stringify(k)),inventoryId:k.id,
-    prevPrice:inCooldown?k.price:(k.prevPrice||'')};
-  delete copy.status;delete copy.addedAt;delete copy.soldAt;delete copy.listedAt;
+  const copy={...JSON.parse(JSON.stringify(k)),inventoryId:k.id};
+  delete copy.status;delete copy.addedAt;delete copy.soldAt;
   S.draft.knives.push(copy);
   S.draft.postType=autoPostType(S.draft.knives);
-  S.inventory[invIdx].status="listed";
+  S.inventory[invIdx].status="listed";S.inventory[invIdx].listedAt=new Date().toISOString();
   S.lockerPicker=false;saveInvNow();render();
 }
 function addGearFromRoll(invIdx){
   const item=S.inventory[invIdx];if(!item||!isNI(item))return;
-  const inCooldown=item.listedAt&&daysAgo(item.listedAt)<7;
   const copy=JSON.parse(JSON.stringify(item));
-  copy.inventoryId=item.id; // link back to Roll inventory item for status sync
-  copy.prevPrice=inCooldown?item.price:(item.prevPrice||''); // track for price drop cooldown
   S.draft.items=[...(S.draft.items||[]),copy];
-  S.inventory[invIdx].status="listed";
+  S.inventory[invIdx].status="listed";S.inventory[invIdx].listedAt=new Date().toISOString();
   S.gearPicker=false;saveInvNow();render();
 }
 function removeGearItem(draftIdx){S.draft.items=(S.draft.items||[]).filter((_,i)=>i!==draftIdx);render();}
 function removeFromInventory(idx){pushUndo("Item archived");upInv(s=>{const k=s.inventory[idx];if(k){k.archived=true;k.archivedAt=new Date().toISOString();}});}
-function markInvSold(idx){
-  const k=S.inventory[idx];if(!k||k.confirmedAt)return;
-  const nowSold=k.status!=="sold";
-  k.status=nowSold?"sold":"available";
-  k.soldAt=nowSold?new Date().toISOString():null;
-  k.archived=nowSold;
-  // Propagate to any post knife that references this inventory item
-  let postsTouched=false;
-  S.posts.forEach(p=>{
-    let changed=false;
-    (p.knives||[]).forEach(pk=>{
-      if(pk.inventoryId!==k.id)return;
-      if(nowSold&&!pk.sold){pk.sold=true;pk.soldAt=k.soldAt;pk.pending=false;changed=true;}
-      else if(!nowSold&&pk.sold&&!pk.soldTo){pk.sold=false;pk.soldAt=null;changed=true;}
-    });
-    if(changed){p.postText=buildPost(p);postsTouched=true;}
-  });
-  saveInvNow();
-  if(postsTouched)saveNow();
-  render();
-}
+function markInvSold(idx){upInvNow(s=>{const k=s.inventory[idx];if(k.confirmedAt)return;k.status=k.status==="sold"?"available":"sold";k.soldAt=k.status==="sold"?new Date().toISOString():null;k.archived=k.status==="sold";});}
 function restoreFromArchive(idx){pushUndo("Item restored");upInv(s=>{const k=s.inventory[idx];if(k){k.archived=false;k.archivedAt=null;if(k.status==="sold"){k.status="available";k.soldAt=null;}}});}
 function permanentDeleteInv(idx){if(!confirm("Permanently delete? This cannot be undone."))return;const gone=S.inventory[idx];if(gone)_sbDeleteInv(gone.id);upInv(s=>{s.inventory.splice(idx,1);});}
 
@@ -2924,7 +2893,7 @@ function openNI(idx){
   S.niUploads=(S.ni.photos||[]).map((url,i)=>({uid:gid(),name:url.split("/").pop()||"photo",url,uploading:false,error:null}));
   S.niOpen=true;S.err="";render();
 }
-function closeNI(){S.niOpen=false;S.ni=null;S.niIdx=-1;S.niPostId=null;S.niPostGi=-1;S.err="";S.niUploads=[];render();}
+function closeNI(){S.niOpen=false;S.ni=null;S.niIdx=-1;S.err="";S.niUploads=[];render();}
 function saveNI(){
   const f=S.ni;
   f.description=(f.description||"").replace(/[\r\n\t]+/g," ").trim();
@@ -2933,20 +2902,9 @@ function saveNI(){
   if(f.saleType!=="WTT"&&!String(f.price||"").trim()){S.err="Enter a price or switch to Trade Only.";render();return;}
   if(BANNED_LINK_RE.test(f.description+" "+f.notes)){S.err="External platform links (eBay, Etsy, Amazon, etc.) are not allowed per r/Knife_Swap rules. Remove the link.";render();return;}
   S.err="";
-  if(S.niPostId!==null&&S.niPostGi>=0){
-    // Editing a gear item directly inside a post
-    const _pid=S.niPostId,_gi=S.niPostGi;
-    up(s=>{const p=s.posts.find(x=>x.id===_pid);if(!p||!p.items||p.items[_gi]==null)return;
-      const merged={...p.items[_gi],...JSON.parse(JSON.stringify(f))};
-      p.items[_gi]=merged;
-      // Sync key fields back to Roll inventory item if linked
-      if(merged.inventoryId){const inv=s.inventory.find(x=>x.id===merged.inventoryId);if(inv){inv.description=f.description;inv.condition=f.condition;inv.price=f.price;inv.tradeValue=f.tradeValue;inv.saleType=f.saleType;inv.notes=f.notes;inv.photos=[...(f.photos||[])];}}
-      p.postText=buildPost(p);
-    });
-    saveNow();saveInvNow();
-  }else if(S.niIdx===-1){if(!f.id)f.id=gid();S.inventory.push(JSON.parse(JSON.stringify(f)));saveInv();}
-  else if(S.niIdx>=0&&S.niIdx<S.inventory.length){S.inventory[S.niIdx]=JSON.parse(JSON.stringify(f));saveInv();}
-  S.niOpen=false;S.ni=null;S.niIdx=-1;S.niPostId=null;S.niPostGi=-1;S.niUploads=[];render();
+  if(S.niIdx===-1){if(!f.id)f.id=gid();S.inventory.push(JSON.parse(JSON.stringify(f)));}
+  else if(S.niIdx>=0&&S.niIdx<S.inventory.length){S.inventory[S.niIdx]=JSON.parse(JSON.stringify(f));}
+  S.niOpen=false;S.ni=null;S.niIdx=-1;S.niUploads=[];saveInv();render();
 }
 function removeNI(idx){pushUndo("Item archived");upInv(s=>{const k=s.inventory[idx];if(k){k.archived=true;k.archivedAt=new Date().toISOString();}});}
 function markNISold(idx){upInv(s=>{const k=s.inventory[idx];if(k.confirmedAt||k.shippedAt)return;k.status=k.status==="sold"?"available":"sold";k.soldAt=k.status==="sold"?new Date().toISOString():null;k.archived=k.status==="sold";});}
@@ -2987,7 +2945,7 @@ function renderNIForm(){
       <input id="ni-file-input" type="file" accept="image/*" multiple style="display:none" onchange="handleNIFileInput(event)"/>
     </div>
     ${S.err?`<div class="err">${esc(S.err)}</div>`:""}
-    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-pri" onclick="saveNI()">Done - ${S.niIdx===-1&&S.niPostId===null?"Add":"Update"} Item</button><button class="btn btn-sec" onclick="closeNI()">Cancel</button></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-pri" onclick="saveNI()">Done - ${S.niIdx===-1?"Add":"Update"} Item</button><button class="btn btn-sec" onclick="closeNI()">Cancel</button></div>
   </div>`;
 }
 
@@ -3099,9 +3057,8 @@ function submitPost(){
   S.err="";
   const post={id:gid(),createdAt:new Date().toISOString(),timestampAddedAt:new Date().toISOString(),variant:0,...JSON.parse(JSON.stringify(d))};
   post.postText=buildPost(post,0);
-  // Update inventory status for any linked knives or gear
-  post.knives.forEach(k=>{if(k.inventoryId){const inv=S.inventory.find(x=>x.id===k.inventoryId);if(inv){inv.status="listed";inv.listedAt=post.createdAt;}}});
-  (post.items||[]).forEach(it=>{if(it.inventoryId){const inv=S.inventory.find(x=>x.id===it.inventoryId);if(inv){inv.status="listed";inv.listedAt=post.createdAt;}}});
+  // Update inventory status for any linked knives
+  post.knives.forEach(k=>{if(k.inventoryId){const inv=S.inventory.find(x=>x.id===k.inventoryId);if(inv){inv.status="listed";if(!inv.listedAt)inv.listedAt=post.createdAt;}}});
   S.posts=[post,...S.posts];
   S.view="list";S.expanded=post.id;S.draft=ED();S.uploadFiles=[];saveNow();saveInvNow();render();
 }
@@ -3153,13 +3110,11 @@ function confirmSoldFlow(){
   const raw=(g("sold-to-input")?.value||"").trim();
   const buyer=raw.replace(/^@/,"").replace(/^\/?u\//i,"");
   const soldPrice=(g("sold-price-input")?.value||"").trim().replace(/^\$/,"");
-  const soldAt=parseSoldDate(g("sold-date-input")?.value);
   pushUndo("Knife marked sold");
-  up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldAt=soldAt;k.soldTo=buyer||null;k.soldPrice=soldPrice||null;k.shippingAddress=null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv){inv.status="sold";inv.archived=true;}}p.postText=buildPost(p);});
+  up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldAt=new Date().toISOString();k.soldTo=buyer||null;k.soldPrice=soldPrice||null;k.shippingAddress=null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv){inv.status="sold";inv.archived=true;}}p.postText=buildPost(p);});
   saveInvNow();S.soldFlow=null;render();
 }
 function cancelSoldFlow(){S.soldFlow=null;render();}
-function parseSoldDate(val){if(!val)return new Date().toISOString();const d=new Date(val+"T12:00:00");return isNaN(d.getTime())?new Date().toISOString():d.toISOString();}
 function markGearSold(pid,gi){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
   const item=p.items?.[gi];if(!item)return;
@@ -3176,9 +3131,8 @@ function confirmGearSoldFlow(){
   const raw=(g("gsold-to-input")?.value||"").trim();
   const buyer=raw.replace(/^@/,"").replace(/^\/?u\//i,"");
   const soldPrice=(g("gsold-price-input")?.value||"").trim().replace(/^\$/,"");
-  const soldAt=parseSoldDate(g("gsold-date-input")?.value);
   pushUndo("Item marked sold");
-  up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p||!p.items||p.items[sf.gi]==null)return;const it=p.items[sf.gi];it.sold=true;it.soldAt=soldAt;it.soldTo=buyer||null;it.soldPrice=soldPrice||null;it.shippingAddress=null;it.pending=false;if(it.inventoryId){const inv=s.inventory.find(x=>x.id===it.inventoryId);if(inv){inv.status="sold";inv.archived=true;}}p.postText=buildPost(p);});
+  up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p||!p.items||p.items[sf.gi]==null)return;const it=p.items[sf.gi];it.sold=true;it.soldAt=new Date().toISOString();it.soldTo=buyer||null;it.soldPrice=soldPrice||null;it.shippingAddress=null;it.pending=false;if(it.inventoryId){const inv=s.inventory.find(x=>x.id===it.inventoryId);if(inv){inv.status="sold";inv.archived=true;}}p.postText=buildPost(p);});
   saveInvNow();S.gearSoldFlow=null;render();
 }
 function cancelGearSoldFlow(){S.gearSoldFlow=null;render();}
@@ -3243,10 +3197,6 @@ function gearSoldFlowHtml(pid,gi){
       <div class="field"><label style="font-size:11px">Buyer (Reddit username)</label><input id="gsold-to-input" type="text" placeholder="e.g. u/buyer123" style="font-size:13px;padding:8px 10px"/></div>
       <div class="field"><label style="font-size:11px">Sale Price ($)</label><input id="gsold-price-input" type="number" min="0" placeholder="${esc(it.price||"")}" style="font-size:13px;padding:8px 10px"/></div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-      <span style="font-size:12px;color:var(--t3);white-space:nowrap">Sale date</span>
-      <input id="gsold-date-input" type="date" value="${new Date().toISOString().slice(0,10)}" style="font-size:13px;padding:6px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none;background:var(--surf);color:var(--t1);font-family:var(--font)"/>
-    </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-gn" onclick="confirmGearSoldFlow()">${icon('check-circle',13)} Confirm Sale</button>
       <button class="btn btn-sec" onclick="cancelGearSoldFlow()">Cancel</button>
@@ -3262,9 +3212,8 @@ function confirmSoldElsewhere(){
   const g=id=>document.getElementById(id);
   const soldPrice=(g("se-price-input")?.value||"").trim().replace(/^\$/,"");
   const trackShip=!!(g("se-track-ship")?.checked);
-  const soldAt=parseSoldDate(g("se-date-input")?.value);
   pushUndo("Knife marked sold elsewhere");
-  up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldElsewhere=true;k.soldElsewhereTrackShip=trackShip;k.soldAt=soldAt;k.soldPrice=soldPrice||null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv){inv.status="sold";inv.archived=true;}}p.postText=buildPost(p);});
+  up(s=>{const p=s.posts.find(x=>x.id===sf.pid);if(!p)return;const k=p.knives[sf.ki];k.sold=true;k.soldElsewhere=true;k.soldElsewhereTrackShip=trackShip;k.soldAt=new Date().toISOString();k.soldPrice=soldPrice||null;k.pending=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv){inv.status="sold";inv.archived=true;}}p.postText=buildPost(p);});
   saveInvNow();S.soldFlow=null;render();
 }
 function markWithdrawn(pid,ki){
@@ -3276,24 +3225,6 @@ function readdKnife(pid,ki){
   pushUndo("Knife re-added to listing");
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];k.withdrawn=false;if(k.inventoryId){const inv=s.inventory.find(x=>x.id===k.inventoryId);if(inv)inv.status="listed";}p.postText=buildPost(p);});
   saveInvNow();render();
-}
-function markGearWithdrawn(pid,gi){
-  pushUndo("Item withdrawn");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p||!p.items||p.items[gi]==null)return;const it=p.items[gi];it.withdrawn=true;it.pending=false;if(it.inventoryId){const inv=s.inventory.find(x=>x.id===it.inventoryId);if(inv)inv.status="available";}p.postText=buildPost(p);});
-  saveInv();render();
-}
-function readdGear(pid,gi){
-  pushUndo("Item re-added to listing");
-  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p||!p.items||p.items[gi]==null)return;const it=p.items[gi];it.withdrawn=false;if(it.inventoryId){const inv=s.inventory.find(x=>x.id===it.inventoryId);if(inv)inv.status="listed";}p.postText=buildPost(p);});
-  saveInvNow();render();
-}
-function openGearEdit(pid,gi){
-  const p=S.posts.find(x=>x.id===pid);if(!p||!p.items||p.items[gi]==null)return;
-  const item=p.items[gi];
-  S.ni=JSON.parse(JSON.stringify(item));
-  S.niIdx=-1;S.niPostId=pid;S.niPostGi=gi;
-  S.niUploads=(S.ni.photos||[]).map(url=>({uid:gid(),name:url.split("/").pop()||"photo",url,uploading:false,error:null}));
-  S.niOpen=true;S.err="";render();
 }
 function markPending(pid,ki){
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p)return;const k=p.knives[ki];if(!k||k.sold)return;k.pending=!k.pending;p.postText=buildPost(p);});
@@ -3309,9 +3240,9 @@ function buildConfirmComment(pid,ki){
   const rawBuyer=(k.soldTo||"").trim().replace(/^@/,"").replace(/^\/?u\//i,"");
   const buyer=rawBuyer?`u/${rawBuyer}`:"u/[buyer username]";
   const salePrice=k.soldPrice||k.price;
-  if(type==="[WTT]"){const tv=k.tradeValue?` (TV: $${k.tradeValue})`:"";return`u/ksbot traded ${kStr}${tv} with ${buyer}`;}
+  if(type==="[WTT]"){const tv=k.tradeValue?` (TV: $${k.tradeValue})`:"";return`u/ksbot traded ${kStr}${tv} with ${buyer}.`;}
   const priceStr=salePrice?` for $${salePrice}`:"";
-  return`u/ksbot sold ${kStr} to ${buyer}${priceStr}`;
+  return`u/ksbot sold ${kStr} to ${buyer}${priceStr}.`;
 }
 function buildDibsMessage(pid,ki){
   const p=S.posts.find(x=>x.id===pid);if(!p)return"";
@@ -3428,7 +3359,7 @@ function startPriceDropRepost(pid){
   d.payment=[...(p.payment||SETTINGS.payment)];d.paymentOther=p.paymentOther||"";
   d.noShip=[...(p.noShip||SETTINGS.noShip)];d.noShipOther=p.noShipOther||"";
   d.notes=p.notes||"";
-  d.knives=p.knives.filter(k=>!k.sold&&!k.soldElsewhere).map(k=>({...JSON.parse(JSON.stringify(k)),prevPrice:k.price,withdrawn:false,pending:false}));
+  d.knives=p.knives.filter(k=>!k.sold).map(k=>({...JSON.parse(JSON.stringify(k)),prevPrice:k.price}));
   S.draft=d;S.view="compose";S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kf=EK();S.kfMode="draft";S.adv=false;S.err="";S.lockerPicker=false;S.gearPicker=false;S.uploadFiles=[];render();
 }
 function startSamePriceRepost(pid){
@@ -3438,7 +3369,7 @@ function startSamePriceRepost(pid){
   d.payment=[...(p.payment||SETTINGS.payment)];d.paymentOther=p.paymentOther||"";
   d.noShip=[...(p.noShip||SETTINGS.noShip)];d.noShipOther=p.noShipOther||"";
   d.notes=p.notes||"";
-  d.knives=p.knives.filter(k=>!k.sold&&!k.soldElsewhere).map(k=>({...JSON.parse(JSON.stringify(k)),withdrawn:false,pending:false}));
+  d.knives=p.knives.filter(k=>!k.sold).map(k=>JSON.parse(JSON.stringify(k)));
   S.draft=d;S.view="compose";S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kf=EK();S.kfMode="draft";S.adv=false;S.err="";S.lockerPicker=false;S.gearPicker=false;S.uploadFiles=[];render();
 }
 async function openRedditPost(pid){
@@ -3629,11 +3560,7 @@ function render(){
     renderList();
   const toastHtml=S.undoToast?`<div class="undo-toast">↩ ${esc(S.undoToast)} <button class="undo-toast-btn" onclick="undoLast()">Undo</button></div>`:"";
   const flairToastHtml=S.flairToast?`<div class="flair-toast">${S.flairToast}</div>`:"";
-  const _btnBase="border:none;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;white-space:nowrap";
-  const syncWarnHtml=(currentUser&&_sb&&_syncStatus==='error'&&!_syncWarnDismissed)
-    ?`<div style="position:fixed;bottom:0;left:0;right:0;z-index:5000;background:#1C1C1E;border-top:.5px solid rgba(255,59,48,.35);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--font);font-size:13px;color:#F2F2F7;box-shadow:0 -4px 20px rgba(0,0,0,.35)"><span style="flex:1;min-width:160px;display:flex;align-items:center;gap:7px">${icon('alert-triangle',14,'#FF453A')} Cloud sync failed — recent changes may not be saved.</span><button onclick="exportAllData()" style="${_btnBase};background:#2C2C2E;color:#F2F2F7;border:.5px solid rgba(255,255,255,.12)">${icon('download',13)} Download Backup</button><button onclick="manualSync();render()" style="${_btnBase};background:#0A84FF;color:#fff">${icon('refresh-cw',13)} Retry Sync</button><button onclick="_syncWarnDismissed=true;render()" style="${_btnBase};background:none;color:rgba(255,255,255,.4);padding:6px 8px" title="Dismiss">✕</button></div>`
-    :"";
-  document.getElementById("root").innerHTML=view+(S.modal&&!S.syncingScreen&&!S.showMigrate?renderModal(S.modal):"")+toastHtml+flairToastHtml+syncWarnHtml+(S.tour!=null?renderTourCard():"")+(S.guide!=null?renderGuideCard():"")+(S.onboarding?renderOnboarding():"");
+  document.getElementById("root").innerHTML=view+(S.modal&&!S.syncingScreen&&!S.showMigrate?renderModal(S.modal):"")+toastHtml+flairToastHtml+(S.tour!=null?renderTourCard():"")+(S.guide!=null?renderGuideCard():"")+(S.onboarding?renderOnboarding():"");
   S._skipRollAnim=false; // reset after DOM update so next non-chip render gets animation back
   // Animate main content when switching views
   if(S._prevView!==S.view){
@@ -3939,13 +3866,10 @@ function renderFeedbackModal(){
   const submitLabel=_feedbackBusy?`${icon('refresh-cw',13)} Sending...`:`${icon('send',13)} Send Feedback`;
   const tabBtn=(id,label)=>`<button onclick="S.feedbackTab='${id}';S.err='';render()" style="flex:1;padding:8px 0;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:var(--font);border-radius:8px;transition:all var(--tr);${tab===id?"background:var(--blue);color:#fff":"background:transparent;color:var(--t2)"}">${label}</button>`;
   const inputStyle="width:100%;box-sizing:border-box;font-family:var(--font);font-size:13px;padding:9px 11px;border-radius:10px;border:.5px solid var(--b2);background:var(--bg);color:var(--t1)";
-  // Preserve any content the user has already typed (or pre-filled by openSyncFeedback) across re-renders
-  const _fbWhatVal=document.getElementById('fb-what')?.value;
-  const _fbWhatContent=_fbWhatVal!==undefined?_fbWhatVal:_toastFeedbackNote;
   const bugFields=`
     <div style="margin-bottom:14px">
       <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">What happened?</label>
-      <textarea id="fb-what" rows="3" placeholder="Describe the bug..." style="${inputStyle};resize:vertical">${esc(_fbWhatContent)}</textarea>
+      <textarea id="fb-what" rows="3" placeholder="Describe the bug..." style="${inputStyle};resize:vertical"></textarea>
     </div>
     <div style="margin-bottom:14px">
       <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">Steps to reproduce <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
@@ -3976,12 +3900,6 @@ function renderFeedbackModal(){
       <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">Model name(s) <span style="font-weight:400;color:var(--t3)">(optional)</span></label>
       <textarea id="fb-models" rows="3" placeholder="e.g. Praetorian Ti, Marauder, Eris..." style="${inputStyle};resize:vertical"></textarea>
     </div>`;
-  const emailReadonly = S.authStatus === "signed_in";
-  const emailField = `
-    <div style="margin-top:14px">
-      <label style="display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px">Your email <span style="color:var(--redt)">*</span>${emailReadonly?` <span style="font-weight:400;color:var(--t3)">(from your account)</span>`:""}</label>
-      <input id="fb-email" type="email" value="${esc(S.authEmail||"")}" placeholder="you@example.com" style="${inputStyle}${emailReadonly?";opacity:0.65":""}" ${emailReadonly?"readonly":""}/>
-    </div>`;
   const titles={bug:`${icon('alert-circle',16)} Report a Bug`,feature:`${icon('lightbulb',16)} Request a Feature`,brand:`${icon('tag',16)} Brand Request`};
   return`<div class="modal-overlay" onclick="S.modal=null;S.err='';render()">
   <div class="modal" onclick="event.stopPropagation()" style="max-width:460px">
@@ -3996,7 +3914,6 @@ function renderFeedbackModal(){
         ${tabBtn("brand",`${icon('tag',12)} Brand Request`)}
       </div>
       ${isBug?bugFields:isBrand?brandFields:featureFields}
-      ${emailField}
       ${S.err?`<div class="err" style="margin-top:12px">${esc(S.err)}</div>`:""}
       <div style="display:flex;gap:8px;margin-top:18px">
         <button class="btn btn-sec btn-sm" style="flex:1;justify-content:center" onclick="S.modal=null;S.err='';render()">Cancel</button>
@@ -4047,28 +3964,21 @@ async function submitFeedbackForm(){
     const steps=sanitizeFeedbackInput((document.getElementById('fb-steps')||{}).value||"",2500);
     const device=sanitizeFeedbackInput((document.getElementById('fb-device')||{}).value||"",500);
     if(what.length<8){S.err="Please add a little more detail to 'What happened?'";render();return;}
-    description=`What happened:\n${what}\n\nSteps to reproduce:\n${steps||"(not provided)"}\n\nDevice / browser: ${device||"(not provided)"}`;
+    description=`## What happened\n${what}\n\n## Steps to reproduce\n${steps||"(not provided)"}\n\n## Device / browser\n${device||"(not provided)"}`;
   }else if(tab==="feature"){
     type="feature_request";
     subject="BladeFlow - Feature Request";
     const idea=sanitizeFeedbackInput((document.getElementById('fb-idea')||{}).value||"",2500);
     const why=sanitizeFeedbackInput((document.getElementById('fb-why')||{}).value||"",2500);
     if(idea.length<8){S.err="Please describe the feature request first.";render();return;}
-    description=`Feature idea:\n${idea}\n\nWhy it helps:\n${why||"(not provided)"}`;
+    description=`## Feature idea\n${idea}\n\n## Why it helps\n${why||"(not provided)"}`;
   }else{
     type="general";
     subject="BladeFlow - Brand Request";
     const brand=sanitizeFeedbackInput((document.getElementById('fb-brand')||{}).value||"",300);
     const models=sanitizeFeedbackInput((document.getElementById('fb-models')||{}).value||"",2500);
     if(brand.length<2){S.err="Please enter a brand name.";render();return;}
-    description=`Brand: ${brand}\n\nRequested models:\n${models||"(not specified)"}`;
-  }
-
-  const emailVal=sanitizeFeedbackInput((document.getElementById('fb-email')||{}).value||"",254)||(S.authStatus==="signed_in"?S.authEmail:"");
-  if(!emailVal||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)){
-    S.err="A valid email address is required.";
-    render();
-    return;
+    description=`## Brand\n${brand}\n\n## Requested models\n${models||"(not specified)"}`;
   }
 
   _feedbackBusy=true;
@@ -4084,8 +3994,8 @@ async function submitFeedbackForm(){
         type,
         subject,
         description,
-        customerEmail:emailVal,
-        customerName:emailVal.split('@')[0],
+        customerEmail:S.authStatus==="signed_in"?S.authEmail:null,
+        customerName:S.authStatus==="signed_in"?S.authEmail.split('@')[0]:null,
         metadata:{
           sourceApp:"bladeflow",
           feedbackTab:tab,
@@ -4110,8 +4020,7 @@ async function submitFeedbackForm(){
     _feedbackLastSentAt=Date.now();
     S.modal=null;
     S.err="";
-    const ticketRef=payload.ticketCode||(payload.ticketNumber?`#${payload.ticketNumber}`:null);
-    S.flairToast=`${icon('check-circle',13)} Ticket ${ticketRef||""} submitted. Thank you.`;
+    S.flairToast=`${icon('check-circle',13)} Feedback sent. Thank you.`;
     clearTimeout(S._flairTid);
     S._flairTid=setTimeout(()=>{S.flairToast=null;render();},7000);
     render();
@@ -4129,6 +4038,7 @@ async function submitFeedbackForm(){
 }
 
 function renderCloudinaryStatus(){
+
   const el=document.getElementById('cl-status');
   if(!el)return;
   const c=(SETTINGS.cloudinaryCloud||"").trim();
@@ -4751,7 +4661,7 @@ function mainHdr(){
 }
 function kfFormHtml(){
   const s=S;const f=s.kf;const isLock=s.kfMode==="locker";
-  const advHtml=`<div class="adv-box"><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Edge Condition</label><select id="kf-bladeCondition">${[...new Set([...BLADE_COND,...(f.bladeCondition&&!BLADE_COND.includes(f.bladeCondition)?[f.bladeCondition]:[])])].map(v=>`<option${f.bladeCondition===v?" selected":""}>${v}</option>`).join("")}</select></div><div class="field"><label>Owners</label><select id="kf-owners">${["1","2","3","4+"].map(v=>`<option${f.owners===v?" selected":""}>${v}</option>`).join("")}</select></div></div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Centering</label><select id="kf-centering">${["Perfect","Favoring show side","Favoring clip side","Off-center"].map(v=>`<option${f.centering===v?" selected":""}>${v}</option>`).join("")}</select></div><div class="field"><label>Lockup</label><select id="kf-lockup">${["Solid","Early","Mid","Late","Slight play","Lock stick","Other (describe)"].map(v=>`<option${f.lockup===v?" selected":""}>${v}</option>`).join("")}</select></div></div>${f.lockup==="Other (describe)"?`<div class="field" style="margin-bottom:11px"><label>Describe lockup</label><input type="text" id="kf-lockupNotes" value="${esc(f.lockupNotes)}" placeholder="Describe..."/></div>`:""}<div class="fr2" style="margin-bottom:11px"><div class="field"><label>Issues</label><div class="chips" style="margin-top:4px">${ISSUES.map(v=>`<button class="chip sm mul${f.issues.includes(v)?" on":""}" onclick="syncKF();S.kf.issues=tmx(S.kf.issues,'${v}','None');render()">${v}</button>`).join("")}</div>${f.issues.includes("Other")?`<input type="text" id="kf-issuesOther" value="${esc(f.issuesOther)}" placeholder="Describe issue(s)…" style="margin-top:6px;width:100%" oninput="S.kf.issuesOther=this.value"/>`:`<input type="hidden" id="kf-issuesOther" value=""/>`}</div><div class="field"><label>Accessories</label><div class="chips" style="margin-top:4px">${ACC.map(v=>`<button class="chip sm mul${f.accessories.includes(v)?" on":""}" onclick="syncKF();S.kf.accessories=tmx(S.kf.accessories,'${v}','None');render()">${v}</button>`).join("")}</div>${f.accessories.includes("Other")?`<input type="text" id="kf-accessoriesOther" value="${esc(f.accessoriesOther)}" placeholder="Describe accessory(s)…" style="margin-top:6px;width:100%" oninput="S.kf.accessoriesOther=this.value"/>`:`<input type="hidden" id="kf-accessoriesOther" value=""/>`}</div></div><div class="field"><label>Notes <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><textarea id="kf-notes" rows="3" placeholder="Upgraded hardware, extra scales..." style="resize:vertical;min-height:60px;font-family:var(--font);font-size:13px;padding:8px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);width:100%;box-sizing:border-box" oninput="S.kf.notes=this.value">${esc(f.notes)}</textarea></div></div>`;
+  const advHtml=`<div class="adv-box"><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Owners</label><select id="kf-owners">${["1","2","3","4+"].map(v=>`<option${f.owners===v?" selected":""}>${v}</option>`).join("")}</select></div><div class="field"><label>Centering</label><select id="kf-centering">${["Perfect","Favoring show side","Favoring clip side","Off-center"].map(v=>`<option${f.centering===v?" selected":""}>${v}</option>`).join("")}</select></div></div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Lockup</label><select id="kf-lockup">${["Solid","Early","Mid","Late","Slight play","Lock stick","Other (describe)"].map(v=>`<option${f.lockup===v?" selected":""}>${v}</option>`).join("")}</select></div>${f.lockup==="Other (describe)"?`<div class="field"><label>Describe</label><input type="text" id="kf-lockupNotes" value="${esc(f.lockupNotes)}" placeholder="Describe..."/></div>`:`<div></div>`}</div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Issues</label><div class="chips" style="margin-top:4px">${ISSUES.map(v=>`<button class="chip sm mul${f.issues.includes(v)?" on":""}" onclick="syncKF();S.kf.issues=tmx(S.kf.issues,'${v}','None');render()">${v}</button>`).join("")}</div>${f.issues.includes("Other")?`<input type="text" id="kf-issuesOther" value="${esc(f.issuesOther)}" placeholder="Describe issue(s)…" style="margin-top:6px;width:100%" oninput="S.kf.issuesOther=this.value"/>`:`<input type="hidden" id="kf-issuesOther" value=""/>`}</div><div class="field"><label>Accessories</label><div class="chips" style="margin-top:4px">${ACC.map(v=>`<button class="chip sm mul${f.accessories.includes(v)?" on":""}" onclick="syncKF();S.kf.accessories=tmx(S.kf.accessories,'${v}','None');render()">${v}</button>`).join("")}</div>${f.accessories.includes("Other")?`<input type="text" id="kf-accessoriesOther" value="${esc(f.accessoriesOther)}" placeholder="Describe accessory(s)…" style="margin-top:6px;width:100%" oninput="S.kf.accessoriesOther=this.value"/>`:`<input type="hidden" id="kf-accessoriesOther" value=""/>`}</div></div><div class="field"><label>Notes <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><textarea id="kf-notes" rows="3" placeholder="Upgraded hardware, extra scales..." style="resize:vertical;min-height:60px;font-family:var(--font);font-size:13px;padding:8px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);width:100%;box-sizing:border-box" oninput="S.kf.notes=this.value">${esc(f.notes)}</textarea></div><div class="field" style="margin-top:10px"><label>Born / Manufactured <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><input type="text" id="kf-dob" value="${esc(f.dob||"")}" placeholder="e.g. 2021, March 2022, Q1 2023" oninput="S.kf.dob=this.value"/><div class="field-hint">Year or date the knife was manufactured — included in your listing if set.</div></div></div>`;
   const kt=f.knifeType||"WTS";
   const badge=isLock?`<span class="kf-badge lk">The Roll</span>`:`<span class="kf-badge dr">${s.kfIdx>=0?"Knife #"+(s.kfIdx+1):"New"}</span>`;
   // Price research panel
@@ -4823,18 +4733,23 @@ function kfFormHtml(){
     prPanel=`<div class="pr-panel"><div style="padding:10px 12px;font-size:12px;color:var(--t3);display:flex;align-items:center;gap:8px">${icon('alert-triangle',13,'var(--orange)')} Couldn't load inline. <a href="${esc(pr.fallbackUrl||"https://www.reddit.com/r/Knife_Swap/search")}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;text-decoration:none">Search Reddit manually →</a></div></div>`;
   }
   return`<div class="kf" style="margin-top:10px"><div class="kf-hdr"><div class="kf-title">${s.kfIdx>=0?"Edit Knife":(isLock?"Add to The Roll":"Add a Knife")}</div>${badge}</div>
-    <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Brand</label><input type="text" id="kf-brand" list="dl-brands" value="${esc(f.brand)}" placeholder="e.g. Spyderco" oninput="updateModelList()" onblur="blurSyncRender()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-brand','dl-brands');updateModelList();}"/></div><div class="field"><label>Model</label><input type="text" id="kf-model" list="dl-models" value="${esc(f.model)}" placeholder="e.g. Para 3 LW" onblur="blurSyncRender()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-model','dl-models');}"/></div></div>
-    <div class="field" style="margin-bottom:11px"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390" onblur="blurSyncRender()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-steel','dl-steels');}"/></div>
+    <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Brand</label><input type="text" id="kf-brand" list="dl-brands" value="${esc(f.brand)}" placeholder="e.g. Spyderco" oninput="updateModelList()" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-brand','dl-brands');updateModelList();}"/></div><div class="field"><label>Model</label><input type="text" id="kf-model" list="dl-models" value="${esc(f.model)}" placeholder="e.g. Para 3 LW" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-model','dl-models');}"/></div></div>
+    <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-steel','dl-steels');}"/></div><div class="field"><label>Blade Edge</label><select id="kf-bladeCondition">${[...new Set([...BLADE_COND,...(f.bladeCondition&&!BLADE_COND.includes(f.bladeCondition)?[f.bladeCondition]:[])])].map(v=>`<option${f.bladeCondition===v?" selected":""}>${v}</option>`).join("")}</select></div></div>
     <div class="kf-type-sel"><button class="kf-type-btn${kt==="WTS"?" on wts":""}" onclick="syncKF();S.kf.knifeType='WTS';render()">WTS - For Sale</button><button class="kf-type-btn${kt==="WTT"?" on wtt":""}" onclick="syncKF();S.kf.knifeType='WTT';render()">WTT - For Trade</button><button class="kf-type-btn${kt==="WTS/WTT"?" on wtstt":""}" onclick="syncKF();S.kf.knifeType='WTS/WTT';render()">WTS/WTT - Both</button></div>
     <div class="fr2" style="margin-bottom:13px">
-      ${kt!=="WTT"?`<div class="field"><label>Sale Price / SV ($)</label><input type="number" id="kf-price" value="${esc(f.price)}" placeholder="175" min="0" onblur="blurSyncRender()"/></div>`:`<div></div>`}
-      ${kt!=="WTS"?`<div class="field"><label>Trade Value / TV ($)</label><input type="number" id="kf-tradeValue" value="${esc(f.tradeValue||"")}" placeholder="175" min="0" onblur="blurSyncRender()"/></div>`:`<div class="field" style="display:flex;align-items:flex-end;padding-bottom:10px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO</label></div>`}
+      ${kt!=="WTT"?`<div class="field"><label>Sale Price / SV ($)</label><input type="number" id="kf-price" value="${esc(f.price)}" placeholder="175" min="0" onblur="syncKF();render()"/></div>`:`<div></div>`}
+      ${kt!=="WTS"?`<div class="field"><label>Trade Value / TV ($)</label><input type="number" id="kf-tradeValue" value="${esc(f.tradeValue||"")}" placeholder="175" min="0" onblur="syncKF();render()"/></div>`:`<div class="field" style="display:flex;align-items:flex-end;padding-bottom:10px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO</label></div>`}
     </div>
     ${kt==="WTS"?"":`<div style="margin-bottom:11px;margin-top:-6px"><label class="cblk"><input type="checkbox" ${f.obo?"checked":""} onchange="S.kf.obo=this.checked"/> OBO on prices</label></div>`}
     ${kt!=="WTT"?`<div class="field" style="margin-bottom:11px">
+      <label>Previous price <span style="font-weight:400;color:var(--t4);font-size:11px">(price drop — optional)</span></label>
+      <input type="number" id="kf-prevPrice" min="0" value="${esc(String(f.prevPrice||""))}" placeholder="e.g. 175" style="width:140px" onblur="syncKF();render()"/>
+      ${f.prevPrice&&f.price?`<div style="margin-top:7px;font-size:12.5px;color:var(--t3)">Markdown preview: <code style="background:var(--surf);padding:3px 8px;border-radius:5px;font-size:12.5px;color:var(--t1)">~~$${esc(f.prevPrice)}~~ $${esc(f.price)}</code></div>`:`<div style="margin-top:4px;font-size:11px;color:var(--t4)">Enter to see ~~strikethrough~~ markdown preview</div>`}
+    </div>`:""}
+    ${kt!=="WTT"?`<div class="field" style="margin-bottom:11px">
       <label class="cblk"><input type="checkbox" id="kf-addonEnabled" ${f.addonEnabled?"checked":""} onchange="syncKF();S.kf.addonEnabled=this.checked;render()"/> Add-on price</label>
       <div style="font-size:11px;color:var(--t3);margin-top:2px">Lower price when bundled with another purchase - too small/cheap to ship alone.</div>
-      ${f.addonEnabled?`<div style="margin-top:8px"><label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block">Add-on price ($)</label><input type="number" id="kf-addonPrice" min="0" value="${esc(String(f.addonPrice||""))}" placeholder="e.g. 25" style="width:120px" onblur="blurSyncRender()"/></div>`:""}
+      ${f.addonEnabled?`<div style="margin-top:8px"><label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block">Add-on price ($)</label><input type="number" id="kf-addonPrice" min="0" value="${esc(String(f.addonPrice||""))}" placeholder="e.g. 25" style="width:120px" onblur="syncKF();render()"/></div>`:""}
     </div>`:""}
     <div class="field" style="margin-bottom:11px">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><label style="margin:0">Price Research</label><button class="pr-btn" onclick="syncKF();doFetchPriceResearch()" type="button">${icon("search",14)} Search r/Knife_Swap${pr.status==="loading"?"...":""}</button>${f.steel&&pr.status==="idle"?`<span style="font-size:10.5px;color:var(--t3)">will search ${esc(f.brand?f.brand+" ":"")}${esc(f.model||"")} + ${esc(f.steel)}</span>`:""}</div>
@@ -4995,11 +4910,11 @@ function renderList(){
   const s=S;
   const ak=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn).length,0);
   const sk=s.posts.reduce((n,p)=>n+p.knives.filter(k=>k.sold||k.soldElsewhere).length,0);
-  const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn).reduce((a,k)=>a+parseFloat(((k.knifeType||"WTS")==="WTT"?k.tradeValue:k.price)||0),0),0);
+  const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn).reduce((a,k)=>a+parseFloat(k.price||0),0),0);
   const hdr=mainHdr();
   if(!s.posts.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">${icon('clipboard',40,'var(--t4)')}</div><div class="empty-h">No listings yet</div><div class="empty-p">Create your first r/Knife_Swap post. Add a single knife or bundle several into one listing.</div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn btn-pri" onclick="startCompose()">+ Create First Listing</button><button class="btn btn-sec" onclick="startTour()">${icon('film',13)} Take the Tour</button></div></div></div>`;
   const lf=s.listFilter||"all";
-  const stats=`<div class="stats"><div class="stat clickable" onclick="S.listFilter=S.listFilter==='active'?'all':'active';render()"><div class="stat-n blue${lf==='active'?' ring':''}">${ak}</div><div class="stat-l">Active</div></div><div class="stat clickable" onclick="S.listFilter=S.listFilter==='sold'?'all':'sold';render()"><div class="stat-n green${lf==='sold'?' ring':''}">${sk}</div><div class="stat-l">Sold</div></div>${val>0?`<div class="stat"><div class="stat-n orange">$${Math.round(val)}</div><div class="stat-l">Listed</div></div>`:""}<div class="stat"><div class="stat-n">${s.posts.length}</div><div class="stat-l">Posts</div></div><div class="stat"><div class="stat-n purple">${s.inventory.length}</div><div class="stat-l">The Roll</div></div><div class="stats-acts"><button class="btn btn-pri btn-sm" onclick="startCompose()">+ New Listing</button></div></div>`;
+  const stats=`<div class="stats"><div class="stat clickable" onclick="S.listFilter=S.listFilter==='active'?'all':'active';render()"><div class="stat-n blue${lf==='active'?' ring':''}">${ak}</div><div class="stat-l">Active</div></div><div class="stat clickable" onclick="S.listFilter=S.listFilter==='sold'?'all':'sold';render()"><div class="stat-n green${lf==='sold'?' ring':''}">${sk}</div><div class="stat-l">Sold</div></div>${val>0?`<div class="stat"><div class="stat-n orange">$${Math.round(val)}</div><div class="stat-l">Listed</div></div>`:""}<div class="stat"><div class="stat-n">${s.posts.length}</div><div class="stat-l">Posts</div></div><div class="stat clickable" onclick="S.view='roll';render()" title="Go to The Roll"><div class="stat-n purple">${s.inventory.length}</div><div class="stat-l">The Roll ↗</div></div></div><div style="display:flex;justify-content:flex-end;margin:-12px 0 16px;padding:0 2px"><button class="btn btn-pri btn-sm" onclick="startCompose()">+ New Listing</button></div>`;
   const moving=s.movingKnife;
   const allCards=s.posts.map(p=>{
     const open=s.expanded===p.id;
@@ -5040,10 +4955,6 @@ function renderList(){
   <input id="se-price-input" type="text" inputmode="decimal" placeholder="${esc(k.price||"price")}" style="width:100px;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none;background:var(--surf);color:var(--t1);font-family:var(--font)"/>
   <span style="font-size:11px;color:var(--t4)">(optional)</span>
 </div>
-<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
-  <span style="font-size:12px;color:var(--t3);white-space:nowrap">Sale date</span>
-  <input id="se-date-input" type="date" value="${new Date().toISOString().slice(0,10)}" style="font-size:13px;padding:6px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none;background:var(--surf);color:var(--t1);font-family:var(--font)"/>
-</div>
 <label class="cblk" style="margin-bottom:10px;font-size:12px">
   <input type="checkbox" id="se-track-ship"/> Track in shipping pipeline
   <span style="display:block;font-size:11px;color:var(--t4);font-weight:400;margin-top:2px">Check if you still need to ship this item (e.g. sold on eBay but shipping yourself).</span>
@@ -5059,10 +4970,6 @@ function renderList(){
   <span style="font-size:12px;font-weight:600;color:var(--t3);white-space:nowrap">Sold for $</span>
   <input id="sold-price-input" type="text" inputmode="decimal" placeholder="${esc(k.price||"price")}" style="width:90px;font-size:13px;padding:7px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none;background:var(--surf);color:var(--t1);font-family:var(--font)"/>
 </div>
-<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px">
-  <span style="font-size:12px;color:var(--t3);white-space:nowrap">Sale date</span>
-  <input id="sold-date-input" type="date" value="${new Date().toISOString().slice(0,10)}" style="font-size:13px;padding:6px 10px;border:.5px solid var(--b2);border-radius:8px;outline:none;background:var(--surf);color:var(--t1);font-family:var(--font)"/>
-</div>
 <div style="display:flex;gap:8px;margin-bottom:4px">
   <button class="btn btn-gn btn-sm" onclick="confirmSoldFlow()">Confirm Sold</button>
   <button class="btn btn-sec btn-sm" onclick="cancelSoldFlow()">Cancel</button>
@@ -5072,7 +4979,7 @@ function renderList(){
         const kDot=k.soldElsewhere?`<span class="sdot sdot-r"></span>`:k.withdrawn?`<span class="sdot sdot-x"></span>`:k.sold?`<span class="sdot sdot-r"></span>`:k.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
         const kRowClass=`krow${(k.sold||k.soldElsewhere)?" sold":k.withdrawn?" withdrawn-row":k.pending?" pending-row":""}${isMoving?" moving":""}`;
         const addrHtml="";
-        return`<div class="${kRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold&&!k.soldElsewhere&&!k.withdrawn?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">${icon('camera',11)} ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${(k.sold||k.soldElsewhere)&&k.soldAt?" · "+(k.soldElsewhere?"Elsewhere":"Sold")+" "+fmtD(k.soldAt):""}${k.withdrawn?" · Withdrawn":""}${soldToMeta}</div></div><span class="krow-price${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${knifePrice(k)}</span></div><div class="krow-acts">${k.soldElsewhere?`<span class="elsewhere-chip">Sold Elsewhere</span>${!(k.confirmedAt&&k.deliveredAt)?`<button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:``}`:k.withdrawn?`<span class="withdrawn-chip">Withdrawn</span><button class="btn btn-sm btn-sec" onclick="readdKnife('${p.id}',${i})">Re-add</button>`:k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm${addrReqCopied?" btn-gn":" btn-sec"}" onclick="copyAddressRequest('${p.id}',${i})" title="Copy payment message">${addrReqCopied?"Copied!":"Payment Message"}</button>${!k.trackingNumber&&!isTrackingFlow?`<button class="btn btn-sec btn-sm" onclick="startTracking('${p.id}',${i})">${icon('package',12)} Add Tracking</button>`:``}${!(k.confirmedAt&&k.deliveredAt)?`<button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:``}`:`<button class="btn btn-sm${dibsCopied?" btn-gn":" btn-pu"}" onclick="copyDibsMessage('${p.id}',${i})" title="Copy payment confirmation message">${dibsCopied?"Copied!":`${icon('mail',13)} Payment Info`}</button><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})"><span class="sdot sdot-g"></span>→<span class="sdot sdot-r"></span> Sold</button><button class="btn btn-sm btn-rd" onclick="markSoldElsewhere('${p.id}',${i})" title="Sold on eBay, FB Marketplace, etc.">Sold Elsewhere</button><button class="btn btn-sm btn-sec" onclick="markWithdrawn('${p.id}',${i})" title="Remove from listing, return to The Roll">Withdraw</button><button class="btn btn-sm btn-sec" onclick="openKF(${i},'post','${p.id}')" title="Edit knife details, photos, price">Edit</button>`}${!k.sold&&!k.soldElsewhere&&!k.withdrawn&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${addrHtml}${trkHtml}${sfHtml}${picker}</div>`;
+        return`<div class="${kRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold&&!k.soldElsewhere&&!k.withdrawn?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">${icon('camera',11)} ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${(k.sold||k.soldElsewhere)&&k.soldAt?" · "+(k.soldElsewhere?"Elsewhere":"Sold")+" "+fmtD(k.soldAt):""}${k.withdrawn?" · Withdrawn":""}${soldToMeta}</div></div><span class="krow-price${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${knifePrice(k)}</span></div><div class="krow-acts">${k.soldElsewhere?`<span class="elsewhere-chip">Sold Elsewhere</span>${!(k.confirmedAt&&k.deliveredAt)?`<button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:``}`:k.withdrawn?`<span class="withdrawn-chip">Withdrawn</span><button class="btn btn-sm btn-sec" onclick="readdKnife('${p.id}',${i})">Re-add</button>`:k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm${addrReqCopied?" btn-gn":" btn-sec"}" onclick="copyAddressRequest('${p.id}',${i})" title="Copy payment message">${addrReqCopied?"Copied!":"Payment Message"}</button>${!k.trackingNumber&&!isTrackingFlow?`<button class="btn btn-sec btn-sm" onclick="startTracking('${p.id}',${i})">${icon('package',12)} Add Tracking</button>`:``}${!(k.confirmedAt&&k.deliveredAt)?`<button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:``}`:`<button class="btn btn-sm${dibsCopied?" btn-gn":" btn-pu"}" onclick="copyDibsMessage('${p.id}',${i})" title="Copy payment confirmation message">${dibsCopied?"Copied!":`${icon('mail',13)} Payment Info`}</button><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})"><span class="sdot sdot-g"></span>→<span class="sdot sdot-r"></span> Sold</button><details class="krow-more"><summary class="btn btn-sm btn-sec">···</summary><div class="krow-more-menu"><button class="btn btn-sm btn-rd" onclick="markSoldElsewhere('${p.id}',${i})">Sold Elsewhere</button><button class="btn btn-sm btn-sec" onclick="markWithdrawn('${p.id}',${i})">Withdraw</button><button class="btn btn-sm btn-sec" onclick="openKF(${i},'post','${p.id}')">Edit</button></div></details>`}${!k.sold&&!k.soldElsewhere&&!k.withdrawn&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${addrHtml}${trkHtml}${sfHtml}${picker}</div>`;
       }).join("");
       const da2=daysAgo(p.createdAt);
       const repostSection=pA>0?`<div class="repost-track">
@@ -5104,15 +5011,10 @@ function renderList(){
           const isGSF=s.gearSoldFlow&&s.gearSoldFlow.pid===p.id&&s.gearSoldFlow.gi===gi;
           const gsfHtml=isGSF?gearSoldFlowHtml(p.id,gi):"";
           const gAddrHtml="";
-          const gDot=item.sold?`<span class="sdot sdot-r"></span>`:item.withdrawn?`<span class="sdot" style="background:var(--t4)"></span>`:item.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
-          const gRowClass=`krow${item.sold?" sold":item.withdrawn?" withdrawn-row":item.pending?" pending-row":""}`;
-          const gActsHtml=item.sold
-            ?(!(item.confirmedAt&&item.deliveredAt)?`<span class="sold-chip">Sold</span><button class="btn btn-sm btn-sec" onclick="markGearSold('${p.id}',${gi})">Relist</button>`:`<span class="sold-chip">Sold</span>`)
-            :item.withdrawn
-              ?`<span class="withdrawn-chip">Withdrawn</span><button class="btn btn-sm btn-sec" onclick="readdGear('${p.id}',${gi})">Re-add</button>`
-              :(`<button class="btn btn-sm${item.pending?" btn-am":" btn-sec"}" onclick="markGearPending('${p.id}',${gi})">${item.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markGearSold('${p.id}',${gi})"><span class="sdot sdot-r"></span> Sold</button><button class="btn btn-sm btn-rd" onclick="markGearWithdrawn('${p.id}',${gi})" title="Remove from listing, return to The Roll">Withdraw</button><button class="btn btn-sm btn-sec" onclick="openGearEdit('${p.id}',${gi})" title="Edit item details, price, photos">Edit</button>`);
-          const isEditingThis=s.niOpen&&s.niPostId===p.id&&s.niPostGi===gi;
-          return`<div class="${gRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${item.sold||item.withdrawn?" s":""}">${gDot} ${gicn} ${esc(glabel)}: ${esc(item.description||"")}${item.pending&&!item.sold&&!item.withdrawn?` <span class="pending-tag">PENDING</span>`:""}</div><div class="krow-meta">${esc(item.condition||"")} · ${gpriceStr}${item.sold&&item.soldAt?" · Sold "+fmtD(item.soldAt):""}${item.soldTo?" · Buyer: u/"+esc(item.soldTo):""}${item.withdrawn?" · Withdrawn":""}</div></div><span class="krow-price${item.sold||item.withdrawn?" s":""}">${gpriceStr}</span></div><div class="krow-acts">${gActsHtml}</div>${gAddrHtml}${isEditingThis?renderNIForm():""}${gsfHtml}</div>`;
+          const gDot=item.sold?`<span class="sdot sdot-r"></span>`:item.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
+          const gRowClass=`krow${item.sold?" sold":item.pending?" pending-row":""}`;
+          const gActsHtml=item.sold?(!(item.confirmedAt&&item.deliveredAt)?`<span class="sold-chip">Sold</span><button class="btn btn-sm btn-sec" onclick="markGearSold('${p.id}',${gi})">Relist</button>`:`<span class="sold-chip">Sold</span>`):(`<button class="btn btn-sm${item.pending?" btn-am":" btn-sec"}" onclick="markGearPending('${p.id}',${gi})">${item.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markGearSold('${p.id}',${gi})"><span class="sdot sdot-r"></span> Sold</button>`);
+          return`<div class="${gRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${item.sold?" s":""}">${gDot} ${gicn} ${esc(glabel)}: ${esc(item.description||"")}${item.pending&&!item.sold?` <span class="pending-tag">PENDING</span>`:""}</div><div class="krow-meta">${esc(item.condition||"")} · ${gpriceStr}${item.sold&&item.soldAt?" · Sold "+fmtD(item.soldAt):""}${item.soldTo?" · Buyer: u/"+esc(item.soldTo):""}</div></div><span class="krow-price${item.sold?" s":""}">${gpriceStr}</span></div><div class="krow-acts">${gActsHtml}</div>${gAddrHtml}${gsfHtml}</div>`;
         }).join("");
         return`<div class="krows-hdr" style="margin-top:10px">Gear &amp; Extras</div>${gearItemRows}`;
       })():"";
@@ -5120,7 +5022,8 @@ function renderList(){
       const titleVal=esc(getPostTitle(p));
       const ttlCopied=s.copied==="ttl_"+p.id;
       const titleRow=`<div class="title-row"><input class="title-field" value="${titleVal}" oninput="updateTitle('${p.id}',this.value)" placeholder="Post title"/><button class="btn btn-sm${ttlCopied?" btn-gn":" btn-sec"}" onclick="copyTitle('${p.id}')">${ttlCopied?"✓ Copied!":"Copy Title"}</button></div>`;
-      const ruleTagsHtml=checkPostRules(p.id).map(c=>
+      const _rules=checkPostRules(p.id);
+      const ruleTagsHtml=[..._rules.filter(c=>!c.ok),..._rules.filter(c=>c.ok)].map(c=>
         `<span class="rule-tag ${c.ok?'ok':'fail'}">${c.ok?"✓":"✗"} ${esc(c.msg)}</span>`
       ).join("");
       const _tsStale=checkPostRules(p.id).find(c=>c.tsUpdate);
@@ -5137,10 +5040,10 @@ function renderList(){
         const urlRow=`<div class="ts-inline-row" style="margin-top:8px"><input id="ts-update-${p.id}" type="url" class="ts-inline-input" placeholder="${canUpload?'Or paste URL…':'Paste new timestamp URL…'}"/><button class="btn btn-pri btn-sm" onclick="updateTimestampInline('${p.id}')">Update ↑</button></div>`;
         return`<div style="background:var(--orangebg);border:.5px solid rgba(255,149,0,.3);border-radius:var(--rs);padding:14px 16px;margin-top:8px">${icon('camera',14,'var(--oranget)')}<span style="font-size:12px;font-weight:700;color:var(--oranget);margin-left:6px;vertical-align:middle">Update Timestamp</span><div style="font-size:12px;color:var(--t2);margin:7px 0 10px;line-height:1.5">Take a new photo of your knives with today's date written on paper and upload it below.</div>${uploadZone}${urlRow}</div>`;
       })();
-      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?` ${icon('alert-triangle',11,'var(--redt)')}`:charLen>30000?` ${icon('zap',11,'var(--oranget)')}`:""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No timestamp"}</span><span class="pmeta"> · ${TMPL[Math.min(p.variant||0,TMPL.length-1)]}</span></div>${titleRow}${postBox}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="openPreflight('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""} title="${!hasPhotos?"Add your timestamp in the pre-flight check":"Copy post text"}">${s.copied===p.id?"✓ Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openPreflight('${p.id}')" title="Post to Reddit">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')">Switch: ${TMPL[(Math.min(p.variant||0,TMPL.length-1)+1)%TMPL.length]}</button>${hasPhotos?`<button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')">${isRaw?`${icon('eye',13)} Preview`:"&lt;/&gt; Raw"}</button>`:""}${(()=>{const hasSold=p.knives.some(k=>k.sold||k.soldElsewhere)||(p.items||[]).some(it=>it.sold);const scCopied=s.copied==="sc_"+p.id;const scPlainCopied=s.copied==="sc_plain_"+p.id;return hasSold?`<button class="btn btn-sm${scCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}')" title="Copy sold comment with markdown formatting">${scCopied?"✓ Copied!":"Sold Comment MD"}</button><button class="btn btn-sm${scPlainCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}',true)" title="Copy sold comment as plain text">${scPlainCopied?"✓ Copied!":"Sold Comment Plain"}</button>`:"";})()}<button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${ruleTagsHtml}</div>${tsUpdateCard}${repostSection}<div class="krows-hdr">Knives in this post</div>${postKfForm}${krows}${gearRows}</div>`;
+      body=`<div class="pc-body"><div class="pc-meta"><span class="pmeta"${charColor?` style="color:${charColor};font-weight:600"`:""}>${charLen.toLocaleString()} chars${charLen>38000?` ${icon('alert-triangle',11,'var(--redt)')}`:charLen>30000?` ${icon('zap',11,'var(--oranget)')}`:""}</span><span class="pmeta"> · ${fmtD(p.createdAt)}</span><span class="pmeta${hasPhotos?" ok":""}">${hasPhotos?" · "+p.photos.length+" photo"+(p.photos.length>1?"s":"")+" linked":" · No timestamp"}</span><span class="pmeta"> · ${TMPL[Math.min(p.variant||0,TMPL.length-1)]}</span></div>${titleRow}${postBox}<div class="pc-acts"><button class="btn btn-pri btn-sm" onclick="openPreflight('${p.id}')"${s.copied===p.id?` style="background:var(--green)"`:""} title="${!hasPhotos?"Add your timestamp in the pre-flight check":"Copy post text"}">${s.copied===p.id?"✓ Copied!":"Copy Post"}</button><button class="btn btn-gn btn-sm" onclick="openPreflight('${p.id}')" title="Post to Reddit">Post to Reddit &#8599;</button><button class="btn btn-sec btn-sm" onclick="cycleTmpl('${p.id}')" title="Switch post format">☰ ${TMPL[(Math.min(p.variant||0,TMPL.length-1)+1)%TMPL.length]}</button>${hasPhotos?`<button class="btn btn-sec btn-sm" onclick="toggleMdPreview('${p.id}')">${isRaw?`${icon('eye',13)} Preview`:"&lt;/&gt; Raw"}</button>`:""}${(()=>{const hasSold=p.knives.some(k=>k.sold||k.soldElsewhere)||(p.items||[]).some(it=>it.sold);const scCopied=s.copied==="sc_"+p.id;const scPlainCopied=s.copied==="sc_plain_"+p.id;return hasSold?`<button class="btn btn-sm${scCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}')" title="Copy sold comment with markdown formatting">${scCopied?"✓ Copied!":"Sold Comment MD"}</button><button class="btn btn-sm${scPlainCopied?" btn-gn":" btn-sec"}" onclick="copySoldComment('${p.id}',true)" title="Copy sold comment as plain text">${scPlainCopied?"✓ Copied!":"Sold Comment Plain"}</button>`:"";})()}<button class="btn btn-rd btn-sm" onclick="deletePost('${p.id}')">Delete</button></div><div class="rule-tags">${ruleTagsHtml}</div>${tsUpdateCard}${repostSection}<div class="krows-hdr">Knives in this post</div>${postKfForm}${krows}${gearRows}</div>`;
     }
     const da=daysAgo(p.createdAt);
-    const ageBadge=!allSold?(da>=7?`<span class="repost-day-badge rdy">Repost ready</span>`:`<span class="repost-day-badge wait">${da}d old</span>`):"";
+    const ageBadge=!allSold?(da>=7?`<span class="repost-day-badge rdy" style="cursor:pointer" onclick="event.stopPropagation();startPriceDropRepost('${p.id}')" title="Click to start a price drop repost">↻ Repost</span>`:`<span class="repost-day-badge wait">${da}d old</span>`):"";
     const prFlairBadge=p.repost?`<span class="pr-flair-badge">${icon('trending-down',11)} Price Reduced</span>`:"";
     const html=`<div class="pc"><div class="pc-hdr" onclick="S.expanded=S.expanded==='${p.id}'?null:'${p.id}';S.movingKnife=null;render()"><span class="pc-badge ${bt}">${esc(p.postType)}</span>${prFlairBadge}<span class="pc-names">${esc(names)}</span><span class="pc-date">${fmtD(p.createdAt)}</span>${ageBadge}<span class="pc-stat${allSold?" done":" act"}">${stat}</span><span class="pc-chev${open?" open":""}">&#9660;</span></div>${body}</div>`;
     return{allSold,html};
@@ -5164,7 +5067,7 @@ function kShipStatus(k){
   return"ready";
 }
 function gShipStatus(item){
-  if(item.withdrawn||!item.sold)return null;
+  if(!item.sold)return null;
   if(item.confirmedAt)return"confirmed";
   if(item.deliveredAt)return"delivered";
   if(item.trackingNumber)return"shipped";
@@ -5531,10 +5434,11 @@ function renderRoll(){
     const dInRoll=k.addedAt?Math.floor((Date.now()-new Date(k.addedAt))/(864e5)):null;
     const dayClass=dInRoll===null?"":dInRoll<14?"fresh":dInRoll<45?"mid":"old";
     const dayBadge=dInRoll!==null&&k.status!=="sold"?`<span class="days-badge ${dayClass}">${dInRoll}d</span>`:"";
-    // Cooldown badge — knife was listed recently and now back in the Roll
-    const _dSinceListed=k.listedAt?daysAgo(k.listedAt):null;
-    const _dLeftCooldown=(_dSinceListed!==null&&_dSinceListed<7&&k.status==="available")?7-_dSinceListed:null;
-    const cooldownBadge=_dLeftCooldown!==null?`<span class="lk-badge" style="background:var(--orangebg);color:var(--oranget);font-size:10px;padding:2px 6px;border:.5px solid rgba(255,159,10,.3)" title="Price drop required — ${_dLeftCooldown} day${_dLeftCooldown!==1?'s':''} left until same-price relist">⏱ ${_dLeftCooldown}d</span>`:"";
+    // Cooldown badge for "In Listing" knives (7-day same-price repost rule)
+    const _listedMs=k.listedAt?new Date(k.listedAt).getTime():null;
+    const _dSinceListed=_listedMs?Math.floor((Date.now()-_listedMs)/864e5):null;
+    const _dLeftCooldown=_dSinceListed!==null&&_dSinceListed<7?(7-_dSinceListed):null;
+    const cooldownBadge=k.status==="listed"&&_dLeftCooldown!==null?`<span class="lk-badge" style="background:var(--orangebg);color:var(--oranget);border-color:rgba(255,149,0,.2);font-size:10px;cursor:help" title="Same-price repost requires 7 days. ${_dLeftCooldown}d remaining.">⏱ ${_dLeftCooldown}d</span>`:"";
     // Price history sparkline (text-based)
     const ph=(k.priceHistory||[]);
     const phHtml=ph.length?`<div class="ph-line">${ph.slice(-3).map((h,i,arr)=>`<span class="ph-old">$${esc(h.price)}</span>${i<arr.length-1?`<span style="font-size:9px;color:var(--t4)">›</span>`:""}`).join("")}<span style="font-size:9px;color:var(--t4)">›</span><span style="font-size:10.5px;font-weight:700;color:var(--greent)">$${esc(k.price)}</span></div>`:"";
@@ -5551,9 +5455,9 @@ function renderRoll(){
     const _cov=_cdnFp?_covImg+_extLink:_extFp?`<div style="border-radius:10px;background:var(--surf);margin-bottom:8px;padding:12px;display:flex;align-items:center;justify-content:center">${_extLink}</div>`:"";
     const _pickIssues=k.status!=="sold"?knifePickerIssues(k):[];
     const _readyInline=k.status!=="sold"&&_pickIssues.length===0?`<span style="font-size:11px;font-weight:600;color:var(--greent);white-space:nowrap">✓ Ready</span>`:"";
-    const _issuesFull=k.status!=="sold"&&_pickIssues.length>0?`<div style="font-size:11px;color:var(--redt);margin:3px 0 6px;line-height:1.5"><strong>Incomplete:</strong> ${esc(_pickIssues.join(" · "))}</div>`:"";
+    const _issuesFull=k.status!=="sold"&&_pickIssues.length>0?`<span class="lk-badge" style="background:var(--orangebg);color:var(--oranget);border-color:rgba(255,149,0,.2);font-size:9px;margin-bottom:6px;cursor:help" title="${esc(_pickIssues.join(' · '))}">⚠ ${_pickIssues.length} issue${_pickIssues.length!==1?'s':''}</span>`:"";
 
-    return`<div class="lk-card${rollAnimActive?' unfurl':''}"${rollAnimActive?` style="animation-delay:${(Math.min(i*.055,.75)).toFixed(3)}s"`:''}>` + `${_cov}<div class="lk-card-hdr"><span class="lk-brand">${esc(k.brand)}</span><div class="lk-card-tags">${cooldownBadge}${dayBadge}<span class="ki-type-tag ${ktClass}">${kt}</span></div></div><div class="lk-model">${statusDot} ${esc(k.model)}</div><div class="lk-steel">${esc(k.steel||"Steel N/A")} · ${esc(k.bladeCondition)}</div><div class="lk-price">${knifePrice(k)}</div>${phHtml}${compsHtml}<div style="display:flex;align-items:center;justify-content:space-between;gap:6px">${sb}${_readyInline}</div>${_issuesFull}${k.status!=="sold"?`<div class="lk-acts" style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markInvPending(${realIdx})">${k.pending?"Pending":"Pending?"}</button><button class="btn btn-sm btn-gn" onclick="markInvSold(${realIdx})">Sold</button><button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-sec" onclick="removeFromInventory(${realIdx})">Archive</button></div>`:(k.confirmedAt&&k.deliveredAt)?`<div class="lk-acts" style="display:flex;gap:5px;align-items:center"><span style="font-size:11px;color:var(--greent);font-weight:600;flex:1">✓ Confirmed &amp; Delivered</span><button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">✕</button></div>`:`<div class="lk-acts" style="display:flex;gap:5px"><button class="btn btn-sm btn-sec" style="flex:1" onclick="markInvSold(${realIdx})">Relist</button><button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">✕</button></div>`}</div>`;
+    return`<div class="lk-card${rollAnimActive?' unfurl':''}"${rollAnimActive?` style="animation-delay:${(Math.min(i*.055,.75)).toFixed(3)}s"`:''}>` + `${_cov}<div class="lk-card-hdr"><span class="lk-brand">${esc(k.brand)}</span><div class="lk-card-tags">${dayBadge}${cooldownBadge}<span class="ki-type-tag ${ktClass}">${kt}</span></div></div><div class="lk-model">${statusDot} ${esc(k.model)}</div><div class="lk-steel">${esc(k.steel||"Steel N/A")} · ${esc(k.bladeCondition)}</div><div class="lk-price">${knifePrice(k)}</div>${phHtml}${compsHtml}<div style="display:flex;align-items:center;justify-content:space-between;gap:6px">${sb}${_readyInline}</div>${_issuesFull}${k.status!=="sold"?`<div class="lk-acts" style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markInvPending(${realIdx})">${k.pending?"Pending":"Pending?"}</button><button class="btn btn-sm btn-gn" onclick="markInvSold(${realIdx})">Sold</button><button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-sec" onclick="removeFromInventory(${realIdx})">Archive</button></div>`:(k.confirmedAt&&k.deliveredAt)?`<div class="lk-acts" style="display:flex;gap:5px;align-items:center"><span style="font-size:11px;color:var(--greent);font-weight:600;flex:1">✓ Confirmed &amp; Delivered</span><button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">✕</button></div>`:`<div class="lk-acts" style="display:flex;gap:5px"><button class="btn btn-sm btn-sec" style="flex:1" onclick="markInvSold(${realIdx})">Relist</button><button class="btn btn-sm btn-sec" onclick="openKF(${realIdx},'locker')">Edit</button><button class="btn btn-sm btn-rd" onclick="removeFromInventory(${realIdx})">✕</button></div>`}</div>`;
   }).join("")}</div>`:`<div style="text-align:center;padding:40px 0;color:var(--t4);font-size:13px">No ${fil==="all"?"":fil+" "}knives</div>`;
   const form=S.kfOpen&&S.kfMode==="locker"?kfFormHtml():"";
   const chevron=(open)=>`<svg width="13" height="8" viewBox="0 0 13 8" fill="none" style="transition:transform .2s;transform:rotate(${open?'0':'180deg'})"><path d="M1 1L6.5 7L12 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -5586,14 +5490,10 @@ function renderRoll(){
       const _nextLink=_nextFp?`<a href="${esc(_nextFp)}" target="_blank" rel="noopener" style="display:block;font-size:11px;font-weight:600;color:var(--blue);margin-bottom:8px;text-decoration:none">${icon('external-link',11,'var(--blue)')} ${_ncdnFp?"Imgur Link":"View photo"} ↗</a>`:"";
       const _ncov=_ncdnFp?_ncovImg+_nextLink:_nextFp?`<div style="border-radius:10px;background:var(--surf);margin-bottom:8px;padding:12px;display:flex;align-items:center;justify-content:center">${_nextLink}</div>`:"";
       const _ngIssues=item.status!=="sold"?gearPickerIssues(item):[];
-      const _ngReady=item.status!=="sold"?(_ngIssues.length===0?`<div style="font-size:11px;font-weight:600;color:var(--greent);margin:7px 0 4px">✓ Ready to list</div>`:`<div style="font-size:11px;color:var(--redt);margin:7px 0 4px;line-height:1.5"><strong>Incomplete:</strong> ${esc(_ngIssues.join(" · "))}</div>`):``;
+      const _ngReady=item.status!=="sold"?(_ngIssues.length===0?`<div style="font-size:11px;font-weight:600;color:var(--greent);margin:7px 0 4px">✓ Ready to list</div>`:`<span class="lk-badge" style="background:var(--orangebg);color:var(--oranget);border-color:rgba(255,149,0,.2);font-size:9px;margin:4px 0;cursor:help" title="${esc(_ngIssues.join(' · '))}">⚠ ${_ngIssues.length} issue${_ngIssues.length!==1?'s':''}</span>`):``;
       const stTag=item.saleType&&item.saleType!=="WTS"?`<span class="ki-type-tag${item.saleType==="WTT"?" wtt":" wtstt"}">${esc(item.saleType)}</span>`:`<span class="ki-type-tag wts">WTS</span>`;
-      // Cooldown badge — gear item was listed recently and is now back in the Roll
-      const _niDSinceListed=item.listedAt?daysAgo(item.listedAt):null;
-      const _niDLeftCooldown=(_niDSinceListed!==null&&_niDSinceListed<7&&item.status==="available")?7-_niDSinceListed:null;
-      const niCooldownBadge=_niDLeftCooldown!==null?`<span class="lk-badge" style="background:var(--orangebg);color:var(--oranget);font-size:10px;padding:2px 6px;border:.5px solid rgba(255,159,10,.3)" title="Price drop required — ${_niDLeftCooldown} day${_niDLeftCooldown!==1?'s':''} left until same-price relist">⏱ ${_niDLeftCooldown}d</span>`:"";
       return`<div class="ni-card">
-        ${_ncov}<div class="ni-card-hdr"><span class="ni-cat">${itemIcon} ${label}</span><div class="lk-card-tags">${niCooldownBadge}${stTag}</div></div>
+        ${_ncov}<div class="ni-card-hdr"><span class="ni-cat">${itemIcon} ${label}</span><div class="lk-card-tags">${stTag}</div></div>
         <div class="ni-desc">${esc(item.description||"—")}</div>
         <div class="lk-steel">${esc(item.condition||"")}</div>
         <div class="ni-price">${priceStr}</div>
@@ -6149,10 +6049,10 @@ function renderCompose(){
     const bundleTag=bndl?`<span class="bundle-tag">Bundle</span>`:"";
     return`<div class="ki"><span class="ki-num">${i+1}</span><div class="ki-info"><div class="ki-name">${esc(k.brand)} ${esc(k.model)}${typeTag}${bundleTag}${k.inventoryId?`<span class="ki-fromlock">The Roll</span>`:""}</div><div class="ki-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}</div></div><span class="ki-price">${priceStr}</span><button class="btn btn-sec btn-xs" onclick="openKF(${i},'draft')">Edit</button><button class="btn btn-rd btn-xs" onclick="removeKnife(${i})">Remove</button></div>`;
   }).join(""):`<div style="text-align:center;padding:20px 16px;color:var(--t4);font-size:13px;border:1px dashed rgba(0,0,0,.13);border-radius:var(--rs)">No knives added yet</div>`;
-  const lockerPickerHtml=s.lockerPicker&&availInLocker.length?`<div class="lk-picker" style="margin-top:6px">${availInLocker.map((k,i)=>{const ri=s.inventory.indexOf(k);const issues=knifePickerIssues(k);const ok=issues.length===0;const issueText=issues.slice(0,2).join(" · ")+(issues.length>2?` +${issues.length-2} more`:"");const _pCd=k.listedAt&&daysAgo(k.listedAt)<7;const _pCdLeft=_pCd?7-daysAgo(k.listedAt):null;const _cdBadge=_pCdLeft!==null?`<span style="display:inline-flex;align-items:center;font-size:10px;font-weight:700;color:var(--oranget);background:var(--orangebg);border:.5px solid rgba(255,159,10,.3);border-radius:20px;padding:1px 6px;margin-left:4px" title="Price drop required — ${_pCdLeft}d left">⏱ ${_pCdLeft}d</span>`:"";return ok?`<div class="lk-pick-row" onclick="addFromLocker(${ri})"><div><div class="lk-pick-name">${esc(k.brand)} ${esc(k.model)}${_cdBadge}</div><div class="lk-pick-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)} · $${esc(k.price)}</div></div><button class="btn btn-gn btn-xs" style="pointer-events:none">Add</button></div>`:`<div class="lk-pick-row" style="cursor:not-allowed;opacity:.75" title="${esc(issueText)}"><div style="flex:1;min-width:0"><div class="lk-pick-name">${esc(k.brand)} ${esc(k.model)}${_cdBadge}</div><div class="lk-pick-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}</div><div style="font-size:10px;color:var(--redt);margin-top:3px;font-weight:500;display:flex;align-items:center;gap:3px">${icon('alert-triangle',10,'var(--redt)')} ${esc(issueText)}</div></div><button class="btn btn-xs" style="pointer-events:none;flex-shrink:0;background:var(--orangebg);color:var(--oranget);border:.5px solid var(--oranget)">Fix first</button></div>`;}).join("")}<div style="padding:8px 14px;font-size:11px;color:var(--t4);border-top:.5px solid var(--b2);cursor:pointer" onclick="S.lockerPicker=false;render()">Close picker</div></div>`:s.lockerPicker&&!availInLocker.length?`<div style="padding:12px 14px;background:var(--bg);border-radius:var(--rs);font-size:12.5px;color:var(--t3);margin-top:6px">No available knives in The Roll. <span style="color:var(--blue);cursor:pointer" onclick="S.view='roll';render()">Add some first.</span></div>`:"";
+  const lockerPickerHtml=s.lockerPicker&&availInLocker.length?`<div class="lk-picker" style="margin-top:6px">${availInLocker.map((k,i)=>{const ri=s.inventory.indexOf(k);const issues=knifePickerIssues(k);const ok=issues.length===0;const issueText=issues.slice(0,2).join(" · ")+(issues.length>2?` +${issues.length-2} more`:"");return ok?`<div class="lk-pick-row" onclick="addFromLocker(${ri})"><div><div class="lk-pick-name">${esc(k.brand)} ${esc(k.model)}</div><div class="lk-pick-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)} · $${esc(k.price)}</div></div><button class="btn btn-gn btn-xs" style="pointer-events:none">Add</button></div>`:`<div class="lk-pick-row" style="cursor:not-allowed;opacity:.75" title="${esc(issueText)}"><div style="flex:1;min-width:0"><div class="lk-pick-name">${esc(k.brand)} ${esc(k.model)}</div><div class="lk-pick-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}</div><div style="font-size:10px;color:var(--redt);margin-top:3px;font-weight:500;display:flex;align-items:center;gap:3px">${icon('alert-triangle',10,'var(--redt)')} ${esc(issueText)}</div></div><button class="btn btn-xs" style="pointer-events:none;flex-shrink:0;background:var(--orangebg);color:var(--oranget);border:.5px solid var(--oranget)">Fix first</button></div>`;}).join("")}<div style="padding:8px 14px;font-size:11px;color:var(--t4);border-top:.5px solid var(--b2);cursor:pointer" onclick="S.lockerPicker=false;render()">Close picker</div></div>`:s.lockerPicker&&!availInLocker.length?`<div style="padding:12px 14px;background:var(--bg);border-radius:var(--rs);font-size:12.5px;color:var(--t3);margin-top:6px">No available knives in The Roll. <span style="color:var(--blue);cursor:pointer" onclick="S.view='roll';render()">Add some first.</span></div>`:"";
   const gearPickerHtml=s.gearPicker&&availGearInLocker.length?`<div class="lk-picker" style="margin-top:6px">${availGearInLocker.map((item)=>{const ri=s.inventory.indexOf(item);const icn=NI_ICONS[item.itemCategory||"other"]||icon("package",14);const label=NI_LABELS[item.itemCategory||"other"]||"Other";const gissues=gearPickerIssues(item);const gok=gissues.length===0;const gissueText=gissues.join(" · ");return gok?`<div class="lk-pick-row" onclick="addGearFromRoll(${ri})"><div><div class="lk-pick-name">${icn} ${esc(label)}: ${esc(item.description||"")}</div><div class="lk-pick-meta">${esc(item.condition||"")}${item.price?" · $"+esc(item.price):""}</div></div><button class="btn btn-gn btn-xs" style="pointer-events:none">Add</button></div>`:`<div class="lk-pick-row" style="cursor:not-allowed;opacity:.75" title="${esc(gissueText)}"><div style="flex:1;min-width:0"><div class="lk-pick-name">${icn} ${esc(label)}: ${esc(item.description||"")}</div><div class="lk-pick-meta">${esc(item.condition||"")}</div><div style="font-size:10px;color:var(--redt);margin-top:3px;font-weight:500;display:flex;align-items:center;gap:3px">${icon('alert-triangle',10,'var(--redt)')} ${esc(gissueText)}</div></div><button class="btn btn-xs" style="pointer-events:none;flex-shrink:0;background:var(--orangebg);color:var(--oranget);border:.5px solid var(--oranget)">Fix first</button></div>`;}).join("")}<div style="padding:8px 14px;font-size:11px;color:var(--t4);border-top:.5px solid var(--b2);cursor:pointer" onclick="S.gearPicker=false;render()">Close picker</div></div>`:s.gearPicker&&!availGearInLocker.length?`<div style="padding:12px 14px;background:var(--bg);border-radius:var(--rs);font-size:12.5px;color:var(--t3);margin-top:6px">No available gear in The Roll. <span style="color:var(--blue);cursor:pointer" onclick="S.view='roll';render()">Add some first.</span></div>`:"";
   const gearItemsList=(d.items||[]).length?`<div style="margin-top:10px"><div class="krows-hdr">Gear &amp; Extras</div>${(d.items||[]).map((item,di)=>{const gicn=NI_ICONS[item.itemCategory||"other"]||icon("package",14);const label=NI_LABELS[item.itemCategory||"other"]||"Other";const priceStr=item.saleType!=="WTT"&&item.price?`SV: $${item.price}`:item.saleType!=="WTS"&&item.tradeValue?`TV: $${item.tradeValue}`:"$TBD";return`<div class="ki"><span class="ki-num" style="background:var(--surf);color:var(--t2);font-size:13px;width:28px;height:28px">${gicn}</span><div class="ki-info"><div class="ki-name">${esc(label)}: ${esc(item.description||"")}</div><div class="ki-meta">${esc(item.condition||"")} · ${esc(item.saleType||"WTS")}</div></div><span class="ki-price">${priceStr}</span><button class="btn btn-rd btn-xs" onclick="removeGearItem(${di})">Remove</button></div>`;}).join("")}</div>`:"";
-  const addBtns=!s.kfOpen?`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-sec" style="flex:1;justify-content:center;border-radius:var(--rs)" onclick="openKF(-1,'draft')">+ New Knife</button>${availInLocker.length?`<button class="btn btn-pu" style="border-radius:var(--rs)" onclick="S.lockerPicker=!S.lockerPicker;S.gearPicker=false;render()">From Roll: Knives${s.lockerPicker?" &#9650;":" &#9660;"}</button>`:""}${availGearInLocker.length?`<button class="btn btn-pu" style="border-radius:var(--rs)" onclick="S.gearPicker=!S.gearPicker;S.lockerPicker=false;render()">From Roll: Gear${s.gearPicker?" &#9650;":" &#9660;"}</button>`:""}</div>${lockerPickerHtml}${gearPickerHtml}${gearItemsList}`:"";
+  const addBtns=!s.kfOpen?`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-sec" style="flex:1;justify-content:center;border-radius:var(--rs)" onclick="openKF(-1,'draft')">+ New Knife</button>${availInLocker.length?`<button class="btn btn-pu" style="border-radius:var(--rs)" onclick="S.lockerPicker=!S.lockerPicker;S.gearPicker=false;render()">From Roll: Knives (${availInLocker.length})${s.lockerPicker?" &#9650;":" &#9660;"}</button>`:""}${availGearInLocker.length?`<button class="btn btn-pu" style="border-radius:var(--rs)" onclick="S.gearPicker=!S.gearPicker;S.lockerPicker=false;render()">From Roll: Gear (${availGearInLocker.length})${s.gearPicker?" &#9650;":" &#9660;"}</button>`:""}</div>${lockerPickerHtml}${gearPickerHtml}${gearItemsList}`:"";
   const kfHtml=s.kfOpen&&s.kfMode==="draft"?kfFormHtml():"";
   // Upload section
   const upFiles=s.uploadFiles;
@@ -6189,16 +6089,10 @@ function renderCompose(){
     </div></div>
     <div style="margin-bottom:12px">
       <label class="cblk"><input type="checkbox" ${d.repost?"checked":""} onchange="S.draft.repost=this.checked;render()"/> Price drop / repost</label>
-      ${(()=>{
-        const cooldownKnives=d.knives.map((k,i)=>({k,i})).filter(({k})=>!!k.prevPrice);
-        const showSection=d.repost||cooldownKnives.length>0;
-        if(!showSection)return"";
-        const isCooldownOnly=!d.repost&&cooldownKnives.length>0;
-        const knivesToShow=isCooldownOnly?cooldownKnives:d.knives.map((k,i)=>({k,i}));
-        return`<div class="pdc">
-        <div class="pdc-hdr">${isCooldownOnly?icon('alert-triangle',13,'var(--oranget)'):icon('trending-down',13)} ${isCooldownOnly?'Knife Cooldown':'Price Drop Calculator'}</div>
-        <div class="pdc-rule">${isCooldownOnly?`One or more knives were listed within the last 7 days. r/Knife_Swap requires a <strong>10% or $25 price drop</strong> to relist before 7 days are up.`:`Each knife must drop by <strong>10%</strong> or <strong>$25</strong> - your choice, whichever you prefer. Alternatively, you can repost at the <strong>same price after 7 days</strong> with no reduction required.`}</div>
-        ${knivesToShow.map(({k,i})=>{
+      ${d.repost?`<div class="pdc">
+        <div class="pdc-hdr">${icon('trending-down',13)} Price Drop Calculator</div>
+        <div class="pdc-rule">Each knife must drop by <strong>10%</strong> or <strong>$25</strong> - your choice, whichever you prefer. Alternatively, you can repost at the <strong>same price after 7 days</strong> with no reduction required.</div>
+        ${d.knives.map((k,i)=>{
           const prev=parseFloat(k.prevPrice||0);
           const curr=parseFloat(k.price||0);
           const drop10=prev>0?Math.floor(prev*0.9*100)/100:null;
@@ -6207,7 +6101,7 @@ function renderCompose(){
           const passes25=prev>0&&curr<=(prev-25)+0.001;
           const passes=passes10||passes25;
           const hasData=prev>0&&curr>0;
-          const statusHtml=!hasData?`<div class="pdc-status none">Enter previous price to check</div>`:passes?`<div class="pdc-status ok">✓ Meets requirement${passes10?" (−10%)":""}${passes25&&!passes10?" (−$25)":""}</div>`:`<div class="pdc-status fail">✗ Must drop to $${Math.min(drop10,drop25).toFixed(0)} or less - or relist at same price after 7 days</div>`;
+          const statusHtml=!hasData?`<div class="pdc-status none">Enter previous price to check</div>`:passes?`<div class="pdc-status ok">✓ Meets requirement${passes10?" (−10%)":""}${passes25&&!passes10?" (−$25)":""}</div>`:`<div class="pdc-status fail">✗ Must drop to $${Math.min(drop10,drop25).toFixed(0)} or less - or repost same price after 7 days</div>`;
           return`<div class="pdc-knife">
             <div class="pdc-name">${esc(k.brand)} ${esc(k.model)} - currently $${esc(k.price)}</div>
             <div class="pdc-inputs">
@@ -6215,11 +6109,10 @@ function renderCompose(){
               ${prev>0?`<button class="pdc-suggest" onclick="applyDropPrice(${i},'${drop10}')">Use $${drop10?.toFixed(0)} (−10%)</button><button class="pdc-suggest alt" onclick="applyDropPrice(${i},'${drop25}')">Use $${drop25?.toFixed(0)} (−$25)</button>`:""}
             </div>
             ${statusHtml}
-            ${hasData&&!passes?`<div class="pdc-same">Or: relist at $${curr.toFixed(0)} after waiting 7 days from your original listing date.</div>`:""}
+            ${hasData&&!passes?`<div class="pdc-same">Or: repost at $${curr.toFixed(0)} after waiting 7 days from your original listing date.</div>`:""}
           </div>`;
         }).join("")}
-      </div>`;
-      })()}
+      </div>`:""}
     </div>
     <div class="field" style="margin-bottom:12px"><label>Additional notes</label><input type="text" id="d-notes" value="${esc(d.notes)}" placeholder="Open to offers, prefer local pickup, etc."/></div>
     ${d.postType.includes("WTT")?`<div class="field" style="margin-bottom:12px"><label>Trade Interests <span style="font-weight:400;color:var(--t4);font-size:11px">(what are you looking for?)</span></label><input type="text" id="d-tradeInterests" value="${esc(d.tradeInterests||"")}" placeholder="Spyderco Para 3, Benchmade Bugout, CRK Sebenza..." oninput="syncDraft()"/><div class="field-hint">Will appear in the generated post under "Trade Interests:"</div></div>`:`<input type="hidden" id="d-tradeInterests" value="${esc(d.tradeInterests||"")}"/>`}
@@ -6476,7 +6369,7 @@ window.openKF=openKF;window.closeKF=closeKF;window.syncKF=syncKF;window.saveKF=s
 window.removeKnife=removeKnife;window.setPrevPrice=setPrevPrice;window.applyDropPrice=applyDropPrice;window.addFromLocker=addFromLocker;window.removeFromInventory=removeFromInventory;window.markInvSold=markInvSold;
 window.syncDraft=syncDraft;window.submitPost=submitPost;window.addTimestampUrl=addTimestampUrl;window.removeTimestampUrl=removeTimestampUrl;
 window.openBundlePicker=openBundlePicker;window.closeBundlePicker=closeBundlePicker;window.toggleBundleKnife=toggleBundleKnife;window.confirmBundleCreate=confirmBundleCreate;window.removeBundle=removeBundle;
-window.openNI=openNI;window.closeNI=closeNI;window.saveNI=saveNI;window.removeNI=removeNI;window.markNISold=markNISold;window.addGearFromRoll=addGearFromRoll;window.removeGearItem=removeGearItem;window.markNIPending=markNIPending;window.triggerNIUpload=triggerNIUpload;window.handleNIFileInput=handleNIFileInput;window.removeNIUpload=removeNIUpload;window.addNIPhotoUrl=addNIPhotoUrl;window.markGearSold=markGearSold;window.confirmGearSoldFlow=confirmGearSoldFlow;window.cancelGearSoldFlow=cancelGearSoldFlow;window.markGearPending=markGearPending;window.markGearWithdrawn=markGearWithdrawn;window.readdGear=readdGear;window.openGearEdit=openGearEdit;window.lookupZipGear=lookupZipGear;window.saveGearTracking=saveGearTracking;window.markGearShipped=markGearShipped;window.markGearDelivered=markGearDelivered;window.markGearConfirmed=markGearConfirmed;window.copyGearConfirmComment=copyGearConfirmComment;window.gearShipCard=gearShipCard;window.gearAddrDisplayHtml=gearAddrDisplayHtml;window.gearPickerIssues=gearPickerIssues;window.gearSoldFlowHtml=gearSoldFlowHtml;
+window.openNI=openNI;window.closeNI=closeNI;window.saveNI=saveNI;window.removeNI=removeNI;window.markNISold=markNISold;window.addGearFromRoll=addGearFromRoll;window.removeGearItem=removeGearItem;window.markNIPending=markNIPending;window.triggerNIUpload=triggerNIUpload;window.handleNIFileInput=handleNIFileInput;window.removeNIUpload=removeNIUpload;window.addNIPhotoUrl=addNIPhotoUrl;window.markGearSold=markGearSold;window.confirmGearSoldFlow=confirmGearSoldFlow;window.cancelGearSoldFlow=cancelGearSoldFlow;window.markGearPending=markGearPending;window.lookupZipGear=lookupZipGear;window.saveGearTracking=saveGearTracking;window.markGearShipped=markGearShipped;window.markGearDelivered=markGearDelivered;window.markGearConfirmed=markGearConfirmed;window.copyGearConfirmComment=copyGearConfirmComment;window.gearShipCard=gearShipCard;window.gearAddrDisplayHtml=gearAddrDisplayHtml;window.gearPickerIssues=gearPickerIssues;window.gearSoldFlowHtml=gearSoldFlowHtml;
 window.markSold=markSold;window.cycleTmpl=cycleTmpl;window.deletePost=deletePost;window.copyPost=copyPost;window.copyText=copyText;window.openRedditPost=openRedditPost;window.startPriceDropRepost=startPriceDropRepost;window.startSamePriceRepost=startSamePriceRepost;window.tutDone=tutDone;window.tutGo=tutGo;window.obNext=obNext;window.obSkip=obSkip;window.obDone=obDone;window.openPreflight=openPreflight;window.closePreflight=closePreflight;window.addTimestampToPreflight=addTimestampToPreflight;window.addTimestampInline=addTimestampInline;window.updateTimestampInline=updateTimestampInline;window.handleTsUpdateInput=handleTsUpdateInput;window.handleTsUpdateDrop=handleTsUpdateDrop;window.copyFromPreflight=copyFromPreflight;window.openRedditFromPreflight=openRedditFromPreflight;
 window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=executeMove;
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;window.imgFallback=imgFallback;
@@ -6717,15 +6610,12 @@ function checkPostRules(pid){
   const mixedLotsOk=(p.items||[]).length===0||totalActive===0||(activeKnives.length/totalActive)>=0.5;
   const noExtLinks=!BANNED_LINK_RE.test(txt);
   const missingSlots=activeKnives.filter(k=>{const ph=(k.photos||[]).filter(Boolean);const ext=ph.filter(u=>!u.includes("res.cloudinary.com"));const vid=ph.filter(u=>isCdnVideo(u));const img=ph.filter(u=>u.includes("res.cloudinary.com")&&!isCdnVideo(u));return!(!!(k.imgurLink)||ext.length>=1||vid.length>=1||img.length>=2);});
-  const missingGearPhotos=(p.items||[]).filter(it=>!it.sold&&!it.withdrawn&&!(it.photos||[]).filter(Boolean).length);
-  const activeGear=(p.items||[]).filter(it=>!it.sold&&!it.withdrawn);
-  const hasActiveItems=activeKnives.length>0||activeGear.length>0;
+  const missingGearPhotos=(p.items||[]).filter(it=>!it.sold&&!(it.photos||[]).filter(Boolean).length);
   const tsDateOk=!p.timestampAddedAt||new Date(p.timestampAddedAt).toDateString()===new Date().toDateString();
   const tsDateMsg=tsDateOk?"Timestamp date is current":`Timestamp is from ${new Date(p.timestampAddedAt).toLocaleDateString("en-US",{month:"long",day:"numeric"})} - a new one with today's date is required`;
   return[
-    {ok:hasActiveItems,msg:hasActiveItems?"Post has active items":"No active items remain — all knives and gear are sold or withdrawn"},
     {ok:(p.photos||[]).filter(Boolean).length>0,msg:"Timestamp photo link in post"},
-    ...(p.timestampAddedAt&&hasActiveItems?[{ok:tsDateOk,msg:tsDateMsg,tsUpdate:!tsDateOk}]:[]),
+    ...(p.timestampAddedAt?[{ok:tsDateOk,msg:tsDateMsg,tsUpdate:!tsDateOk}]:[]),
     {ok:missingSlots.length===0,msg:missingSlots.length===0?"All knives have photos":`Needs more photos: ${missingSlots.map(k=>k.brand+" "+k.model).join(", ")} (2 Cloudinary photos, 1 video, or 1 Imgur link)`},
     {ok:missingGearPhotos.length===0,msg:missingGearPhotos.length===0?"All gear items have a photo":`Missing photo: ${missingGearPhotos.map(it=>it.description||NI_LABELS[it.itemCategory||"other"]||"item").join(", ")}`},
     {ok:activeKnives.filter(k=>k.knifeType!=="WTT").every(k=>k.price&&k.price.length>0),msg:"All WTS knives have a price"},
