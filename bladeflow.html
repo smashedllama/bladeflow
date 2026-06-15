@@ -145,6 +145,7 @@ textarea{resize:vertical;line-height:1.55}
 .sdot-g{background:var(--greent)}.sdot-y{background:#FFD60A}.sdot-r{background:var(--redt)}.sdot-x{background:var(--t4)}
 .elsewhere-chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:#fff;background:var(--redt);border-radius:4px;padding:1px 6px;letter-spacing:.2px}
 .withdrawn-chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--t1);background:var(--bg);border:1px solid var(--b2);border-radius:4px;padding:1px 6px;letter-spacing:.2px}
+.reposted-chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--bluet);background:var(--bluebg);border:.5px solid rgba(0,122,255,.2);border-radius:4px;padding:1px 6px;letter-spacing:.2px}
 
 /* LAYOUT */
 .main{padding:18px 18px 50px;max-width:700px;margin:0 auto}
@@ -1986,8 +1987,8 @@ function buildItemsSection(post,v=0){
       const priceStr=[price,tv].filter(Boolean).join(" | ")||"$TBD";
       const gurl=gearItemGalleryUrl(x);
       const desc=x.description||(NI_LABELS[cat]||"Item");
-      const soldLabel=x.sold?(x.soldPrice?`[SOLD @ $${x.soldPrice}]`:"[SOLD]"):x.withdrawn?"[WITHDRAWN]":x.pending?"[PENDING]":"";
-      const isGone=x.sold||x.withdrawn;
+      const soldLabel=x.reposted?"[REPOSTED]":x.sold?(x.soldPrice?`[SOLD @ $${x.soldPrice}]`:"[SOLD]"):x.withdrawn?"[WITHDRAWN]":x.pending?"[PENDING]":"";
+      const isGone=x.sold||x.withdrawn||x.reposted;
 
       if(v===0){
         // Detailed — bold header + bullet lines, matches knife v=0 style
@@ -2393,7 +2394,7 @@ function buildPost(post,v){
   const rp=post.repost?" *(Price Drop / Repost)*":"";
   const type=post.postType||"[WTS]";
   const un=SETTINGS.username||"";
-  const title=post.knives.map(k=>k.brand+" "+k.model+(k.soldElsewhere?(k.soldPrice?` ~~[SOLD ELSEWHERE @ $${k.soldPrice}]~~`:" ~~[SOLD ELSEWHERE]~~"):k.withdrawn?" ~~[WITHDRAWN]~~":k.sold?(k.soldPrice?` ~~[SOLD @ $${k.soldPrice}]~~`:" ~~[SOLD]~~"):k.pending?" [PENDING]":"")).join(" | ");
+  const title=post.knives.map(k=>k.brand+" "+k.model+(k.reposted?" ~~[REPOSTED]~~":k.soldElsewhere?(k.soldPrice?` ~~[SOLD ELSEWHERE @ $${k.soldPrice}]~~`:" ~~[SOLD ELSEWHERE]~~"):k.withdrawn?" ~~[WITHDRAWN]~~":k.sold?(k.soldPrice?` ~~[SOLD @ $${k.soldPrice}]~~`:" ~~[SOLD]~~"):k.pending?" [PENDING]":"")).join(" | ");
   const bundle=post.bundleEnabled&&post.bundlePrice;
   const ph=SETTINGS.postHeader?(SETTINGS.postHeader.trim()):"";
   const ti=post.tradeInterests||(SETTINGS.tradeInterests||"");
@@ -2416,10 +2417,10 @@ function buildPost(post,v){
       const pl=knifePrice(k)+inlineAddon;
       const kphotos=(k.photos||[]).filter(Boolean);
       const nameLinked=(kphotos.length||k.imgurLink)?`[${k.brand} ${k.model}](${buildPostGalleryUrl(post,i)||galleryUrl(k)||kphotos[0]})`:(`${k.brand} ${k.model}`);
-      const statusLabel=k.soldElsewhere?"[SOLD ELSEWHERE]":k.withdrawn?"[WITHDRAWN]":k.sold?"[SOLD]":k.pending?"[PENDING]":"";
-      const soldLabel=k.soldElsewhere?(k.soldPrice?`[SOLD ELSEWHERE @ $${k.soldPrice}]`:"[SOLD ELSEWHERE]"):k.withdrawn?"[WITHDRAWN]":k.sold?(k.soldPrice?`[SOLD @ $${k.soldPrice}]`:"[SOLD]"):"";
+      const statusLabel=k.reposted?"[REPOSTED]":k.soldElsewhere?"[SOLD ELSEWHERE]":k.withdrawn?"[WITHDRAWN]":k.sold?"[SOLD]":k.pending?"[PENDING]":"";
+      const soldLabel=k.reposted?"[REPOSTED]":k.soldElsewhere?(k.soldPrice?`[SOLD ELSEWHERE @ $${k.soldPrice}]`:"[SOLD ELSEWHERE]"):k.withdrawn?"[WITHDRAWN]":k.sold?(k.soldPrice?`[SOLD @ $${k.soldPrice}]`:"[SOLD]"):"";
       const num=i+1;
-      const hdr=(k.sold||k.soldElsewhere||k.withdrawn)
+      const hdr=(k.sold||k.soldElsewhere||k.withdrawn||k.reposted)
         ?`~~**${num}. ${nameLinked}**~~ **${soldLabel}** | ~~${pl}~~`
         :`**${num}. ${nameLinked}${statusLabel?" "+statusLabel:""}** | **${pl}**`;
       const sc=k.shippingClass||"Priority";
@@ -2459,7 +2460,7 @@ function buildPost(post,v){
       const ac=k.accessories.filter(x=>x!=="None").map(x=>x==="Other"&&k.accessoriesOther?k.accessoriesOther:x).join(", ")||"None";
       const kphotos=(k.photos||[]).filter(Boolean);
       const nameLinked=(kphotos.length||k.imgurLink)?`[${k.brand} ${k.model}](${buildPostGalleryUrl(post,i)||galleryUrl(k)||kphotos[0]})`:(`${k.brand} ${k.model}`);
-      const statusLabel=k.soldElsewhere?(k.soldPrice?` [SOLD ELSEWHERE @ $${k.soldPrice}]`:" [SOLD ELSEWHERE]"):k.withdrawn?" [WITHDRAWN]":k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":"";
+      const statusLabel=k.reposted?" [REPOSTED]":k.soldElsewhere?(k.soldPrice?` [SOLD ELSEWHERE @ $${k.soldPrice}]`:" [SOLD ELSEWHERE]"):k.withdrawn?" [WITHDRAWN]":k.sold?(k.soldPrice?` [SOLD @ $${k.soldPrice}]`:" [SOLD]"):k.pending?" [PENDING]":"";
       const inlineAddon=k.addonEnabled&&!post.groupAddons&&k.addonPrice?` | Add-on: $${k.addonPrice}`:"";
       let block=`**${i+1}. ${nameLinked}**${statusLabel} | ${knifePrice(k)}${inlineAddon}`;
       block+=`\n${k.steel||"N/A"} | ${k.bladeCondition} | ${k.owners} owner | Centering: ${k.centering}`;
@@ -2500,7 +2501,7 @@ function buildPost(post,v){
       const i=post.knives.indexOf(k);
       const kphotos3=(k.photos||[]).filter(Boolean);
       const gurl3=(kphotos3.length||k.imgurLink)?(buildPostGalleryUrl(post,i)||galleryUrl(k)||kphotos3[0]):null;
-      const soldTag3=k.soldElsewhere?(k.soldPrice?` \\[SOLD ELSEWHERE @ $${k.soldPrice}\\]`:" \\[SOLD ELSEWHERE\\]"):k.withdrawn?" \\[WITHDRAWN\\]":k.sold?(k.soldPrice?` \\[SOLD @ $${k.soldPrice}\\]`:" \\[SOLD\\]"):k.pending?" \\[PENDING\\]":"";
+      const soldTag3=k.reposted?" \\[REPOSTED\\]":k.soldElsewhere?(k.soldPrice?` \\[SOLD ELSEWHERE @ $${k.soldPrice}\\]`:" \\[SOLD ELSEWHERE\\]"):k.withdrawn?" \\[WITHDRAWN\\]":k.sold?(k.soldPrice?` \\[SOLD @ $${k.soldPrice}\\]`:" \\[SOLD\\]"):k.pending?" \\[PENDING\\]":"";
       const nameCell=gurl3
         ?`[${k.brand} ${k.model}](${gurl3})${soldTag3}`
         :`${k.brand} ${k.model}${soldTag3}`;
@@ -3061,6 +3062,8 @@ function submitPost(){
   post.postText=buildPost(post,0);
   // Update inventory status for any linked knives
   post.knives.forEach(k=>{if(k.inventoryId){const inv=S.inventory.find(x=>x.id===k.inventoryId);if(inv){inv.status="listed";if(!inv.listedAt)inv.listedAt=post.createdAt;}}});
+  // If this is a repost, move all active knives/gear off the original post
+  if(d.repostOf){const orig=S.posts.find(x=>x.id===d.repostOf);if(orig){orig.knives.forEach(k=>{if(!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted)k.reposted=true;});(orig.items||[]).forEach(it=>{if(!it.sold&&!it.withdrawn&&!it.reposted)it.reposted=true;});orig.postText=buildPost(orig);}}
   S.posts=[post,...S.posts];
   S.view="list";S.expanded=post.id;S.draft=ED();S.uploadFiles=[];saveNow();saveInvNow();render();
 }
@@ -3357,21 +3360,23 @@ function daysAgo(dateStr){return Math.floor((Date.now()-new Date(dateStr))/(1000
 function startPriceDropRepost(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
   const d=ED();
-  d.repost=true;d.postType=p.postType;
+  d.repost=true;d.repostOf=pid;d.postType=p.postType;
   d.payment=[...(p.payment||SETTINGS.payment)];d.paymentOther=p.paymentOther||"";
   d.noShip=[...(p.noShip||SETTINGS.noShip)];d.noShipOther=p.noShipOther||"";
   d.notes=p.notes||"";
-  d.knives=p.knives.filter(k=>!k.sold).map(k=>({...JSON.parse(JSON.stringify(k)),prevPrice:k.price}));
+  d.knives=p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted).map(k=>({...JSON.parse(JSON.stringify(k)),prevPrice:k.price,withdrawn:false,pending:false}));
+  d.items=(p.items||[]).filter(it=>!it.sold&&!it.withdrawn&&!it.reposted).map(it=>({...JSON.parse(JSON.stringify(it)),pending:false}));
   S.draft=d;S.view="compose";S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kf=EK();S.kfMode="draft";S.adv=false;S.err="";S.lockerPicker=false;S.gearPicker=false;S.uploadFiles=[];render();
 }
 function startSamePriceRepost(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
   const d=ED();
-  d.repost=true;d.postType=p.postType;
+  d.repost=true;d.repostOf=pid;d.postType=p.postType;
   d.payment=[...(p.payment||SETTINGS.payment)];d.paymentOther=p.paymentOther||"";
   d.noShip=[...(p.noShip||SETTINGS.noShip)];d.noShipOther=p.noShipOther||"";
   d.notes=p.notes||"";
-  d.knives=p.knives.filter(k=>!k.sold).map(k=>JSON.parse(JSON.stringify(k)));
+  d.knives=p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted).map(k=>({...JSON.parse(JSON.stringify(k)),withdrawn:false,pending:false}));
+  d.items=(p.items||[]).filter(it=>!it.sold&&!it.withdrawn&&!it.reposted).map(it=>({...JSON.parse(JSON.stringify(it)),pending:false}));
   S.draft=d;S.view="compose";S.kfOpen=false;S.kfIdx=-1;S.kfPostId=null;S.kf=EK();S.kfMode="draft";S.adv=false;S.err="";S.lockerPicker=false;S.gearPicker=false;S.uploadFiles=[];render();
 }
 async function openRedditPost(pid){
@@ -4924,13 +4929,14 @@ function renderList(){
   const moving=s.movingKnife;
   const allCards=s.posts.map(p=>{
     const open=s.expanded===p.id;
-    const pA=p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn).length;
+    const pA=p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted).length;
     const pS=p.knives.filter(k=>k.sold||k.soldElsewhere).length;
     const pW=p.knives.filter(k=>k.withdrawn).length;
-    const allSold=pA===0&&pS>0;
+    const pR=p.knives.filter(k=>k.reposted).length;
+    const allSold=pA===0&&(pS>0||pR>0);
     const names=p.knives.map(k=>k.brand+" "+k.model).join(", ");
     const bt=p.postType.includes("WTT")?"wtt":"wts";
-    const stat=allSold?"All sold":`${pA} active${pS>0?", "+pS+" sold":""}${pW>0?", "+pW+" withdrawn":""}`;
+    const stat=allSold&&pR>0&&pS===0?"Reposted":allSold?"All sold":`${pA} active${pS>0?", "+pS+" sold":""}${pW>0?", "+pW+" withdrawn":""}${pR>0?", "+pR+" reposted":""}`;
     let body="";
     if(open){
       const hasPhotos=(p.photos?.length||0)>0;
@@ -4982,10 +4988,10 @@ function renderList(){
 </div>
 <div style="font-size:11px;color:var(--greent);opacity:.8;margin-top:8px;line-height:1.5">Add their username to generate a confirmation comment for the <a href="https://www.reddit.com/r/Knife_Swap/search/?q=Confirmed+Trade+Thread&restrict_sr=1&sort=new&type=link" target="_blank" rel="noopener" style="color:inherit;font-weight:700;text-decoration:underline">Confirmed Trade Thread</a></div>
 </div>`):"";
-        const kDot=k.soldElsewhere?`<span class="sdot sdot-r"></span>`:k.withdrawn?`<span class="sdot sdot-x"></span>`:k.sold?`<span class="sdot sdot-r"></span>`:k.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
-        const kRowClass=`krow${(k.sold||k.soldElsewhere)?" sold":k.withdrawn?" withdrawn-row":k.pending?" pending-row":""}${isMoving?" moving":""}`;
+        const kDot=k.reposted?`<span class="sdot sdot-x"></span>`:k.soldElsewhere?`<span class="sdot sdot-r"></span>`:k.withdrawn?`<span class="sdot sdot-x"></span>`:k.sold?`<span class="sdot sdot-r"></span>`:k.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
+        const kRowClass=`krow${(k.sold||k.soldElsewhere)?" sold":k.reposted?" withdrawn-row":k.withdrawn?" withdrawn-row":k.pending?" pending-row":""}${isMoving?" moving":""}`;
         const addrHtml="";
-        return`<div class="${kRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold&&!k.soldElsewhere&&!k.withdrawn?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">${icon('camera',11)} ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${(k.sold||k.soldElsewhere)&&k.soldAt?" · "+(k.soldElsewhere?"Elsewhere":"Sold")+" "+fmtD(k.soldAt):""}${k.withdrawn?" · Withdrawn":""}${soldToMeta}</div></div><span class="krow-price${(k.sold||k.soldElsewhere||k.withdrawn)?" s":""}">${knifePrice(k)}</span></div><div class="krow-acts">${k.soldElsewhere?`<span class="elsewhere-chip">Sold Elsewhere</span>${!(k.confirmedAt&&k.deliveredAt)?`<button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:``}`:k.withdrawn?`<span class="withdrawn-chip">Withdrawn</span><button class="btn btn-sm btn-sec" onclick="readdKnife('${p.id}',${i})">Re-add</button>`:k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm${addrReqCopied?" btn-gn":" btn-sec"}" onclick="copyAddressRequest('${p.id}',${i})" title="Copy payment message">${addrReqCopied?"Copied!":"Payment Message"}</button>${!k.trackingNumber&&!isTrackingFlow?`<button class="btn btn-sec btn-sm" onclick="startTracking('${p.id}',${i})">${icon('package',12)} Add Tracking</button>`:``}${!(k.confirmedAt&&k.deliveredAt)?`<button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:``}`:`<button class="btn btn-sm${dibsCopied?" btn-gn":" btn-pu"}" onclick="copyDibsMessage('${p.id}',${i})" title="Copy payment confirmation message">${dibsCopied?"Copied!":`${icon('mail',13)} Payment Info`}</button><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})"><span class="sdot sdot-g"></span>→<span class="sdot sdot-r"></span> Sold</button><details class="krow-more"><summary class="btn btn-sm btn-sec">···</summary><div class="krow-more-menu"><button class="btn btn-sm btn-rd" onclick="markSoldElsewhere('${p.id}',${i})">Sold Elsewhere</button><button class="btn btn-sm btn-sec" onclick="markWithdrawn('${p.id}',${i})">Withdraw</button><button class="btn btn-sm btn-sec" onclick="openKF(${i},'post','${p.id}')">Edit</button></div></details>`}${!k.sold&&!k.soldElsewhere&&!k.withdrawn&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${addrHtml}${trkHtml}${sfHtml}${picker}</div>`;
+        return`<div class="${kRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${(k.sold||k.soldElsewhere||k.withdrawn||k.reposted)?" s":""}">${kDot} ${esc(k.brand)} ${esc(k.model)}${k.pending&&!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted?` <span class="pending-tag">PENDING</span>`:""}${kPhotoCount?` <span class="photo-tag">${icon('camera',11)} ${kPhotoCount}</span>`:""}</div><div class="krow-meta">${esc(k.steel||"N/A")} · ${esc(k.bladeCondition)}${(k.sold||k.soldElsewhere)&&k.soldAt?" · "+(k.soldElsewhere?"Elsewhere":"Sold")+" "+fmtD(k.soldAt):""}${k.withdrawn?" · Withdrawn":""}${k.reposted?" · Moved to new listing":""}${soldToMeta}</div></div><span class="krow-price${(k.sold||k.soldElsewhere||k.withdrawn||k.reposted)?" s":""}">${knifePrice(k)}</span></div><div class="krow-acts">${k.reposted?`<span class="reposted-chip">↻ Moved to new listing</span>`:k.soldElsewhere?`<span class="elsewhere-chip">Sold Elsewhere</span>${!(k.confirmedAt&&k.deliveredAt)?`<button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:``}`:k.withdrawn?`<span class="withdrawn-chip">Withdrawn</span><button class="btn btn-sm btn-sec" onclick="readdKnife('${p.id}',${i})">Re-add</button>`:k.sold?`<span class="sold-chip">Sold</span><button class="btn btn-sm${ccCopied?" btn-gn":" btn-pu"}" onclick="copyConfirmComment('${p.id}',${i})">${ccCopied?"Copied!":"Confirm Comment"}</button><button class="btn btn-sm${addrReqCopied?" btn-gn":" btn-sec"}" onclick="copyAddressRequest('${p.id}',${i})" title="Copy payment message">${addrReqCopied?"Copied!":"Payment Message"}</button>${!k.trackingNumber&&!isTrackingFlow?`<button class="btn btn-sec btn-sm" onclick="startTracking('${p.id}',${i})">${icon('package',12)} Add Tracking</button>`:``}${!(k.confirmedAt&&k.deliveredAt)?`<button class="btn btn-sm btn-sec" onclick="markSold('${p.id}',${i})">Relist</button>`:``}`:`<button class="btn btn-sm${dibsCopied?" btn-gn":" btn-pu"}" onclick="copyDibsMessage('${p.id}',${i})" title="Copy payment confirmation message">${dibsCopied?"Copied!":`${icon('mail',13)} Payment Info`}</button><button class="btn btn-sm${k.pending?" btn-am":" btn-sec"}" onclick="markPending('${p.id}',${i})">${k.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markSold('${p.id}',${i})"><span class="sdot sdot-g"></span>→<span class="sdot sdot-r"></span> Sold</button><details class="krow-more"><summary class="btn btn-sm btn-sec">···</summary><div class="krow-more-menu"><button class="btn btn-sm btn-rd" onclick="markSoldElsewhere('${p.id}',${i})">Sold Elsewhere</button><button class="btn btn-sm btn-sec" onclick="markWithdrawn('${p.id}',${i})">Withdraw</button><button class="btn btn-sm btn-sec" onclick="openKF(${i},'post','${p.id}')">Edit</button></div></details>`}${!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted&&s.posts.length>1?`<button class="btn btn-sm btn-pu" onclick="startMove('${p.id}',${i})">Transfer</button>`:""}</div>${addrHtml}${trkHtml}${sfHtml}${picker}</div>`;
       }).join("");
       const da2=daysAgo(p.createdAt);
       const repostSection=pA>0?`<div class="repost-track">
@@ -5017,10 +5023,10 @@ function renderList(){
           const isGSF=s.gearSoldFlow&&s.gearSoldFlow.pid===p.id&&s.gearSoldFlow.gi===gi;
           const gsfHtml=isGSF?gearSoldFlowHtml(p.id,gi):"";
           const gAddrHtml="";
-          const gDot=item.sold?`<span class="sdot sdot-r"></span>`:item.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
-          const gRowClass=`krow${item.sold?" sold":item.pending?" pending-row":""}`;
-          const gActsHtml=item.sold?(!(item.confirmedAt&&item.deliveredAt)?`<span class="sold-chip">Sold</span><button class="btn btn-sm btn-sec" onclick="markGearSold('${p.id}',${gi})">Relist</button>`:`<span class="sold-chip">Sold</span>`):(`<button class="btn btn-sm${item.pending?" btn-am":" btn-sec"}" onclick="markGearPending('${p.id}',${gi})">${item.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markGearSold('${p.id}',${gi})"><span class="sdot sdot-r"></span> Sold</button>`);
-          return`<div class="${gRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${item.sold?" s":""}">${gDot} ${gicn} ${esc(glabel)}: ${esc(item.description||"")}${item.pending&&!item.sold?` <span class="pending-tag">PENDING</span>`:""}</div><div class="krow-meta">${esc(item.condition||"")} · ${gpriceStr}${item.sold&&item.soldAt?" · Sold "+fmtD(item.soldAt):""}${item.soldTo?" · Buyer: u/"+esc(item.soldTo):""}</div></div><span class="krow-price${item.sold?" s":""}">${gpriceStr}</span></div><div class="krow-acts">${gActsHtml}</div>${gAddrHtml}${gsfHtml}</div>`;
+          const gDot=item.reposted?`<span class="sdot sdot-x"></span>`:item.sold?`<span class="sdot sdot-r"></span>`:item.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
+          const gRowClass=`krow${item.sold?" sold":item.reposted?" withdrawn-row":item.pending?" pending-row":""}`;
+          const gActsHtml=item.reposted?`<span class="reposted-chip">↻ Moved to new listing</span>`:item.sold?(!(item.confirmedAt&&item.deliveredAt)?`<span class="sold-chip">Sold</span><button class="btn btn-sm btn-sec" onclick="markGearSold('${p.id}',${gi})">Relist</button>`:`<span class="sold-chip">Sold</span>`):(`<button class="btn btn-sm${item.pending?" btn-am":" btn-sec"}" onclick="markGearPending('${p.id}',${gi})">${item.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markGearSold('${p.id}',${gi})"><span class="sdot sdot-r"></span> Sold</button>`);
+          return`<div class="${gRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${(item.sold||item.reposted)?" s":""}">${gDot} ${gicn} ${esc(glabel)}: ${esc(item.description||"")}${item.pending&&!item.sold&&!item.reposted?` <span class="pending-tag">PENDING</span>`:""}</div><div class="krow-meta">${esc(item.condition||"")} · ${gpriceStr}${item.sold&&item.soldAt?" · Sold "+fmtD(item.soldAt):""}${item.soldTo?" · Buyer: u/"+esc(item.soldTo):""}${item.reposted?" · Moved to new listing":""}</div></div><span class="krow-price${(item.sold||item.reposted)?" s":""}">${gpriceStr}</span></div><div class="krow-acts">${gActsHtml}</div>${gAddrHtml}${gsfHtml}</div>`;
         }).join("");
         return`<div class="krows-hdr" style="margin-top:10px">Gear &amp; Extras</div>${gearItemRows}`;
       })():"";
@@ -6610,13 +6616,14 @@ const BANNED_LINK_RE=/\b(ebay\.com|etsy\.com|amazon\.com|facebook\.com\/marketpl
 function checkPostRules(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return[];
   const txt=p.postText||"";
-  const activeKnives=p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn);
+  const activeKnives=p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted);
+  const activeGear=(p.items||[]).filter(it=>!it.sold&&!it.withdrawn&&!it.reposted);
   const charLen=txt.length;
-  const totalActive=activeKnives.length+(p.items||[]).length;
-  const mixedLotsOk=(p.items||[]).length===0||totalActive===0||(activeKnives.length/totalActive)>=0.5;
+  const totalActive=activeKnives.length+activeGear.length;
+  const mixedLotsOk=activeGear.length===0||totalActive===0||(activeKnives.length/totalActive)>=0.5;
   const noExtLinks=!BANNED_LINK_RE.test(txt);
   const missingSlots=activeKnives.filter(k=>{const ph=(k.photos||[]).filter(Boolean);const ext=ph.filter(u=>!u.includes("res.cloudinary.com"));const vid=ph.filter(u=>isCdnVideo(u));const img=ph.filter(u=>u.includes("res.cloudinary.com")&&!isCdnVideo(u));return!(!!(k.imgurLink)||ext.length>=1||vid.length>=1||img.length>=2);});
-  const missingGearPhotos=(p.items||[]).filter(it=>!it.sold&&!(it.photos||[]).filter(Boolean).length);
+  const missingGearPhotos=activeGear.filter(it=>!(it.photos||[]).filter(Boolean).length);
   const tsDateOk=!p.timestampAddedAt||new Date(p.timestampAddedAt).toDateString()===new Date().toDateString();
   const tsDateMsg=tsDateOk?"Timestamp date is current":`Timestamp is from ${new Date(p.timestampAddedAt).toLocaleDateString("en-US",{month:"long",day:"numeric"})} - a new one with today's date is required`;
   return[
