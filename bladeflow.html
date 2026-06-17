@@ -6196,14 +6196,14 @@ function renderCompose(){
     <label class="cblk"><input type="checkbox" ${d.rulesConfirmed?"checked":""} onchange="S.draft.rulesConfirmed=this.checked;render()"/> I have read all r/Knife_Swap rules</label>
     ${(()=>{const cl=composeChecklist(d);return cl.html+(s.err&&d.knives.length>0?`<div class="err">${esc(s.err)}</div>`:"")+`<div class="gen-row"><button class="btn-gen"${cl.canPost?"":" disabled"} onclick="syncDraft();submitPost()">Generate Post</button><button class="btn btn-sec" onclick="cancelCompose()">Cancel</button></div>`;})()}
   </div>`:"";
-  const hdr=`<div class="hdr"><div class="hdr-logo" onclick="cancelCompose()"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">New Listing</div><div class="hdr-sub">${d.knives.length===0?"Add knives below":d.knives.length===1?"1 knife":d.knives.length+" knives"}</div></div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="cancelCompose()">Cancel</button></div></div>`;
+  const hdr=`<div class="hdr"><div class="hdr-logo" onclick="cancelCompose()"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">New Listing</div><div class="hdr-sub">${d.knives.length===0?"Add knives below":d.knives.length===1?"1 knife":d.knives.length+" knives"}</div></div></div><div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="cancelCompose()">Cancel</button></div></div>`;
   return`<div class="app">${hdr}<div class="cmp-main"><div class="sec-lbl">Knives</div>${knivesList}${addBtns}${kfHtml}${detHtml}</div></div>`;
 }
 
 // ─── RENDER: SETTINGS ────────────────────────────────────────
 function renderSettings(){
   const sv=SETTINGS;
-  const hdr=`<div class="hdr"><div class="hdr-logo" onclick="S.view='list';render()"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">Settings</div><div class="hdr-sub">Defaults &amp; preferences</div></div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="S.view='list';render()">Done</button></div></div>`;
+  const hdr=`<div class="hdr"><div class="hdr-logo" onclick="S.view='list';render()"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">Settings</div><div class="hdr-sub">Defaults &amp; preferences</div></div></div><div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="S.view='list';render()">Done</button></div></div>`;
   return`<div class="app">${hdr}<div class="settings-main">
   <div class="save-notice${S.saveNotice?' on':''}">Settings saved</div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0 18px">
