@@ -1295,8 +1295,8 @@ function reconcileInventory(){
   S.inventory.forEach(inv=>{
     if(inv.status==="listed"){
       const claimedByActivePost=S.posts.some(p=>
-        p.knives.some(k=>k.inventoryId===inv.id&&!k.sold)||
-        (p.items||[]).some(it=>it.inventoryId===inv.id&&!it.sold)
+        p.knives.some(k=>k.inventoryId===inv.id&&!k.sold&&!k.reposted)||
+        (p.items||[]).some(it=>it.inventoryId===inv.id&&!it.sold&&!it.reposted)
       );
       if(!claimedByActivePost){inv.status="available";changed=true;}
     }
@@ -2750,7 +2750,7 @@ function cancelCompose(){
     if(k.inventoryId){
       const inv=S.inventory.find(x=>x.id===k.inventoryId);
       if(inv){
-        const inActive=S.posts.some(p=>p.knives.some(pk=>pk.inventoryId===k.inventoryId&&!pk.sold));
+        const inActive=S.posts.some(p=>p.knives.some(pk=>pk.inventoryId===k.inventoryId&&!pk.sold&&!pk.reposted));
         if(!inActive)inv.status="available";
       }
     }
@@ -2834,7 +2834,7 @@ function removeKnife(i){
   if(k&&k.inventoryId){
     const inv=S.inventory.find(x=>x.id===k.inventoryId);
     if(inv){
-      const inActive=S.posts.some(p=>p.knives.some(pk=>pk.inventoryId===k.inventoryId&&!pk.sold));
+      const inActive=S.posts.some(p=>p.knives.some(pk=>pk.inventoryId===k.inventoryId&&!pk.sold&&!pk.reposted));
       if(!inActive)inv.status="available";
     }
   }
@@ -3347,7 +3347,7 @@ function deletePost(pid){
       if(k.inventoryId){
         const inv=S.inventory.find(x=>x.id===k.inventoryId);
         if(inv){
-          const inOther=S.posts.filter(op=>op.id!==pid).some(op=>op.knives.some(pk=>pk.inventoryId===k.inventoryId&&!pk.sold));
+          const inOther=S.posts.filter(op=>op.id!==pid).some(op=>op.knives.some(pk=>pk.inventoryId===k.inventoryId&&!pk.sold&&!pk.reposted));
           if(!inOther)inv.status=k.sold?"sold":"available";
         }
       }
@@ -4919,9 +4919,9 @@ function kfFormHtml(){
 // ─── RENDER: LIST ─────────────────────────────────────────────
 function renderList(){
   const s=S;
-  const ak=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn).length,0);
+  const ak=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted).length,0);
   const sk=s.posts.reduce((n,p)=>n+p.knives.filter(k=>k.sold||k.soldElsewhere).length,0);
-  const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn).reduce((a,k)=>a+parseFloat(k.price||0),0),0);
+  const val=s.posts.reduce((n,p)=>n+p.knives.filter(k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted).reduce((a,k)=>a+parseFloat(k.price||0),0),0);
   const hdr=mainHdr();
   if(!s.posts.length)return hdr+`<div class="main"><div class="empty"><div class="empty-ico">${icon('clipboard',40,'var(--t4)')}</div><div class="empty-h">No listings yet</div><div class="empty-p">Create your first r/Knife_Swap post. Add a single knife or bundle several into one listing.</div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn btn-pri" onclick="startCompose()">+ Create First Listing</button><button class="btn btn-sec" onclick="startTour()">${icon('film',13)} Take the Tour</button></div></div></div>`;
   const lf=s.listFilter||"all";
