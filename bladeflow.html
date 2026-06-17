@@ -1666,12 +1666,10 @@ async function doFetchPriceResearch(forceRefresh){
       return (await res.json()).data?.children||[];
     };
     try{
-      // Try direct first; if it fails (CORS block or rate-limit from shared hosting IPs),
-      // retry automatically through a CORS proxy before giving up.
       try{return await tryUrl(url);}
       catch(e1){
-        const proxy="https://corsproxy.io/?url="+encodeURIComponent(url);
-        return await tryUrl(proxy);
+        try{return await tryUrl("https://corsproxy.io/?url="+encodeURIComponent(url));}
+        catch(e2){return await tryUrl("https://api.allorigins.win/raw?url="+encodeURIComponent(url));}
       }
     }finally{clearTimeout(tid);}
   };
