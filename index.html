@@ -1659,17 +1659,29 @@ async function doFetchPriceResearch(forceRefresh){
   const fetchQ=async(searchQ,limit)=>{
     const ctrl=new AbortController();
     const tid=setTimeout(()=>ctrl.abort(),14000);
-    const url="https://www.reddit.com/r/Knife_Swap/search.json?q="+encodeURIComponent(searchQ)+"&sort=new&restrict_sr=on&limit="+limit+"&t=all";
-    const tryUrl=async(u)=>{
+    // PullPush: purpose-built Reddit archive API with proper CORS — no proxy needed
+    const ppUrl="https://api.pullpush.io/reddit/search/submission/?q="+encodeURIComponent(searchQ)+"&subreddit=Knife_Swap&size="+limit+"&sort=desc";
+    // Reddit direct + proxies as fallback (Reddit blocks cross-origin; proxies are a last resort)
+    const redditUrl="https://www.reddit.com/r/Knife_Swap/search.json?q="+encodeURIComponent(searchQ)+"&sort=new&restrict_sr=on&limit="+limit+"&t=all";
+    const tryPP=async()=>{
+      const res=await fetch(ppUrl,{signal:ctrl.signal});
+      if(!res.ok)throw new Error("HTTP "+res.status);
+      // Normalize to Reddit's children format so parsePost works unchanged
+      return((await res.json()).data||[]).map(d=>({data:d}));
+    };
+    const tryReddit=async(u)=>{
       const res=await fetch(u,{signal:ctrl.signal});
       if(!res.ok)throw new Error("HTTP "+res.status);
-      return (await res.json()).data?.children||[];
+      return(await res.json()).data?.children||[];
     };
     try{
-      try{return await tryUrl(url);}
-      catch(e1){
-        try{return await tryUrl("https://corsproxy.io/?url="+encodeURIComponent(url));}
-        catch(e2){return await tryUrl("https://api.allorigins.win/raw?url="+encodeURIComponent(url));}
+      try{return await tryPP();}
+      catch(e0){
+        try{return await tryReddit(redditUrl);}
+        catch(e1){
+          try{return await tryReddit("https://corsproxy.io/?url="+encodeURIComponent(redditUrl));}
+          catch(e2){return await tryReddit("https://api.allorigins.win/raw?url="+encodeURIComponent(redditUrl));}
+        }
       }
     }finally{clearTimeout(tid);}
   };
