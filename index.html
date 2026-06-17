@@ -1783,7 +1783,8 @@ async function doFetchPriceResearch(forceRefresh){
     // Cache successful results for 2 hours
     if(posts.length)try{localStorage.setItem(cacheKey,JSON.stringify({ts:Date.now(),data:S.priceResearch}));}catch(e){}
   }catch(e){
-    S.priceResearch={status:"fallback",results:[],query:qBase,fallbackUrl:"https://www.reddit.com/r/Knife_Swap/search/?q="+encodeURIComponent(qSearch)+"&sort=new&restrict_sr=1"};
+    console.error("[BladeFlow price research]",e);
+    S.priceResearch={status:"fallback",results:[],query:qBase,fallbackUrl:"https://www.reddit.com/r/Knife_Swap/search/?q="+encodeURIComponent(qSearch)+"&sort=new&restrict_sr=1",debugErr:e?.message||String(e)};
   }
   render();
 }
@@ -4752,7 +4753,7 @@ function kfFormHtml(){
     const filterToggle=`<button onclick="S.priceFilter=S.priceFilter==='sold'?'all':'sold';render()" style="font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:20px;border:.5px solid var(--b2);background:${showAll?"var(--bluebg)":"var(--bg)"};color:${showAll?"var(--bluet)":"var(--t3)"};cursor:pointer;white-space:nowrap">${showAll?"All listings":"Sold only"}</button>`;
     prPanel=`<div class="pr-panel"><div class="pr-panel-hdr"><span>${hdrLabel} ${cacheAgo}</span><div style="display:flex;gap:6px;align-items:center">${filterToggle}<button onclick="syncKF();doFetchPriceResearch(true)" style="background:none;border:none;cursor:pointer;color:var(--t4);padding:0;white-space:nowrap" title="Force fresh search">${icon('refresh-cw',13)}</button><button onclick="clearPriceResearch()" style="background:none;border:none;cursor:pointer;color:var(--t4);font-size:13px;padding:0">&#x2715;</button></div></div>${soldSection}${activeSection}${noResults}</div>`;
   }else if(pr.status==="fallback"){
-    prPanel=`<div class="pr-panel"><div style="padding:10px 12px;font-size:12px;color:var(--t3);display:flex;align-items:center;gap:8px">${icon('alert-triangle',13,'var(--orange)')} Couldn't load inline. <a href="${esc(pr.fallbackUrl||"https://www.reddit.com/r/Knife_Swap/search")}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;text-decoration:none">Search Reddit manually →</a></div></div>`;
+    prPanel=`<div class="pr-panel"><div style="padding:10px 12px;font-size:12px;color:var(--t3);display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:8px">${icon('alert-triangle',13,'var(--orange)')} Couldn't load inline. <a href="${esc(pr.fallbackUrl||"https://www.reddit.com/r/Knife_Swap/search")}" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;text-decoration:none">Search Reddit manually →</a></div>${pr.debugErr?`<div style="font-size:10px;color:var(--redt);font-family:monospace;background:var(--redbg);padding:4px 8px;border-radius:4px">${esc(pr.debugErr)}</div>`:""}</div></div>`;
   }
   return`<div class="kf" style="margin-top:10px"><div class="kf-hdr"><div class="kf-title">${s.kfIdx>=0?"Edit Knife":(isLock?"Add to The Roll":"Add a Knife")}</div>${badge}</div>
     <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Brand</label><input type="text" id="kf-brand" list="dl-brands" value="${esc(f.brand)}" placeholder="e.g. Spyderco" oninput="updateModelList()" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-brand','dl-brands');updateModelList();}"/></div><div class="field"><label>Model</label><input type="text" id="kf-model" list="dl-models" value="${esc(f.model)}" placeholder="e.g. Para 3 LW" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-model','dl-models');}"/></div></div>
