@@ -23,6 +23,7 @@
   --bg:#F2F2F7;--card:#fff;
   --b1:rgba(0,0,0,.1);--b2:rgba(0,0,0,.06);
   --t1:#1D1D1F;--t2:#3A3A3C;--t3:#6E6E73;--t4:#AEAEB2;
+  --acc:#5E5CE6;
   --blue:#0071E3;--bluebg:#EBF4FF;--bluet:#004FC4;
   --green:#34C759;--greenbg:#E8F9EE;--greent:#1A7F35;
   --orange:#FF9500;--orangebg:#FFF5E6;--oranget:#A05A00;
@@ -631,17 +632,17 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .ob-wrap{flex:1;display:flex;flex-direction:column;max-width:520px;margin:0 auto;padding:32px 20px 40px;width:100%}
 .ob-progress{height:3px;background:var(--b2);border-radius:3px;margin-bottom:32px;overflow:hidden}
 .ob-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--blue));border-radius:3px;transition:width .35s ease}
-.ob-step-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t4);margin-bottom:10px}
+.ob-step-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:10px}
 .ob-icon{font-size:40px;margin-bottom:12px}
 .ob-title{font-size:22px;font-weight:700;color:var(--t1);margin-bottom:10px;line-height:1.25}
-.ob-body{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:24px}
+.ob-body{font-size:14px;color:var(--t1);line-height:1.7;margin-bottom:16px}
 .ob-card{background:var(--surf);border:.5px solid var(--b2);border-radius:12px;padding:14px 16px;margin-bottom:10px}
 .ob-card-title{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:3px}
 .ob-card-sub{font-size:12px;color:var(--t3);line-height:1.5}
-.ob-acts{display:flex;flex-direction:column;gap:10px;margin-top:auto}
+.ob-acts{display:flex;flex-direction:column;gap:10px;margin-top:32px}
 .ob-btn-pri{width:100%;padding:14px;border-radius:12px;background:var(--acc);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:var(--font)}
-.ob-btn-sec{width:100%;padding:11px;border-radius:12px;background:var(--surf);color:var(--t2);font-size:13px;font-weight:600;border:.5px solid var(--b2);cursor:pointer;font-family:var(--font)}
-.ob-btn-skip{background:none;border:none;color:var(--t4);font-size:12px;cursor:pointer;padding:4px;font-family:var(--font);margin-top:4px}
+.ob-btn-sec{width:100%;padding:11px;border-radius:12px;background:var(--surf);color:var(--t1);font-size:13px;font-weight:600;border:.5px solid var(--b2);cursor:pointer;font-family:var(--font)}
+.ob-btn-skip{background:none;border:none;color:var(--t3);font-size:12px;cursor:pointer;padding:4px;font-family:var(--font);margin-top:4px}
 .tut-cta-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
 .tut-bar-wrap{width:100%;height:4px;background:var(--b1);border-radius:2px;overflow:hidden;margin-bottom:6px}
 .tut-bar-fill{height:100%;background:var(--orange);border-radius:2px;transition:width .3s}
@@ -688,6 +689,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
     --bg:#1C1C1E;--card:#2C2C2E;
     --b1:rgba(255,255,255,.1);--b2:rgba(255,255,255,.06);
     --t1:#F2F2F7;--t2:rgba(235,235,245,.86);--t3:rgba(235,235,245,.55);--t4:rgba(235,235,245,.28);
+    --acc:#7B79F7;
     --blue:#0A84FF;--bluebg:rgba(10,132,255,.2);--bluet:#64B5F6;
     --green:#30D158;--greenbg:rgba(48,209,88,.18);--greent:#34C759;
     --orange:#FF9F0A;--orangebg:rgba(255,159,10,.18);--oranget:#FFB340;
@@ -3580,7 +3582,7 @@ function render(){
     renderList();
   const toastHtml=S.undoToast?`<div class="undo-toast">↩ ${esc(S.undoToast)} <button class="undo-toast-btn" onclick="undoLast()">Undo</button></div>`:"";
   const flairToastHtml=S.flairToast?`<div class="flair-toast">${S.flairToast}</div>`:"";
-  document.getElementById("root").innerHTML=view+(S.modal&&!S.syncingScreen&&!S.showMigrate?renderModal(S.modal):"")+toastHtml+flairToastHtml+(S.tour!=null?renderTourCard():"")+(S.guide!=null?renderGuideCard():"")+(S.onboarding?renderOnboarding():"");
+  document.getElementById("root").innerHTML=view+(S.modal&&!S.syncingScreen&&!S.showMigrate?renderModal(S.modal):"")+toastHtml+flairToastHtml+(S.tour!=null?renderTourCard():"")+(S.guide!=null?renderGuideCard():"")+(S.onboarding&&!S.modal?renderOnboarding():"");
   S._skipRollAnim=false; // reset after DOM update so next non-chip render gets animation back
   // Animate main content when switching views
   if(S._prevView!==S.view){
@@ -4090,9 +4092,9 @@ function renderOnboarding(){
       label:"Step 1 of 3 — Your Profile",
       title:"Set your Reddit username",
       body:"Your username gets stamped into every post, confirmation comment, and buyer message automatically. You never have to type it again.",
-      cta:hasUser?"Username set ✓  →  Next":"Open Settings to set username →",
-      ctaAction:hasUser?null:"settings",
-      skip:"Skip for now"
+      extra:`<div style="display:flex;gap:8px;margin-bottom:16px"><input id="ob-username-input" type="text" placeholder="e.g. smashedllama" value="${esc(SETTINGS.username||'')}" style="flex:1;font-size:14px;padding:10px 12px;border:.5px solid var(--b2);border-radius:10px;background:var(--surf);color:var(--t1);font-family:var(--font);outline:none" onkeydown="if(event.key==='Enter')saveObUsername()"/><button onclick="saveObUsername()" style="padding:10px 16px;background:var(--acc);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">${hasUser?"Update":"Save →"}</button></div>`,
+      cta:"Next →",
+      skip:hasUser?"":"I'll set this up later"
     },
     {
       icon:"📸",
@@ -4124,10 +4126,11 @@ function renderOnboarding(){
     <div class="ob-icon">${step.icon}</div>
     <div class="ob-title">${step.title}</div>
     <div class="ob-body">${step.body}</div>
+    ${step.extra||''}
     <div class="ob-acts">
       <button class="ob-btn-pri" onclick="obNext(${st},'${step.ctaAction||''}')">${step.cta}</button>
       ${step.ctaSecondary?`<button class="ob-btn-sec" onclick="obNext(${st},'${step.ctaSecondaryAction||''}')">${step.ctaSecondary}</button>`:''}
-      <button class="ob-btn-skip" onclick="obSkip()">${step.skip}</button>
+      ${step.skip?`<button class="ob-btn-skip" onclick="obSkip()">${step.skip}</button>`:''}
     </div>
   </div>
 </div>`;
@@ -4147,6 +4150,12 @@ function obDone(){
   S.onboarding=false;
   try{localStorage.setItem('ks-onboarding-done','1');}catch(e){}
   render();
+}
+function saveObUsername(){
+  const el=document.getElementById('ob-username-input');
+  const val=(el?el.value:'').trim().replace(/^@/,'').replace(/^\/?u\//i,'');
+  if(val){SETTINGS.username=val;saveSettings();}
+  S.onboardStep=2;render();
 }
 function renderTutorialModal(){
   const done=()=>`tutDone()`;
@@ -6376,7 +6385,7 @@ window.removeKnife=removeKnife;window.setPrevPrice=setPrevPrice;window.applyDrop
 window.syncDraft=syncDraft;window.submitPost=submitPost;window.addTimestampUrl=addTimestampUrl;window.removeTimestampUrl=removeTimestampUrl;
 window.openBundlePicker=openBundlePicker;window.closeBundlePicker=closeBundlePicker;window.toggleBundleKnife=toggleBundleKnife;window.confirmBundleCreate=confirmBundleCreate;window.removeBundle=removeBundle;
 window.openNI=openNI;window.closeNI=closeNI;window.saveNI=saveNI;window.removeNI=removeNI;window.markNISold=markNISold;window.addGearFromRoll=addGearFromRoll;window.removeGearItem=removeGearItem;window.markNIPending=markNIPending;window.triggerNIUpload=triggerNIUpload;window.handleNIFileInput=handleNIFileInput;window.removeNIUpload=removeNIUpload;window.addNIPhotoUrl=addNIPhotoUrl;window.markGearSold=markGearSold;window.confirmGearSoldFlow=confirmGearSoldFlow;window.cancelGearSoldFlow=cancelGearSoldFlow;window.markGearPending=markGearPending;window.lookupZipGear=lookupZipGear;window.saveGearTracking=saveGearTracking;window.markGearShipped=markGearShipped;window.markGearDelivered=markGearDelivered;window.markGearConfirmed=markGearConfirmed;window.copyGearConfirmComment=copyGearConfirmComment;window.gearShipCard=gearShipCard;window.gearAddrDisplayHtml=gearAddrDisplayHtml;window.gearPickerIssues=gearPickerIssues;window.gearSoldFlowHtml=gearSoldFlowHtml;
-window.markSold=markSold;window.cycleTmpl=cycleTmpl;window.deletePost=deletePost;window.copyPost=copyPost;window.copyText=copyText;window.openRedditPost=openRedditPost;window.startPriceDropRepost=startPriceDropRepost;window.startSamePriceRepost=startSamePriceRepost;window.tutDone=tutDone;window.tutGo=tutGo;window.obNext=obNext;window.obSkip=obSkip;window.obDone=obDone;window.openPreflight=openPreflight;window.closePreflight=closePreflight;window.addTimestampToPreflight=addTimestampToPreflight;window.addTimestampInline=addTimestampInline;window.updateTimestampInline=updateTimestampInline;window.handleTsUpdateInput=handleTsUpdateInput;window.handleTsUpdateDrop=handleTsUpdateDrop;window.copyFromPreflight=copyFromPreflight;window.openRedditFromPreflight=openRedditFromPreflight;
+window.markSold=markSold;window.cycleTmpl=cycleTmpl;window.deletePost=deletePost;window.copyPost=copyPost;window.copyText=copyText;window.openRedditPost=openRedditPost;window.startPriceDropRepost=startPriceDropRepost;window.startSamePriceRepost=startSamePriceRepost;window.tutDone=tutDone;window.tutGo=tutGo;window.obNext=obNext;window.obSkip=obSkip;window.obDone=obDone;window.saveObUsername=saveObUsername;window.openPreflight=openPreflight;window.closePreflight=closePreflight;window.addTimestampToPreflight=addTimestampToPreflight;window.addTimestampInline=addTimestampInline;window.updateTimestampInline=updateTimestampInline;window.handleTsUpdateInput=handleTsUpdateInput;window.handleTsUpdateDrop=handleTsUpdateDrop;window.copyFromPreflight=copyFromPreflight;window.openRedditFromPreflight=openRedditFromPreflight;
 window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=executeMove;
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;window.imgFallback=imgFallback;
 window.triggerUpload=triggerUpload;window.handleFileInput=handleFileInput;window.handleDrop=handleDrop;window.handleDragOver=handleDragOver;window.handleDragLeave=handleDragLeave;window.removeUpload=removeUpload;
