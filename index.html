@@ -1507,7 +1507,7 @@ async function sendMagicLink(email){
   try{
     // Use the canonical production URL — never location.href, which may carry a hash
     // or path that isn't in Supabase's redirect URL allowlist
-    const _redirectTo='https://smashedllama.github.io/bladeflow/';
+    const _redirectTo='https://bladeflow.click/';
     const {error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:_redirectTo}});
     if(error)throw error;
     S.authStatus="pending";S.authEmail=email;render();
@@ -1886,7 +1886,7 @@ function gearItemGalleryUrl(x){
         user:SETTINGS.username||"",
         imgs
       }))));
-      return`https://smashedllama.github.io/bladeflow/gallery.html?d=${d}`;
+      return`${location.origin}/gallery.html?d=${d}`;
     }catch(e){}
   }
   if(x.imgurLink)return x.imgurLink;
@@ -1906,7 +1906,7 @@ function galleryUrl(k){
         imgs:cdnImgs,
         details:knifeDetails(k)
       }))));
-      return`https://smashedllama.github.io/bladeflow/gallery.html?d=${d}`;
+      return`${location.origin}/gallery.html?d=${d}`;
     }catch(e){}
   }
   // Fall back to imgur gallery link if set
@@ -1957,7 +1957,7 @@ function buildPostGalleryUrl(post, knifeIdx){
       timestamp:timestampPhotos,
       startAt
     }))));
-    return`https://smashedllama.github.io/bladeflow/gallery.html?d=${d}`;
+    return`${location.origin}/gallery.html?d=${d}`;
   }catch(e){return null;}
 }
 
