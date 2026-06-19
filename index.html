@@ -3816,7 +3816,8 @@ function renderAuthModal(){
     inner=`${brand}<div style="padding:0 24px 28px;text-align:center">
       <div style="font-size:46px;margin-bottom:14px;display:flex;justify-content:center">${icon('mail',46,'var(--blue)')}</div>
       <div style="font-size:18px;font-weight:700;color:var(--t1);margin-bottom:8px;letter-spacing:-.02em">Check your inbox</div>
-      <div style="font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:22px">We sent a magic link to <strong style="color:var(--t1)">${esc(S.authEmail)}</strong>.<br>Click the link to sign in. No password needed.</div>
+      <div style="font-size:13px;color:var(--t3);line-height:1.6;margin-bottom:14px">We sent a magic link to <strong style="color:var(--t1)">${esc(S.authEmail)}</strong>.<br>Click the link to sign in. No password needed.</div>
+      <div style="font-size:12px;color:var(--oranget);background:var(--orangebg);border:.5px solid rgba(255,149,0,.25);border-radius:8px;padding:9px 12px;margin-bottom:22px;line-height:1.5">${icon('alert-circle',12,'var(--oranget)')} <strong>Not seeing it?</strong> Check your spam or junk folder — the first email from a new domain sometimes lands there.</div>
       <button class="btn btn-sec" style="width:100%" onclick="S.authStatus='guest';S.authEmail='';render()">Use a different email</button>
     </div>`;
   } else {
