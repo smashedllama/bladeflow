@@ -2407,10 +2407,10 @@ function buildPost(post,v){
   const allPhotos=(post.photos?.length?post.photos:[]).filter(Boolean);
   const rp=post.repost?" *(Price Drop / Repost)*":"";
   const type=post.postType||"[WTS]";
-  const un=SETTINGS.username||"";
+  const un=post._tourDemo?"yourusername":(SETTINGS.username||"");
   const title=post.knives.map(k=>k.brand+" "+k.model+(k.reposted?" ~~[REPOSTED]~~":k.soldElsewhere?(k.soldPrice?` ~~[SOLD ELSEWHERE @ $${k.soldPrice}]~~`:" ~~[SOLD ELSEWHERE]~~"):k.withdrawn?" ~~[WITHDRAWN]~~":k.sold?(k.soldPrice?` ~~[SOLD @ $${k.soldPrice}]~~`:" ~~[SOLD]~~"):k.pending?" [PENDING]":"")).join(" | ");
   const bundle=post.bundleEnabled&&post.bundlePrice;
-  const ph=SETTINGS.postHeader?(SETTINGS.postHeader.trim()):"";
+  const ph=post._tourDemo?"":(SETTINGS.postHeader?(SETTINGS.postHeader.trim()):"");
   const ti=post.tradeInterests||(SETTINGS.tradeInterests||"");
   const soldCommentBlurb=SETTINGS.soldInComment?"\n\n*Sold items are tracked in the [SOLD ITEM TRACKER] comment on this post. Repeated edits can trigger Reddit's spam filter and get listings removed, so availability updates are posted there instead.*":"";
   const isWTT=type.includes("WTT");
@@ -3270,7 +3270,7 @@ function buildDibsMessage(pid,ki){
   const kName=`${k.brand} ${k.model}`.trim()||"the knife";
   const price=k.price?`$${k.price}`:"[price]";
   const methods=(p.payment||[]).map(m=>m==="Other"&&p.paymentOther?p.paymentOther:m);
-  const links=SETTINGS.paymentLinks||{};
+  const links=p._tourDemo?{}:(SETTINGS.paymentLinks||{});
   const PAY_PH={"PayPal G&S":"paypal.me/","PayPal F&F":"paypal.me/","Venmo":"@","Zelle":"","Cash App":"$","Apple Pay":""};
   const methodLines=methods.map(m=>{const l=links[m];return l?`• ${m}: ${l}`:`• ${m}`;}).join("\n")||"• [configure payment links in Settings]";
   const noNotesServices=methods.filter(m=>["Venmo","PayPal F&F","Cash App","Zelle","Apple Pay"].some(s=>m.includes(s.split(" ")[0])));
@@ -4092,7 +4092,7 @@ function renderOnboarding(){
       label:"Step 1 of 3 — Your Profile",
       title:"Set your Reddit username",
       body:"Your username gets stamped into every post, confirmation comment, and buyer message automatically. You never have to type it again.",
-      extra:`<div style="display:flex;gap:8px;margin-bottom:16px"><input id="ob-username-input" type="text" placeholder="e.g. smashedllama" value="${esc(SETTINGS.username||'')}" style="flex:1;font-size:14px;padding:10px 12px;border:.5px solid var(--b2);border-radius:10px;background:var(--surf);color:var(--t1);font-family:var(--font);outline:none" onkeydown="if(event.key==='Enter')saveObUsername()"/><button onclick="saveObUsername()" style="padding:10px 16px;background:var(--acc);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">${hasUser?"Update":"Save →"}</button></div>`,
+      extra:`<div style="display:flex;gap:8px;margin-bottom:16px"><input id="ob-username-input" type="text" placeholder="e.g. smashedllama" value="" style="flex:1;font-size:14px;padding:10px 12px;border:.5px solid var(--b2);border-radius:10px;background:var(--surf);color:var(--t1);font-family:var(--font);outline:none" onkeydown="if(event.key==='Enter')saveObUsername()"/><button onclick="saveObUsername()" style="padding:10px 16px;background:var(--acc);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">${hasUser?"Update":"Save →"}</button></div>`,
       cta:"Next →",
       skip:hasUser?"":"I'll set this up later"
     },
@@ -5032,7 +5032,7 @@ function renderList(){
       ;
       const isRaw=s.mdPreview.has(p.id);
       const today=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
-      const tsUser=SETTINGS.username||"yourusername";
+      const tsUser=p._tourDemo?"yourusername":(SETTINGS.username||"yourusername");
       const tsLabel=`u/${tsUser} - ${today}`;
       const postBox=!hasPhotos
         ?`<div class="ts-gate"><div class="ts-gate-icon">${icon('camera',28,'var(--oranget)')}</div><div class="ts-gate-title">Timestamp required before posting</div><div class="ts-gate-body">Take a photo of all your knives with a handwritten note that reads:<br><span class="ts-gate-stamp">${esc(tsLabel)}</span></div><div class="ts-gate-hint">Already have your timestamp photo? Paste the URL below to unlock your post.</div><div class="ts-inline-row"><input id="ts-inline-${p.id}" type="url" class="ts-inline-input" placeholder="https://i.imgur.com/… or Cloudinary URL" /><button class="btn btn-pri btn-sm" onclick="addTimestampInline('${p.id}')">Add ↑</button></div></div>`
