@@ -5099,14 +5099,14 @@ function kShipStatus(k){
   if(k.soldElsewhere&&!k.soldElsewhereTrackShip)return null;
   if(k.confirmedAt)return"confirmed";
   if(k.deliveredAt)return"delivered";
-  if(k.trackingNumber)return"shipped";
+  if(k.shippedAt||k.trackingNumber)return"shipped";
   return"ready";
 }
 function gShipStatus(item){
   if(!item.sold)return null;
   if(item.confirmedAt)return"confirmed";
   if(item.deliveredAt)return"delivered";
-  if(item.trackingNumber)return"shipped";
+  if(item.shippedAt||item.trackingNumber)return"shipped";
   return"ready";
 }
 function trackingUrl(carrier,num){
