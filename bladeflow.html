@@ -1707,14 +1707,15 @@ async function doFetchPriceResearch(forceRefresh){
     const flair=(d.link_flair_text||"").trim();
     const flairLow=flair.toLowerCase();
     const isWTB=tl.includes("[wtb]")||tl.includes("(wtb)")||/\bwtb\b/.test(flairLow)||tl.includes("want to buy");
-    // Detect sold via flair OR [SOLD] in title - flair is more reliable
-    const isSold=flairLow.includes("sold")||tl.includes("[sold]")||tl.includes("(sold)")||tl.includes("[s]");
-    const isWTT=flairLow.includes("wtt")||(tl.includes("[wtt]")&&!tl.includes("[wts]"));
     const fullText=d.title+" "+(d.selftext||"");
     const fullLow=fullText.toLowerCase();
-    // Strict model check: ALL significant model words must appear (or compact variant)
+    // Detect sold: flair (reliable on Reddit), title tags, or body tags (needed for PullPush which archives null flair)
+    const isSold=flairLow.includes("sold")||fullLow.includes("[sold]")||fullLow.includes("(sold)")||tl.includes("[s]");
+    const isWTT=flairLow.includes("wtt")||(tl.includes("[wtt]")&&!tl.includes("[wts]"));
+    // Require anchor word (first significant model word); extras improve score but aren't required.
+    // e.g. "Deka Wharncliffe" → "Deka" must appear; "Wharncliffe" is a scoring bonus.
     const allModelWordsMatch=modelWords.length>0
-      ?modelWords.every(w=>fullLow.includes(w.toLowerCase()))||fullLow.includes(modelCompact.toLowerCase())
+      ?(fullLow.includes(anchorWord.toLowerCase())||fullLow.includes(modelCompact.toLowerCase()))
       :true;
     const brandMatch=brandLow.length>2?fullLow.includes(brandLow):true;
     const isRelevant=!isWTB&&allModelWordsMatch&&brandMatch;
@@ -2810,6 +2811,7 @@ function saveKF(){
   if(kt!=="WTT"&&!f.price){S.err="Sale price required for WTS listings.";render();return;}
   if(kt!=="WTS"&&!f.tradeValue){S.err="Trade value required for WTT listings.";render();return;}
   if(BANNED_LINK_RE.test(f.notes||"")){S.err="External platform links (eBay, Etsy, Amazon, etc.) are not allowed in posts per r/Knife_Swap rules. Remove the link from Notes.";render();return;}
+  if(isCloneKnife(f)){S.err="Clone knives are strictly forbidden on r/Knife_Swap and cannot be added.";render();return;}
   S.err="";
   f.photos=kfUploadsToPhotos(S.kfUploads);
   if(S.kfMode==="locker"){
@@ -4217,18 +4219,17 @@ function renderTutorialModal(){
        <span style="color:var(--t3)">SV Price</span><span>Your asking price in USD</span>
        <span style="color:var(--t3)">Photos</span><span>4 labeled slots: Show Side, Clip Side, Centering, Other</span>
      </div>
-     <div style="margin-top:10px;padding:8px 10px;background:var(--redbg);border-radius:8px;font-size:12px;color:var(--redt)"><strong>Show Side + Clip Side are required</strong> to add a knife to a listing. You can save a knife without photos, but it won't be listable until both shots are uploaded.</div>
+     <div style="margin-top:10px;padding:8px 10px;background:var(--redbg);border-radius:8px;font-size:12px;color:var(--redt)"><strong>Photos are required to list a knife</strong>: 2 Cloudinary uploads (any slots), 1 video, or an Imgur gallery link. You can save a knife without photos, but it won't be listable until the requirement is met.</div>
      <div style="margin-top:8px"><strong style="color:var(--t1)">Gear fields:</strong> Category, description, condition, sale type, price. Gear items appear in their own <strong>Gear & Extras</strong> section in the Roll and in your generated posts.</div>`)}
-     ${tip("Price Research","After entering brand, model and steel, click Check Comps. It searches r/Knife_Swap for the 25 most recent sold listings of that exact model so you can price accurately.")}`},
+     ${tip("Price Research","After entering brand, model and steel, click Search r/Knife_Swap. It pulls up to 100 recent posts filtered by steel and shows both sold comps and active listings so you can price competitively.")}`},
     // 6 - Creating a listing
     {phase:"Listings",icon:icon('pencil',48,'var(--t2)'),title:"Creating a Post",
      body:`Click ${chip("+ New Listing")} from the Listings tab. Add knives and gear from The Roll with one click, or enter them manually. The tool generates the full Reddit post (title and body) automatically.
-     ${preview(`<strong style="color:var(--t1)">4 post templates available:</strong>
+     ${preview(`<strong style="color:var(--t1)">3 post templates available:</strong>
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
        <li><strong>Detailed</strong>: full condition notes, issues, accessories</li>
        <li><strong>Compact</strong>: clean one-liner per knife</li>
        <li><strong>Table</strong>: markdown table layout</li>
-       <li><strong>Minimal</strong>: bare essentials only</li>
      </ul>
      Use the ${chip("Switch")} button on any listing to cycle between them anytime.
      <div style="margin-top:10px;padding:8px 10px;background:var(--orangebg);border-radius:8px;font-size:12px;color:var(--oranget)"><strong>Gear & Extras auto-grouping:</strong> Any non-knife items you add (watches, sunglasses, etc.) are automatically grouped into a labeled <strong>Gear & Extras</strong> section at the bottom of your post.</div>`)}
@@ -4251,7 +4252,7 @@ function renderTutorialModal(){
      <ul style="margin:8px 0 0;padding-left:18px;line-height:2">
        <li>${icon('check-circle',13,'var(--greent)')} Timestamp photo is linked</li>
        <li>${icon('check-circle',13,'var(--greent)')} All WTS knives have a price</li>
-       <li>${icon('check-circle',13,'var(--greent)')} All knives have Show Side + Clip Side photos</li>
+       <li>${icon('check-circle',13,'var(--greent)')} All knives have photos (2 Cloudinary, 1 video, or an Imgur link)</li>
        <li>${icon('check-circle',13,'var(--greent)')} Payment method is selected</li>
        <li>${icon('check-circle',13,'var(--greent)')} Post type is set (e.g. [WTS])</li>
        <li>${icon('check-circle',13,'var(--greent)')} Shipping info is mentioned</li>
@@ -4417,7 +4418,7 @@ function renderGuide(){
       <p style="font-size:13px;color:var(--t2);line-height:1.7;margin:0 0 12px">The Roll is your inventory. Add every knife or other item you want to sell here first. You only fill in the details once, then pull it into any listing with a single tap.</p>
       ${step(1,"Open The Roll tab and hit + Add Knife or + Add Gear","Use + Add Knife for knives. Use + Add Gear for anything else: watches, sunglasses, flashlights, multi-tools, bags, clothing, or other items.")}
       ${step(2,"Fill in the details","For knives: brand, model, steel, and condition. Be thorough. For gear: category, description, condition, and price.")}
-      ${step(3,"Add your photos","Each knife has four dedicated photo slots: <strong>Show Side</strong>, <strong>Clip Side</strong>, <strong>Centering</strong>, and <strong>Other</strong>. Drag-and-drop or paste a direct URL into each slot. Show Side and Clip Side are required before the knife can be added to a listing; the others are optional. Stock photos and manufacturer images are not allowed. Your own photos only.")}
+      ${step(3,"Add your photos","Each knife has four labeled photo slots: <strong>Show Side</strong>, <strong>Clip Side</strong>, <strong>Centering</strong>, and <strong>Other</strong>. Any two Cloudinary uploads (in any slots), one video, or an Imgur gallery link satisfies the photo requirement. Stock photos and manufacturer images are not allowed. Your own photos only.")}
       ${step(4,"Set type and price","WTS (selling), WTT (trading), or WTS/WTT (open to both). Enter your asking price in the SV field. For trades, also add a TV (trade value).")}
       ${tip("New to the sub? Users with 0 confirmed trades can only list one knife per post. Once you have flair you can list multiple knives in one post.")}
       ${tool("Each knife card in The Roll shows a readiness badge: <strong style='color:var(--greent)'>✓ Ready to list</strong> if everything is complete, or <strong style='color:var(--redt)'>Incomplete: [reason]</strong> listing exactly what needs to be fixed before that knife can go in a listing.")}
@@ -4425,7 +4426,7 @@ function renderGuide(){
 
     ${sec(icon('dollar-sign',18,'#FFCC00'),"Step 2: Price Your Knife","rgba(255,204,0,.2)",`
       <p style="font-size:13px;color:var(--t2);line-height:1.7;margin:0 0 12px">Overpriced knives sit. Check what that exact knife actually sold for on the sub before you post.</p>
-      ${step(1,"Click Check Comps in the knife form","After filling in brand, model, and steel, hit the Check Comps button. The tool searches r/Knife_Swap for recent sold listings of that exact knife filtered by steel.")}
+      ${step(1,"Click Search r/Knife_Swap in the knife form","After filling in brand, model, and steel, hit the Search r/Knife_Swap button. The tool pulls up to 100 recent posts, filters by steel, and shows both sold comps and active listings.")}
       ${step(2,"Review average and median prices","Use the comps to set a competitive price. You can save any comp as a reference on the knife.")}
       ${step(3,"Set your price in the SV field","Enter your asking price. If you're open to negotiation, you can note OBO (or best offer) in your post.")}
       ${tip("Pricing slightly below market moves knives fast. Pricing at or above market is fine too, just expect more time on the sub.")}
@@ -4454,7 +4455,7 @@ function renderGuide(){
 
     ${sec(icon('zap',18,'#34C759'),"Step 5: Post to r/Knife_Swap","rgba(52,199,89,.12)",`
       ${step(1,"Click Copy Post or Post to Reddit","The pre-flight check runs first. All rules must pass before the post text unlocks.")}
-      ${step(2,"Complete the pre-flight checklist","Timestamp linked, prices set, all knives have Show Side + Clip Side photos, payment methods selected, rules checkbox confirmed. Fix any red items.")}
+      ${step(2,"Complete the pre-flight checklist","Timestamp linked, prices set, all knives have photos (2 Cloudinary, 1 video, or an Imgur link), payment methods selected, rules checkbox confirmed. Fix any red items.")}
       ${step(3,"On Reddit, go to r/Knife_Swap and create a new post","Paste your title and body.")}
       ${step(4,"Set your post flair","You set this yourself: WTS, WTT, WTS/WTT, or WTB. Pick the one that matches your post. This is different from your user flair (which is your trade count, set automatically by the bot).")}
       ${step(5,"Submit","Double-check title and body before hitting submit.")}
@@ -4590,7 +4591,7 @@ function renderAboutModal(){
       {q:"Do I need an account?",a:"No. The tool works completely without an account. Sign-in is only needed if you want to sync your data across multiple devices using cloud backup."},
       {q:"Where is my data stored?",a:"By default everything is stored in your browser's localStorage. If you sign in with a free account, data syncs to the cloud and is available on any device."},
       {q:"What is The Roll?",a:"The Roll is your knife inventory. Add a knife once with all its details, then pull it into any listing with one click. It tracks price history, days held, sold price, and current status."},
-      {q:"Why is the Copy button grayed out?",a:"A timestamp photo link is required, and all knives must have at least a Show Side and Clip Side photo. Add those and the Copy button will unlock."},
+      {q:"Why is the Copy button grayed out?",a:"A timestamp photo link is required, all knives need photos (2 Cloudinary uploads, 1 video, or an Imgur gallery link), a payment method must be selected, and the rules checkbox must be confirmed. Fix any red items in the pre-flight checklist and it will unlock."},
       {q:"What is Cloudinary and do I need it?",a:"Cloudinary is a free image hosting service. You only need it if you want to drag-and-drop upload photos directly from the tool. You can skip it entirely and paste direct image URLs instead."},
       {q:"Will Imgur links work?",a:"Yes, but only direct image links in the format i.imgur.com/xxx.jpg. Album page URLs (imgur.com/a/xxx) will not work as photo links in posts."},
       {q:"How does the price drop checker work?",a:"r/Knife_Swap requires either a 10% price reduction or a $25 reduction to repost within 7 days. After 7 days you can repost at the same price. The tool checks these rules automatically and shows the minimum valid repost price. Hit the Repost button on any listing to generate a new post with the drop already applied."},
@@ -4603,7 +4604,7 @@ function renderAboutModal(){
       {q:"What are the templates?",a:"Detailed, Compact, and Table. Detailed includes all condition info. Compact is shorter. Table lays everything out in a Reddit markdown table. Switch between them with the Switch button on any listing."},
       {q:"What does Pending mean?",a:"Pending flags a knife as payment incoming but not yet cleared. Use it when a buyer has called dibs and you're waiting for funds to arrive. The knife shows as pending in your post and won't be marked sold until you confirm it."},
       {q:"What payment methods should I include?",a:"PayPal G&S (Goods and Services) is required for all sellers until you reach 25 confirmed trades. After 25 trades you can accept Venmo, Cash App, Zelle, and other methods. Add your payment links in Settings and they auto-fill into every dibs message you send."},
-      {q:"How does price research work?",a:"After entering a knife's brand, model, and steel, click Check Comps in the knife form. The tool searches r/Knife_Swap for recent sold listings matching that knife and steel, then shows average, median, and price range. You can save any result as a reference comp on that knife."},
+      {q:"How does price research work?",a:"After entering a knife's brand, model, and steel, click Search r/Knife_Swap in the knife form. The tool pulls up to 100 recent posts, filters by steel, and shows average, median, and price range for both sold and active listings. You can save any result as a reference comp on that knife."},
       {q:"Can I export my data?",a:"Yes, two ways. Settings &rarr; Data Backup &rarr; Export Backup downloads a complete .json file of all your listings, inventory, and settings. You can import this on any device using Import Backup. For just your sold history as a spreadsheet, use the CSV export in the Sales tab."},
       {q:"Is this affiliated with r/Knife_Swap moderators?",a:"No. This is a fan-built tool. It is not officially affiliated with or endorsed by the r/Knife_Swap moderators. Always check the official subreddit rules for the latest requirements."},
       {q:"How do I set up photos?",a:"Option 1: Set up a free Cloudinary account and enter your Cloud Name and Upload Preset in Settings. This enables drag-and-drop uploads. Option 2: Paste any direct image URL (i.imgur.com links work great) into the photo URL field on any knife."},
@@ -4724,8 +4725,10 @@ function kfFormHtml(){
     };
 
     // Split into Sold (historical comps) vs Active (current market)
-    const showAll=s.priceFilter==="all";
-    const soldR=(showAll?pr.results.filter(r=>r.isSold):pr.results.filter(r=>r.isSold).slice(0,25));
+    const hasSoldResults=pr.results.some(r=>r.isSold);
+    // Auto-fallback: if "Sold only" is on but no sold posts were detected (PullPush often lacks flair), show all
+    const showAll=s.priceFilter==="all"||!hasSoldResults;
+    const soldR=pr.results.filter(r=>r.isSold).slice(0,showAll?1000:25);
     const activeR=showAll?pr.results.filter(r=>!r.isSold):[];
 
     // Helper: compute avg, median, low, high from a result set's prices
@@ -4757,6 +4760,7 @@ function kfFormHtml(){
   }
   return`<div class="kf" style="margin-top:10px"><div class="kf-hdr"><div class="kf-title">${s.kfIdx>=0?"Edit Knife":(isLock?"Add to The Roll":"Add a Knife")}</div>${badge}</div>
     <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Brand</label><input type="text" id="kf-brand" list="dl-brands" value="${esc(f.brand)}" placeholder="e.g. Spyderco" oninput="updateModelList()" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-brand','dl-brands');updateModelList();}"/></div><div class="field"><label>Model</label><input type="text" id="kf-model" list="dl-models" value="${esc(f.model)}" placeholder="e.g. Para 3 LW" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-model','dl-models');}"/></div></div>
+    ${isCloneKnife(f)?`<div style="background:var(--redbg);border:.5px solid rgba(255,59,48,.3);border-radius:9px;padding:10px 13px;margin-bottom:11px;display:flex;gap:9px;align-items:flex-start">${icon('alert-triangle',15,'var(--redt)')}<span style="font-size:12px;color:var(--redt);line-height:1.5"><strong>Clone knives are strictly forbidden on r/Knife_Swap.</strong> This knife cannot be saved or posted.</span></div>`:""}
     <div class="fr2" style="margin-bottom:11px"><div class="field"><label>Steel</label><input type="text" id="kf-steel" list="dl-steels" value="${esc(f.steel)}" placeholder="e.g. M390" onblur="syncKF();render()" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();autoFillInput('kf-steel','dl-steels');}"/></div><div class="field"><label>Blade Edge</label><select id="kf-bladeCondition">${[...new Set([...BLADE_COND,...(f.bladeCondition&&!BLADE_COND.includes(f.bladeCondition)?[f.bladeCondition]:[])])].map(v=>`<option${f.bladeCondition===v?" selected":""}>${v}</option>`).join("")}</select></div></div>
     <div class="kf-type-sel"><button class="kf-type-btn${kt==="WTS"?" on wts":""}" onclick="syncKF();S.kf.knifeType='WTS';render()">WTS - For Sale</button><button class="kf-type-btn${kt==="WTT"?" on wtt":""}" onclick="syncKF();S.kf.knifeType='WTT';render()">WTT - For Trade</button><button class="kf-type-btn${kt==="WTS/WTT"?" on wtstt":""}" onclick="syncKF();S.kf.knifeType='WTS/WTT';render()">WTS/WTT - Both</button></div>
     <div class="fr2" style="margin-bottom:13px">
@@ -5880,8 +5884,8 @@ const GUIDE_STEPS=[
     icon:"📋",
     label:"Setup — Step 2 of 3",
     title:"Create your first listing",
-    body:"Switch to the <strong>Listings</strong> tab above. Tap <strong>+ New Post</strong> to open the post builder, then add the knife you just saved.",
-    hint:"💡 Tap the Listings tab in the header, then tap the + New Post button.",
+    body:"Switch to the <strong>Listings</strong> tab above. Tap <strong>+ New Listing</strong> to open the post builder, then add the knife you just saved.",
+    hint:"💡 Tap the Listings tab in the header, then tap the + New Listing button.",
     cta:"Go to Listings →",
     ctaNav:"list",
   },
@@ -5890,7 +5894,7 @@ const GUIDE_STEPS=[
     label:"Setup — Step 2 of 3",
     title:"Build and generate your post",
     body:"Add your knife to the post, choose your payment methods, and tap <strong>Generate Post</strong>. BladeFlow formats everything to r/Knife_Swap standards automatically.",
-    hint:"💡 You need at least one knife added and a timestamp photo to generate.",
+    hint:"💡 You need at least one knife, a timestamp photo, a payment method, and the rules checkbox ticked before Generate Post activates.",
     cta:"I generated it →",
     autoCheck:(s,c)=>s.posts.filter(p=>!p._tourDemo).length > (c.posts||0),
   },
@@ -6603,6 +6607,8 @@ window.toggleMdPreview=toggleMdPreview;
 
 // ─── POST RULE CHECKER ────────────────────────────────────
 const BANNED_LINK_RE=/\b(ebay\.com|etsy\.com|amazon\.com|facebook\.com\/marketplace|craigslist\.org|offerup\.com|depop\.com|mercari\.com|whatnot\.com)\b/i;
+const CLONE_RE=/\b(clone|replica|counterfeit|fake|knock.?off|imitation|bootleg)\b/i;
+function isCloneKnife(k){return CLONE_RE.test((k.brand||"")+" "+(k.model||"")+" "+(k.notes||""));}
 function checkPostRules(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return[];
   const txt=p.postText||"";
@@ -6628,6 +6634,7 @@ function checkPostRules(pid){
     {ok:charLen<40000,msg:`Post length OK (${charLen.toLocaleString()}/40,000 chars)`},
     {ok:mixedLotsOk,msg:"Mixed lots: ≥50% of items must be knives"},
     {ok:noExtLinks,msg:"No external platform links (eBay, Etsy, etc.)"},
+    ...activeKnives.filter(isCloneKnife).map(k=>({ok:false,msg:`Clone knives are strictly forbidden on r/Knife_Swap: ${k.brand} ${k.model}`})),
   ];
 }
 window.checkPostRules=checkPostRules;
@@ -6644,34 +6651,6 @@ if("serviceWorker" in navigator){
 window.addEventListener('beforeunload',()=>{try{const _bfs=JSON.parse(localStorage.getItem('bf_stats')||'{}');_bfs.totalTimeMs=(_bfs.totalTimeMs||0)+(Date.now()-(S._sessionStart||Date.now()));localStorage.setItem('bf_stats',JSON.stringify(_bfs));}catch(e){}});
 // Capture desired view from hash/param BEFORE any async render() calls overwrite location.hash
 const _VALID_VIEWS=['list','roll','sold','shipping','guide','settings'];
-// ─── ACCESS GATE ─────────────────────────────────────────────────────────────
-(()=>{
-  const p=new URLSearchParams(location.search);
-  if(p.get('key')==='bf2025'){
-    try{localStorage.setItem('bf_granted','1');}catch(e){}
-    // Remove key from URL bar without a reload
-    const clean=location.pathname+(location.hash||'');
-    history.replaceState(null,'',clean);
-  }
-  if(localStorage.getItem('bf_granted')!=='1'){
-    document.body.innerHTML=`<style>
-      *{box-sizing:border-box;margin:0;padding:0}
-      body{background:#1C1C1E;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-      .cs{text-align:center;padding:40px 24px;max-width:420px}
-      .cs img{width:64px;height:64px;border-radius:16px;margin-bottom:20px}
-      .cs h1{color:#F2F2F7;font-size:26px;font-weight:700;margin-bottom:8px}
-      .cs p{color:rgba(242,242,247,.55);font-size:15px;line-height:1.6;margin-bottom:24px}
-      .cs a{color:#0A84FF;font-size:14px;text-decoration:none}
-    </style>
-    <div class="cs">
-      <img src="/bladeflow/icon.png" alt="BladeFlow">
-      <h1>Coming Soon</h1>
-      <p>BladeFlow is still in beta. Follow <a href="https://www.reddit.com/user/smashedllama" target="_blank">u/smashedllama</a> on Reddit for updates.</p>
-      <a href="https://smashedllama.github.io/bladeflow/gallery.html?d=eyJ1c2VyIjoic21hc2hlZGxsYW1hMiIsImtuaXZlcyI6W3sibmFtZSI6IlNweWRlcmNvIEVuZGVsYSBXaGFybmNsaWZmZSIsInByaWNlIjoiU1Y6ICQxMjAiLCJpbWdzIjpbImh0dHBzOi8vcmVzLmNsb3VkaW5hcnkuY29tL2RzdWpseHVqcC9pbWFnZS91cGxvYWQvdjE3NzQ0MTc1NDAvaTFjNngydjZ4aWw4ZnVyMXR2ZmguanBnIiwiaHR0cHM6Ly9yZXMuY2xvdWRpbmFyeS5jb20vZHN1amx4dWpwL2ltYWdlL3VwbG9hZC92MTc3NDQxNzU1Ny9ycXh4ZXdsMnU2Z3BzeXN3Y2xieC5qcGciLCJodHRwczovL3Jlcy5jbG91ZGluYXJ5LmNvbS9kc3VqbHh1anAvaW1hZ2UvdXBsb2FkL3YxNzc0NDE3NTc3L3phZHJ0dmYzMmFjdWFibXlybXNxLmpwZyJdLCJkZXRhaWxzIjp7InN0ZWVsIjoiSzM5MCIsImNvbmRpdGlvbiI6IkZhY3RvcnkgZWRnZSwgY2FycmllZCIsIm93bmVycyI6IjIiLCJjYXJyaWVkIjoiTm8iLCJjdXQiOiJObyIsImNlbnRlcmluZyI6IlBlcmZlY3QiLCJsb2NrdXAiOiJTb2xpZCIsImxvY2t1cE5vdGVzIjoiIiwiaXNzdWVzIjoiTm9uZSIsImFjY2Vzc29yaWVzIjoiQ2VydGlmaWNhdGUvcGFwZXJzLCBPcmlnaW5hbCBib3giLCJub3RlcyI6IkxpZ2h0IHNjcmF0Y2hlcyBvbiB0aGUgYmxhZGUgaW4gdGhlIHJpZ2h0IGxpZ2h0aW5nLiBTZWUgcGhvdG9zLiJ9fSx7Im5hbWUiOiJCaWcgSWRlYSBEZXNpZ24gUG9ja2V0IEtuaWZlIiwicHJpY2UiOiJTVjogJDEyMCIsImltZ3MiOlsiaHR0cHM6Ly9yZXMuY2xvdWRpbmFyeS5jb20vZHN1amx4dWpwL2ltYWdlL3VwbG9hZC92MTc3NDQxNzIyMC9vZHF1MmRxaWZoeWFmajNqanZpdy5qcGciLCJodHRwczovL3Jlcy5jbG91ZGluYXJ5LmNvbS9kc3VqbHh1anAvaW1hZ2UvdXBsb2FkL3YxNzc0NDE3MjI5L3poa3BvNTg2NXZrZGd6OXBxdGVtLmpwZyIsImh0dHBzOi8vcmVzLmNsb3VkaW5hcnkuY29tL2RzdWpseHVqcC9pbWFnZS91cGxvYWQvdjE3NzQ0MTcyNDIvbHVpNXhwMXM3dXA5ZGg4OXJ1cHYuanBnIiwiaHR0cHM6Ly9yZXMuY2xvdWRpbmFyeS5jb20vZHN1amx4dWpwL2ltYWdlL3VwbG9hZC92MTc3NDQxNzI0My9teHJwcXh1OHZtd3hrbnQ1dDQxMS5qcGciXSwiZGV0YWlscyI6eyJzdGVlbCI6IkNQTSBTMzVWTiIsImNvbmRpdGlvbiI6IkxpZ2h0bHkgdXNlZCIsIm93bmVycyI6IjIiLCJjYXJyaWVkIjoiWWVzIiwiY3V0IjoiWWVzIiwiY2VudGVyaW5nIjoiUGVyZmVjdCIsImxvY2t1cCI6IlNvbGlkIiwibG9ja3VwTm90ZXMiOiIiLCJpc3N1ZXMiOiJIYXJkbmVzcyBUZXN0aW5nIERpbXBsZXMgTmVhciBTY2FsZXMuICIsImFjY2Vzc29yaWVzIjoiT3JpZ2luYWwgYm94LCBDZXJ0aWZpY2F0ZS9wYXBlcnMiLCJub3RlcyI6IlRlc3RlZCBmb3IgU3RlZWwgSGFyZG5lc3MgTGFiLiBDb21lcyB3aXRoIGNlcnQgZnJvbSBUYXlsb3IgYW5kIHRoZSByZXN1bHRzIGFyZSBhbHNvIG9uIHRoZSBzaXRlLiAifX0seyJuYW1lIjoiS2l6ZXIgT2N0b2JlciIsInByaWNlIjoiU1Y6ICQ4MCIsImltZ3MiOlsiaHR0cHM6Ly9yZXMuY2xvdWRpbmFyeS5jb20vZHN1amx4dWpwL2ltYWdlL3VwbG9hZC92MTc3NDQxNzI3Ni9iaXBha3VtNGpnZ2Fic3Bsd3lrMy5qcGciLCJodHRwczovL3Jlcy5jbG91ZGluYXJ5LmNvbS9kc3VqbHh1anAvaW1hZ2UvdXBsb2FkL3YxNzc0NDE3Mjg0L3B5bXBhcTd0d2FtY2txaWRrdXZoLmpwZyIsImh0dHBzOi8vcmVzLmNsb3VkaW5hcnkuY29tL2RzdWpseHVqcC9pbWFnZS91cGxvYWQvdjE3NzQ0MTcyOTQvbDZqbnllb2J6eGdyYW03YTVwbHYuanBnIl0sImRldGFpbHMiOnsic3RlZWwiOiJDUE0tMjBDViIsImNvbmRpdGlvbiI6IkxpZ2h0bHkgdXNlZCIsIm93bmVycyI6IjEiLCJjYXJyaWVkIjoiWWVzIiwiY3V0IjoiWWVzIiwiY2VudGVyaW5nIjoiUGVyZmVjdCIsImxvY2t1cCI6IlNvbGlkIiwibG9ja3VwTm90ZXMiOiIiLCJpc3N1ZXMiOiJOb25lIiwiYWNjZXNzb3JpZXMiOiJOb25lIiwibm90ZXMiOiJTY2FsZXMgaGF2ZSBiZWVuIGxhc2VyIGVuZ3JhdmVkIHdpdGggYSBjb3JhbCB0ZXh0dXJlLiAifX0seyJuYW1lIjoiU3B5ZGVyY28gTGlsIG5hdGl2ZSB3aGFybmNsaWZmZSIsInByaWNlIjoiU1Y6ICQxMjAiLCJpbWdzIjpbImh0dHBzOi8vcmVzLmNsb3VkaW5hcnkuY29tL2RzdWpseHVqcC9pbWFnZS91cGxvYWQvdjE3NzUwODk0NDMvZmh1c3Rxa2VhaHFlY3F6eGlxcXouanBnIiwiaHR0cHM6Ly9yZXMuY2xvdWRpbmFyeS5jb20vZHN1amx4dWpwL2ltYWdlL3VwbG9hZC92MTc3NTA4OTQ5NS9xZXR0YWlidXNhYzhobnhjZXB0bC5qcGciLCJodHRwczovL3Jlcy5jbG91ZGluYXJ5LmNvbS9kc3VqbHh1anAvaW1hZ2UvdXBsb2FkL3YxNzc1MDg5NTEzL2dyYWNtbHU4aW1ybXZqNGc4cGR2LmpwZyJdLCJkZXRhaWxzIjp7InN0ZWVsIjoiQ1BNIFMzMFYiLCJjb25kaXRpb24iOiJIb25lZCIsIm93bmVycyI6IjIiLCJjYXJyaWVkIjoiWWVzIiwiY3V0IjoiWWVzIiwiY2VudGVyaW5nIjoiUGVyZmVjdCIsImxvY2t1cCI6IlNvbGlkIiwibG9ja3VwTm90ZXMiOiIiLCJpc3N1ZXMiOiJOb25lIiwiYWNjZXNzb3JpZXMiOiJPcmlnaW5hbCBib3gsIENlcnRpZmljYXRlL3BhcGVycyIsIm5vdGVzIjoiIn19XSwidGltZXN0YW1wIjpbImh0dHBzOi8vcmVzLmNsb3VkaW5hcnkuY29tL2RzdWpseHVqcC9pbWFnZS91cGxvYWQvdjE3NzUwODk1OTAvdjN6bTh4NjdqcGJhbGxoMHp2c3kuanBnIl0sInN0YXJ0QXQiOjF9" target="_blank">View a sample gallery</a>
-    </div>`;
-    throw new Error('access gate');
-  }
-})();
 
 const _STARTUP_HASH=location.hash.replace('#','');
 const _STARTUP_VIEW=_VALID_VIEWS.includes(_STARTUP_HASH)?_STARTUP_HASH
