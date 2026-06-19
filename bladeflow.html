@@ -2416,7 +2416,7 @@ function buildPost(post,v){
   const scamBlock=(()=>{
     if(!SETTINGS.scamWarning||post._tourDemo)return"";
     const subs=(SETTINGS.scamSubreddits||"").split(/[,;\s]+/).map(s=>s.trim().replace(/^r\//i,"")).filter(Boolean).map(s=>`r/${s}`).join(", ");
-    const subsText=subs?` Anything received from ${subs} is a scam.`:"";
+    const subsText=subs?` Any message requests from ${subs} is a scam.`:"";
     return`> ⚠️ **WARNING:** There is a subreddit using my username to try to scam you. I will only send messages from u/${un}.${subsText} Do not pay them. I am not responsible for any transaction with them or any money exchanged with them.\n\n`;
   })();
   const isWTT=type.includes("WTT");
