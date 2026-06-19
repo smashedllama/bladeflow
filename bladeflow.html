@@ -6,14 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>BladeFlow</title>
 <!-- PWA -->
-<link rel="manifest" href="/bladeflow/manifest.json">
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1C1C1E" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BladeFlow">
-<link rel="apple-touch-icon" href="/bladeflow/favicon.png">
-<link rel="icon" href="/bladeflow/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<link rel="icon" href="/favicon.png" type="image/png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -3458,7 +3458,7 @@ function autoFillInput(inputId,datalistId){
 
 // ─── RENDER HELPERS ───────────────────────────────────────────
 function renderMigrateConflict(){
-  const hdr=`<div class="hdr" style="grid-template-columns:1fr;justify-items:center"><div class="hdr-logo" style="pointer-events:none"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div></div>`;
+  const hdr=`<div class="hdr" style="grid-template-columns:1fr;justify-items:center"><div class="hdr-logo" style="pointer-events:none"><img src="/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div></div>`;
   const posts=S.posts.filter(p=>!p._tourDemo);
   const knives=S.inventory.filter(k=>!isNI(k)&&!k._tourDemo);
   const gear=S.inventory.filter(k=>isNI(k)&&!k._tourDemo);
@@ -3517,7 +3517,7 @@ function renderSyncingScreen(){
   const saying=SYNC_SAYINGS[S.syncMsg%SYNC_SAYINGS.length];
   return`<div class="app" style="display:flex;flex-direction:column">
     <div class="hdr" style="grid-template-columns:1fr;justify-items:center">
-      <div class="hdr-logo" style="pointer-events:none"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
+      <div class="hdr-logo" style="pointer-events:none"><img src="/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 20px;text-align:center">
       <div style="font-size:48px;line-height:1;animation:spin 1.5s linear infinite;display:flex;justify-content:center">${icon('refresh-cw',48,'var(--blue)')}</div>
@@ -3529,7 +3529,7 @@ function renderSyncingScreen(){
 function renderDeletedAccount(){
   return`<div class="app" style="display:flex;flex-direction:column">
     <div class="hdr" style="grid-template-columns:1fr;justify-items:center">
-      <div class="hdr-logo" style="pointer-events:none"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
+      <div class="hdr-logo" style="pointer-events:none"><img src="/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:40px 24px;text-align:center">
       <div style="line-height:1;color:var(--t3)">${icon('trash-2',40)}</div>
@@ -3548,7 +3548,7 @@ function renderLoading(){
   const msg=isCloud?SYNC_SAYINGS[S.syncMsg%SYNC_SAYINGS.length]:"Loading\u2026";
   return`<div class="app" style="display:flex;flex-direction:column">
     <div class="hdr" style="grid-template-columns:1fr;justify-items:center">
-      <div class="hdr-logo" style="pointer-events:none"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
+      <div class="hdr-logo" style="pointer-events:none"><img src="/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 20px">
       <div style="width:44px;height:44px;border:3px solid rgba(0,113,227,.15);border-top-color:var(--blue);border-radius:50%;animation:spin .75s linear infinite"></div>
@@ -4176,7 +4176,7 @@ function renderTutorialModal(){
   const tip=(head,body)=>`<div class="tut-tip"><strong>${head}</strong>${body}</div>`;
   const steps=[
     // 0 - Welcome
-    {phase:"Welcome",icon:`<img src="/bladeflow/icon.svg" width="160" height="160" alt="BladeFlow"/>`,title:"Welcome to BladeFlow",
+    {phase:"Welcome",icon:`<img src="/icon.svg" width="160" height="160" alt="BladeFlow"/>`,title:"Welcome to BladeFlow",
      body:`A free tool built for <a href='https://www.reddit.com/r/Knife_Swap/' target='_blank' rel='noopener' style='color:var(--blue)'>r/Knife_Swap</a> by u/smashedllama2. It handles all the tedious parts of selling knives on Reddit so you can focus on the knives.<br><br>
      This walkthrough covers everything from first-time setup to closing a confirmed trade. Takes about 3 minutes.
      ${preview(`<strong style="color:var(--t1)">What we cover:</strong>
@@ -4413,7 +4413,7 @@ function renderGuide(){
   const warn=(txt)=>`<div style="background:var(--redbg);border:.5px solid rgba(255,59,48,.2);border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;color:var(--redt);line-height:1.6"><strong>Important:</strong> ${txt}</div>`;
   const tip=(txt)=>`<div style="background:var(--orangebg);border:.5px solid rgba(255,149,0,.3);border-radius:10px;padding:10px 13px;margin-top:8px;font-size:12.5px;color:var(--oranget);line-height:1.6"><strong>Tip:</strong> ${txt}</div>`;
   const ul=(items)=>`<ul style="margin:6px 0 0;padding-left:18px;line-height:1.9">${items.map(i=>`<li>${i}</li>`).join("")}</ul>`;
-  const hdr=`<div class="hdr" style="grid-template-columns:auto 1fr auto;grid-template-rows:auto;height:52px;padding:0 12px"><button class="btn-hdr-ghost" style="display:flex;align-items:center;gap:4px;padding:7px 10px 7px 2px;font-size:14px;font-weight:500;color:var(--blue);flex-shrink:0" onclick="S.view='list';render()"><svg width="9" height="15" viewBox="0 0 9 15" fill="none" style="flex-shrink:0"><path d="M8 1L1 7.5L8 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Listings</button><div style="text-align:center;font-size:15px;font-weight:700;color:var(--t1);align-self:center">How-To Guide</div><button onclick="window.open(location.origin+'/bladeflow/#guide','_blank')" style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--blue);border:none;cursor:pointer;padding:6px 10px;border-radius:8px;background:var(--bluebg);white-space:nowrap;flex-shrink:0">↗ Open in New Tab</button></div>`;
+  const hdr=`<div class="hdr" style="grid-template-columns:auto 1fr auto;grid-template-rows:auto;height:52px;padding:0 12px"><button class="btn-hdr-ghost" style="display:flex;align-items:center;gap:4px;padding:7px 10px 7px 2px;font-size:14px;font-weight:500;color:var(--blue);flex-shrink:0" onclick="S.view='list';render()"><svg width="9" height="15" viewBox="0 0 9 15" fill="none" style="flex-shrink:0"><path d="M8 1L1 7.5L8 14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Listings</button><div style="text-align:center;font-size:15px;font-weight:700;color:var(--t1);align-self:center">How-To Guide</div><button onclick="window.open(location.origin+'/#guide','_blank')" style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--blue);border:none;cursor:pointer;padding:6px 10px;border-radius:8px;background:var(--bluebg);white-space:nowrap;flex-shrink:0">↗ Open in New Tab</button></div>`;
   return`<div class="app">${hdr}<div class="main" style="overflow-y:auto">
   <div style="max-width:680px;margin:0 auto;padding:20px 16px 60px">
     <div style="margin-bottom:24px">
@@ -4591,7 +4591,7 @@ function renderAboutModal(){
   if(tab==="about"){
     content=`
       <div style="text-align:center;margin-bottom:20px">
-        <img src="/bladeflow/icon.svg" width="100" height="100" alt="BladeFlow" style="display:block;margin:0 auto 10px"/>
+        <img src="/icon.svg" width="100" height="100" alt="BladeFlow" style="display:block;margin:0 auto 10px"/>
         <div style="font-size:18px;font-weight:700;color:var(--t1);letter-spacing:-.02em">BladeFlow</div>
         <div style="font-size:12px;color:var(--t3);margin-top:3px">Free tool for r/Knife_Swap</div>
       </div>
@@ -4684,7 +4684,7 @@ function mainHdr(){
   const hasDemoData=S.tour==null&&(S.inventory.some(k=>k._tourDemo)||S.posts.some(p=>p._tourDemo));
   const demoBanner=hasDemoData?`<div class="demo-banner">${icon('film',14)} Demo data is active <button class="demo-rm-btn" onclick="endTour(false)">Remove Demo Data</button></div>`:"";
   return`<div class="hdr">
-    <div class="hdr-logo" onclick="S.view='list';render()"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
+    <div class="hdr-logo" onclick="S.view='list';render()"><img src="/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
     <div class="hdr-tabs"><div class="tab-seg">
       <button class="tab-item${S.view==='list'?' on':''}" onclick="S.view='list';render()">Listings</button>
       <button class="tab-item${S.view==='roll'?' on':''}" onclick="S.view='roll';render()">The Roll</button>
@@ -6231,14 +6231,14 @@ function renderCompose(){
     <label class="cblk"><input type="checkbox" ${d.rulesConfirmed?"checked":""} onchange="S.draft.rulesConfirmed=this.checked;render()"/> I have read all r/Knife_Swap rules</label>
     ${(()=>{const cl=composeChecklist(d);return cl.html+(s.err&&d.knives.length>0?`<div class="err">${esc(s.err)}</div>`:"")+`<div class="gen-row"><button class="btn-gen"${cl.canPost?"":" disabled"} onclick="syncDraft();submitPost()">Generate Post</button><button class="btn btn-sec" onclick="cancelCompose()">Cancel</button></div>`;})()}
   </div>`:"";
-  const hdr=`<div class="hdr"><div class="hdr-logo" onclick="cancelCompose()"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">New Listing</div><div class="hdr-sub">${d.knives.length===0?"Add knives below":d.knives.length===1?"1 knife":d.knives.length+" knives"}</div></div></div><div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="cancelCompose()">Cancel</button></div></div>`;
+  const hdr=`<div class="hdr"><div class="hdr-logo" onclick="cancelCompose()"><img src="/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">New Listing</div><div class="hdr-sub">${d.knives.length===0?"Add knives below":d.knives.length===1?"1 knife":d.knives.length+" knives"}</div></div></div><div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="cancelCompose()">Cancel</button></div></div>`;
   return`<div class="app">${hdr}<div class="cmp-main"><div class="sec-lbl">Knives</div>${knivesList}${addBtns}${kfHtml}${detHtml}</div></div>`;
 }
 
 // ─── RENDER: SETTINGS ────────────────────────────────────────
 function renderSettings(){
   const sv=SETTINGS;
-  const hdr=`<div class="hdr"><div class="hdr-logo" onclick="S.view='list';render()"><img src="/bladeflow/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">Settings</div><div class="hdr-sub">Defaults &amp; preferences</div></div></div><div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="S.view='list';render()">Done</button></div></div>`;
+  const hdr=`<div class="hdr"><div class="hdr-logo" onclick="S.view='list';render()"><img src="/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">Settings</div><div class="hdr-sub">Defaults &amp; preferences</div></div></div><div></div><div class="hdr-r"><button class="btn-hdr-ghost" onclick="S.view='list';render()">Done</button></div></div>`;
   return`<div class="app">${hdr}<div class="settings-main">
   <div class="save-notice${S.saveNotice?' on':''}">Settings saved</div>
   <div class="settings-section-lbl">Your Profile</div>
@@ -6662,7 +6662,7 @@ window.checkPostRules=checkPostRules;
 // ─── SERVICE WORKER ───────────────────────────────────────
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("/bladeflow/sw.js")
+    navigator.serviceWorker.register("/sw.js")
       .catch(e=>console.log("SW registration failed:",e));
   });
 }

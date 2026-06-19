@@ -1,7 +1,7 @@
 // BladeFlow Service Worker
 // v4: force cache bust after Supabase SRI fix
-const CACHE = 'bf-app-v4';
-const CORE = ['/bladeflow/', '/bladeflow/index.html'];
+const CACHE = 'bf-app-v5';
+const CORE = ['/', '/index.html'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -27,8 +27,8 @@ self.addEventListener('fetch', e => {
   if (url.origin !== location.origin) return;
 
   const isNavigation = e.request.mode === 'navigate' ||
-    url.pathname === '/bladeflow/' ||
-    url.pathname === '/bladeflow/index.html';
+    url.pathname === '/' ||
+    url.pathname === '/index.html';
 
   if (isNavigation) {
     // Network-first for HTML: always get the latest app code.
