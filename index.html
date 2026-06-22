@@ -1059,6 +1059,10 @@ const EK=()=>({brand:"",model:"",steel:"",price:"",soldPrice:"",obo:false,knifeT
 const EI=()=>({id:gid(),brand:"",model:"",steel:"",price:"",obo:false,knifeType:"WTS",tradeValue:"",usedCut:"No",carried:"No",bladeCondition:"Factory edge",owners:"1",centering:"Perfect",lockup:"Solid",lockupNotes:"",issues:["None"],issuesOther:"",accessories:["None"],accessoriesOther:"",notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,listedAt:null,photos:[],imgurLink:"",pending:false,priceHistory:[],comps:[],shippingClass:"Priority",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null,addonEnabled:false,addonPrice:"",dob:""});
 const ENI=()=>({id:gid(),itemCategory:"other",description:"",condition:"Excellent",owners:"1",price:"",tradeValue:"",saleType:"WTS",photos:[],notes:"",status:"available",addedAt:new Date().toISOString(),soldAt:null,pending:false,soldTo:null,soldPrice:"",shippingAddress:null,trackingNumber:null,trackingCarrier:"USPS",shippedAt:null,deliveredAt:null,confirmedAt:null});
 const isNI=item=>!!item.itemCategory;
+// A post knife/gear still actively claims its Roll entry only if it hasn't
+// left the listing in any way. Withdrawn and sold-elsewhere count as gone.
+const kActiveInPost=k=>!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted;
+const gActiveInPost=it=>!it.sold&&!it.withdrawn&&!it.reposted;
 const ICONS={
   settings:`<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>`,
   "book-open":`<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>`,
@@ -1297,8 +1301,8 @@ function reconcileInventory(){
   S.inventory.forEach(inv=>{
     if(inv.status==="listed"){
       const claimedByActivePost=S.posts.some(p=>
-        p.knives.some(k=>k.inventoryId===inv.id&&!k.sold&&!k.reposted)||
-        (p.items||[]).some(it=>it.inventoryId===inv.id&&!it.sold&&!it.reposted)
+        p.knives.some(k=>k.inventoryId===inv.id&&kActiveInPost(k))||
+        (p.items||[]).some(it=>it.inventoryId===inv.id&&gActiveInPost(it))
       );
       if(!claimedByActivePost){inv.status="available";changed=true;}
     }
@@ -2770,7 +2774,7 @@ function cancelCompose(){
     if(k.inventoryId){
       const inv=S.inventory.find(x=>x.id===k.inventoryId);
       if(inv){
-        const inActive=S.posts.some(p=>p.knives.some(pk=>pk.inventoryId===k.inventoryId&&!pk.sold&&!pk.reposted));
+        const inActive=S.posts.some(p=>p.knives.some(pk=>pk.inventoryId===k.inventoryId&&kActiveInPost(pk)));
         if(!inActive)inv.status="available";
       }
     }
@@ -2780,7 +2784,7 @@ function cancelCompose(){
     if(it.inventoryId){
       const inv=S.inventory.find(x=>x.id===it.inventoryId);
       if(inv){
-        const inActive=S.posts.some(p=>(p.items||[]).some(pi=>pi.inventoryId===it.inventoryId&&!pi.sold));
+        const inActive=S.posts.some(p=>(p.items||[]).some(pi=>pi.inventoryId===it.inventoryId&&gActiveInPost(pi)));
         if(!inActive)inv.status="available";
       }
     }
@@ -2855,7 +2859,7 @@ function removeKnife(i){
   if(k&&k.inventoryId){
     const inv=S.inventory.find(x=>x.id===k.inventoryId);
     if(inv){
-      const inActive=S.posts.some(p=>p.knives.some(pk=>pk.inventoryId===k.inventoryId&&!pk.sold&&!pk.reposted));
+      const inActive=S.posts.some(p=>p.knives.some(pk=>pk.inventoryId===k.inventoryId&&kActiveInPost(pk)));
       if(!inActive)inv.status="available";
     }
   }
@@ -3165,6 +3169,16 @@ function cancelGearSoldFlow(){S.gearSoldFlow=null;render();}
 function markGearPending(pid,gi){
   up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p||!p.items||p.items[gi]==null)return;const it=p.items[gi];it.pending=!it.pending;p.postText=buildPost(p);});
 }
+function markGearWithdrawn(pid,gi){
+  pushUndo("Gear withdrawn");
+  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p||!p.items||p.items[gi]==null)return;const it=p.items[gi];it.withdrawn=true;it.pending=false;if(it.inventoryId){const inv=s.inventory.find(x=>x.id===it.inventoryId);if(inv)inv.status="available";}p.postText=buildPost(p);});
+  saveInv();render();
+}
+function readdGear(pid,gi){
+  pushUndo("Gear re-added to listing");
+  up(s=>{const p=s.posts.find(x=>x.id===pid);if(!p||!p.items||p.items[gi]==null)return;const it=p.items[gi];it.withdrawn=false;if(it.inventoryId){const inv=s.inventory.find(x=>x.id===it.inventoryId);if(inv)inv.status="listed";}p.postText=buildPost(p);});
+  saveInvNow();render();
+}
 async function lookupZipGear(zip){
   if(!/^\d{5}$/.test(zip))return;
   try{
@@ -3379,8 +3393,17 @@ function deletePost(pid){
       if(k.inventoryId){
         const inv=S.inventory.find(x=>x.id===k.inventoryId);
         if(inv){
-          const inOther=S.posts.filter(op=>op.id!==pid).some(op=>op.knives.some(pk=>pk.inventoryId===k.inventoryId&&!pk.sold&&!pk.reposted));
+          const inOther=S.posts.filter(op=>op.id!==pid).some(op=>op.knives.some(pk=>pk.inventoryId===k.inventoryId&&kActiveInPost(pk)));
           if(!inOther)inv.status=k.sold?"sold":"available";
+        }
+      }
+    });
+    (p.items||[]).forEach(it=>{
+      if(it.inventoryId){
+        const inv=S.inventory.find(x=>x.id===it.inventoryId);
+        if(inv){
+          const inOther=S.posts.filter(op=>op.id!==pid).some(op=>(op.items||[]).some(pi=>pi.inventoryId===it.inventoryId&&gActiveInPost(pi)));
+          if(!inOther)inv.status=it.sold?"sold":"available";
         }
       }
     });
@@ -5065,10 +5088,11 @@ function renderList(){
           const isGSF=s.gearSoldFlow&&s.gearSoldFlow.pid===p.id&&s.gearSoldFlow.gi===gi;
           const gsfHtml=isGSF?gearSoldFlowHtml(p.id,gi):"";
           const gAddrHtml="";
-          const gDot=item.reposted?`<span class="sdot sdot-x"></span>`:item.sold?`<span class="sdot sdot-r"></span>`:item.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
-          const gRowClass=`krow${item.sold?" sold":item.reposted?" withdrawn-row":item.pending?" pending-row":""}`;
-          const gActsHtml=item.reposted?`<span class="reposted-chip">↻ Moved to new listing</span>`:item.sold?(!(item.confirmedAt&&item.deliveredAt)?`<span class="sold-chip">Sold</span><button class="btn btn-sm btn-sec" onclick="markGearSold('${p.id}',${gi})">Relist</button>`:`<span class="sold-chip">Sold</span>`):(`<button class="btn btn-sm${item.pending?" btn-am":" btn-sec"}" onclick="markGearPending('${p.id}',${gi})">${item.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markGearSold('${p.id}',${gi})"><span class="sdot sdot-r"></span> Sold</button>`);
-          return`<div class="${gRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${(item.sold||item.reposted)?" s":""}">${gDot} ${gicn} ${esc(glabel)}: ${esc(item.description||"")}${item.pending&&!item.sold&&!item.reposted?` <span class="pending-tag">PENDING</span>`:""}</div><div class="krow-meta">${esc(item.condition||"")} · ${gpriceStr}${item.sold&&item.soldAt?" · Sold "+fmtD(item.soldAt):""}${item.soldTo?" · Buyer: u/"+esc(item.soldTo):""}${item.reposted?" · Moved to new listing":""}</div></div><span class="krow-price${(item.sold||item.reposted)?" s":""}">${gpriceStr}</span></div><div class="krow-acts">${gActsHtml}</div>${gAddrHtml}${gsfHtml}</div>`;
+          const gGone=item.sold||item.reposted||item.withdrawn;
+          const gDot=item.reposted||item.withdrawn?`<span class="sdot sdot-x"></span>`:item.sold?`<span class="sdot sdot-r"></span>`:item.pending?`<span class="sdot sdot-y"></span>`:`<span class="sdot sdot-g"></span>`;
+          const gRowClass=`krow${item.sold?" sold":item.reposted||item.withdrawn?" withdrawn-row":item.pending?" pending-row":""}`;
+          const gActsHtml=item.reposted?`<span class="reposted-chip">↻ Moved to new listing</span>`:item.withdrawn?`<span class="withdrawn-chip">Withdrawn</span><button class="btn btn-sm btn-sec" onclick="readdGear('${p.id}',${gi})">Re-add</button>`:item.sold?(!(item.confirmedAt&&item.deliveredAt)?`<span class="sold-chip">Sold</span><button class="btn btn-sm btn-sec" onclick="markGearSold('${p.id}',${gi})">Relist</button>`:`<span class="sold-chip">Sold</span>`):(`<button class="btn btn-sm${item.pending?" btn-am":" btn-sec"}" onclick="markGearPending('${p.id}',${gi})">${item.pending?`<span class="sdot sdot-y"></span> Pending`:`<span class="sdot sdot-y"></span> Pending?`}</button><button class="btn btn-sm btn-gn" onclick="markGearSold('${p.id}',${gi})"><span class="sdot sdot-r"></span> Sold</button><button class="btn btn-sm btn-sec" onclick="markGearWithdrawn('${p.id}',${gi})">Withdraw</button>`);
+          return`<div class="${gRowClass}"><div class="krow-top"><div class="krow-info"><div class="krow-name${gGone?" s":""}">${gDot} ${gicn} ${esc(glabel)}: ${esc(item.description||"")}${item.pending&&!gGone?` <span class="pending-tag">PENDING</span>`:""}</div><div class="krow-meta">${esc(item.condition||"")} · ${gpriceStr}${item.sold&&item.soldAt?" · Sold "+fmtD(item.soldAt):""}${item.soldTo?" · Buyer: u/"+esc(item.soldTo):""}${item.reposted?" · Moved to new listing":""}${item.withdrawn?" · Withdrawn":""}</div></div><span class="krow-price${gGone?" s":""}">${gpriceStr}</span></div><div class="krow-acts">${gActsHtml}</div>${gAddrHtml}${gsfHtml}</div>`;
         }).join("");
         return`<div class="krows-hdr" style="margin-top:10px">Gear &amp; Extras</div>${gearItemRows}`;
       })():"";
@@ -6403,7 +6427,7 @@ window.openKF=openKF;window.closeKF=closeKF;window.syncKF=syncKF;window.saveKF=s
 window.removeKnife=removeKnife;window.setPrevPrice=setPrevPrice;window.applyDropPrice=applyDropPrice;window.setKfPrevPrice=setKfPrevPrice;window.applyKfDropPrice=applyKfDropPrice;window.addFromLocker=addFromLocker;window.removeFromInventory=removeFromInventory;window.markInvSold=markInvSold;
 window.syncDraft=syncDraft;window.submitPost=submitPost;window.addTimestampUrl=addTimestampUrl;window.removeTimestampUrl=removeTimestampUrl;
 window.openBundlePicker=openBundlePicker;window.closeBundlePicker=closeBundlePicker;window.toggleBundleKnife=toggleBundleKnife;window.confirmBundleCreate=confirmBundleCreate;window.removeBundle=removeBundle;
-window.openNI=openNI;window.closeNI=closeNI;window.saveNI=saveNI;window.removeNI=removeNI;window.markNISold=markNISold;window.addGearFromRoll=addGearFromRoll;window.removeGearItem=removeGearItem;window.markNIPending=markNIPending;window.triggerNIUpload=triggerNIUpload;window.handleNIFileInput=handleNIFileInput;window.removeNIUpload=removeNIUpload;window.addNIPhotoUrl=addNIPhotoUrl;window.markGearSold=markGearSold;window.confirmGearSoldFlow=confirmGearSoldFlow;window.cancelGearSoldFlow=cancelGearSoldFlow;window.markGearPending=markGearPending;window.lookupZipGear=lookupZipGear;window.saveGearTracking=saveGearTracking;window.markGearShipped=markGearShipped;window.markGearDelivered=markGearDelivered;window.markGearConfirmed=markGearConfirmed;window.copyGearConfirmComment=copyGearConfirmComment;window.gearShipCard=gearShipCard;window.gearAddrDisplayHtml=gearAddrDisplayHtml;window.gearPickerIssues=gearPickerIssues;window.gearSoldFlowHtml=gearSoldFlowHtml;
+window.openNI=openNI;window.closeNI=closeNI;window.saveNI=saveNI;window.removeNI=removeNI;window.markNISold=markNISold;window.addGearFromRoll=addGearFromRoll;window.removeGearItem=removeGearItem;window.markNIPending=markNIPending;window.triggerNIUpload=triggerNIUpload;window.handleNIFileInput=handleNIFileInput;window.removeNIUpload=removeNIUpload;window.addNIPhotoUrl=addNIPhotoUrl;window.markGearSold=markGearSold;window.confirmGearSoldFlow=confirmGearSoldFlow;window.cancelGearSoldFlow=cancelGearSoldFlow;window.markGearPending=markGearPending;window.markGearWithdrawn=markGearWithdrawn;window.readdGear=readdGear;window.lookupZipGear=lookupZipGear;window.saveGearTracking=saveGearTracking;window.markGearShipped=markGearShipped;window.markGearDelivered=markGearDelivered;window.markGearConfirmed=markGearConfirmed;window.copyGearConfirmComment=copyGearConfirmComment;window.gearShipCard=gearShipCard;window.gearAddrDisplayHtml=gearAddrDisplayHtml;window.gearPickerIssues=gearPickerIssues;window.gearSoldFlowHtml=gearSoldFlowHtml;
 window.saveToRoll=saveToRoll;window.markSold=markSold;window.cycleTmpl=cycleTmpl;window.deletePost=deletePost;window.copyPost=copyPost;window.copyText=copyText;window.openRedditPost=openRedditPost;window.startPriceDropRepost=startPriceDropRepost;window.startSamePriceRepost=startSamePriceRepost;window.tutDone=tutDone;window.tutGo=tutGo;window.obNext=obNext;window.obSkip=obSkip;window.obDone=obDone;window.saveObUsername=saveObUsername;window.openPreflight=openPreflight;window.closePreflight=closePreflight;window.addTimestampToPreflight=addTimestampToPreflight;window.addTimestampInline=addTimestampInline;window.updateTimestampInline=updateTimestampInline;window.handleTsUpdateInput=handleTsUpdateInput;window.handleTsUpdateDrop=handleTsUpdateDrop;window.copyFromPreflight=copyFromPreflight;window.openRedditFromPreflight=openRedditFromPreflight;
 window.startMove=startMove;window.cancelMove=cancelMove;window.executeMove=executeMove;
 window.updateModelList=updateModelList;window.autoFillInput=autoFillInput;window.saveSettings=saveSettings;window.imgFallback=imgFallback;
@@ -6520,14 +6544,13 @@ function importAllData(){
       const text=await file.text();
       const data=JSON.parse(text);
       if(!data._bladeflow){S.err="This doesn't look like a BladeFlow backup file.";render();return;}
-      if(data.posts){
-        S.posts=data.posts;
-        await window.storage.set("ks_v4",JSON.stringify(data.posts));
-      }
-      if(data.inventory){
-        S.inventory=data.inventory;
-        await window.storage.set("ks_inv_v1",JSON.stringify(data.inventory));
-      }
+      if(data.posts)S.posts=data.posts;
+      if(data.inventory)S.inventory=data.inventory;
+      // Heal stale "listed" statuses from older bugs before persisting:
+      // an item flagged listed but not in any active post is reset to available.
+      reconcileInventory();
+      if(data.posts)await window.storage.set("ks_v4",JSON.stringify(S.posts));
+      if(data.inventory)await window.storage.set("ks_inv_v1",JSON.stringify(S.inventory));
       if(data.settings){
         // Merge over defaults so any new fields added since backup was made still get their defaults
         const imported={...data.settings};
