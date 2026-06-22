@@ -6711,6 +6711,40 @@ if("serviceWorker" in navigator){
 
 // Save time-on-site to lifetime stats on tab close
 window.addEventListener('beforeunload',()=>{try{const _bfs=JSON.parse(localStorage.getItem('bf_stats')||'{}');_bfs.totalTimeMs=(_bfs.totalTimeMs||0)+(Date.now()-(S._sessionStart||Date.now()));localStorage.setItem('bf_stats',JSON.stringify(_bfs));}catch(e){}});
+
+// ─── CROSS-DEVICE SYNC HARDENING ──────────────────────────
+// Mobile browsers suspend background tabs and drop pending setTimeout timers.
+// If a user creates data then locks the phone before the debounced sync fires,
+// the push is lost and the data lives only in this device's localStorage — which
+// is exactly the "made it on my phone, not on my laptop" symptom. So:
+//  • when the tab is hidden/closed, immediately flush any pending/dirty sync;
+//  • when the tab becomes visible again, re-pull from cloud to pick up changes
+//    made on other devices (an already-open tab otherwise never refreshes).
+function _isDirty(){try{return localStorage.getItem("ks_dirty")==="1";}catch(e){return false;}}
+function _flushSyncNow(){
+  if(!currentUser||!_sb||!S.loaded)return;
+  if(!(_sbSyncTid||_isDirty()||_syncStatus==='pending'))return;
+  if(_sbSyncTid){clearTimeout(_sbSyncTid);_sbSyncTid=null;}
+  if(_syncInFlight)return;
+  _syncInFlight=true;
+  _doSbSync()
+    .then(()=>{_syncStatus='synced';_syncLastAt=Date.now();try{localStorage.removeItem("ks_dirty");}catch(e){}})
+    .catch(()=>{})
+    .finally(()=>{_syncInFlight=false;});
+}
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden"){
+    _flushSyncNow();
+  }else if(document.visibilityState==="visible"){
+    // Returning to an already-open tab. Pull other devices' changes, but never
+    // interrupt active editing or clobber unsynced local work.
+    if(currentUser&&_sb&&S.loaded&&!_isDirty()&&!_syncInFlight&&!_sbSyncTid
+       &&S.view!=='compose'&&!S.kfOpen&&!S.niOpen&&!S.modal){
+      _sbLoad().then(render);
+    }
+  }
+});
+window.addEventListener("pagehide",_flushSyncNow);
 // Capture desired view from hash/param BEFORE any async render() calls overwrite location.hash
 const _VALID_VIEWS=['list','roll','sold','shipping','guide','settings'];
 
