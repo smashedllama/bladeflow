@@ -2898,7 +2898,8 @@ function addFromLocker(invIdx){
 }
 function addGearFromRoll(invIdx){
   const item=S.inventory[invIdx];if(!item||!isNI(item))return;
-  const copy=JSON.parse(JSON.stringify(item));
+  const copy={...JSON.parse(JSON.stringify(item)),inventoryId:item.id};
+  delete copy.status;delete copy.addedAt;delete copy.soldAt;
   S.draft.items=[...(S.draft.items||[]),copy];
   S.gearPicker=false;render();
 }
@@ -3079,8 +3080,9 @@ function submitPost(){
   S.err="";
   const post={id:gid(),createdAt:new Date().toISOString(),timestampAddedAt:new Date().toISOString(),variant:0,...JSON.parse(JSON.stringify(d))};
   post.postText=buildPost(post,0);
-  // Update inventory status for any linked knives
+  // Update inventory status for any linked knives and gear
   post.knives.forEach(k=>{if(k.inventoryId){const inv=S.inventory.find(x=>x.id===k.inventoryId);if(inv){inv.status="listed";if(!inv.listedAt)inv.listedAt=post.createdAt;}}});
+  (post.items||[]).forEach(it=>{if(it.inventoryId){const inv=S.inventory.find(x=>x.id===it.inventoryId);if(inv){inv.status="listed";if(!inv.listedAt)inv.listedAt=post.createdAt;}}});
   // If this is a repost, move all active knives/gear off the original post
   if(d.repostOf){const orig=S.posts.find(x=>x.id===d.repostOf);if(orig){orig.knives.forEach(k=>{if(!k.sold&&!k.soldElsewhere&&!k.withdrawn&&!k.reposted)k.reposted=true;});(orig.items||[]).forEach(it=>{if(!it.sold&&!it.withdrawn&&!it.reposted)it.reposted=true;});orig.postText=buildPost(orig);}}
   S.posts=[post,...S.posts];
