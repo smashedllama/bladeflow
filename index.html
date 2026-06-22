@@ -2894,15 +2894,13 @@ function addFromLocker(invIdx){
   delete copy.status;delete copy.addedAt;delete copy.soldAt;
   S.draft.knives.push(copy);
   S.draft.postType=autoPostType(S.draft.knives);
-  S.inventory[invIdx].status="listed";S.inventory[invIdx].listedAt=new Date().toISOString();
-  S.lockerPicker=false;saveInvNow();render();
+  S.lockerPicker=false;render();
 }
 function addGearFromRoll(invIdx){
   const item=S.inventory[invIdx];if(!item||!isNI(item))return;
   const copy=JSON.parse(JSON.stringify(item));
   S.draft.items=[...(S.draft.items||[]),copy];
-  S.inventory[invIdx].status="listed";S.inventory[invIdx].listedAt=new Date().toISOString();
-  S.gearPicker=false;saveInvNow();render();
+  S.gearPicker=false;render();
 }
 function removeGearItem(draftIdx){S.draft.items=(S.draft.items||[]).filter((_,i)=>i!==draftIdx);render();}
 function removeFromInventory(idx){pushUndo("Item archived");upInv(s=>{const k=s.inventory[idx];if(k){k.archived=true;k.archivedAt=new Date().toISOString();}});}
