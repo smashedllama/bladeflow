@@ -3440,17 +3440,16 @@ async function openRedditPost(pid){
   let url="https://www.reddit.com/r/Knife_Swap/submit?selftext=true&title="+encodeURIComponent(title);
   if(p.repost)url+="&flair_text="+encodeURIComponent("Price Reduced");
   // Also copy to clipboard — new Reddit ignores &text= but old Reddit uses it; clipboard covers both
-  let copied=false;
-  try{await navigator.clipboard.writeText(p.postText||"");copied=true;}catch(e){}
+  const copied=await copyRich(postToRichHtml(p.postText||""),p.postText||"");
   window.open(url,"_blank","noopener");
   // Show paste reminder (overrides flair toast if both apply)
   let msg;
   if(!copied){
-    msg=`${icon('alert-triangle',13,'var(--oranget)')} Couldn't auto-copy. On Reddit: switch to Markdown editor first, then paste your post text.`;
+    msg=`${icon('alert-triangle',13,'var(--oranget)')} Couldn't auto-copy. Select the post text manually and copy it.`;
   } else if(p.repost){
-    msg=`${icon('clipboard',13)} Post text copied. On Reddit: switch to Markdown editor, paste, then select 'Price Reduced' flair.`;
+    msg=`${icon('clipboard',13)} Post copied. Paste into Reddit's editor (links & formatting carry over), then select 'Price Reduced' flair.`;
   } else {
-    msg=`${icon('clipboard',13)} Post text copied. On Reddit: switch to Markdown editor (bottom-right of the text box), then paste.`;
+    msg=`${icon('clipboard',13)} Post copied. Paste straight into Reddit's editor — links & formatting carry over.`;
   }
   S.flairToast=msg;
   clearTimeout(S._flairTid);
@@ -3459,9 +3458,9 @@ async function openRedditPost(pid){
 }
 async function copyPost(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
-  let copied=false;try{await navigator.clipboard.writeText(p.postText);copied=true;}catch(e){}
+  const copied=await copyRich(postToRichHtml(p.postText||""),p.postText||"");
   S.copied=pid;
-  S.flairToast=copied?`${icon('clipboard',13)} Post text copied. On Reddit: switch to Markdown editor (bottom-right of the text box), then paste.`:`${icon('alert-triangle',13,'var(--oranget)')} Couldn't auto-copy. On Reddit: switch to Markdown editor first, then paste your post text.`;
+  S.flairToast=copied?`${icon('clipboard',13)} Post copied. Paste straight into Reddit's editor — links & formatting carry over. (Or switch to the Markdown editor to paste raw text.)`:`${icon('alert-triangle',13,'var(--oranget)')} Couldn't auto-copy. Select the post text manually and copy it.`;
   clearTimeout(S._flairTid);S._flairTid=setTimeout(()=>{S.flairToast=null;render();},9000);
   render();setTimeout(()=>{S.copied=null;render();},2000);
 }
@@ -3715,9 +3714,9 @@ async function uploadTsPhoto(pid,file){
 }
 async function copyFromPreflight(pid){
   const p=S.posts.find(x=>x.id===pid);if(!p)return;
-  let copied=false;try{await navigator.clipboard.writeText(p.postText||"");copied=true;}catch(e){}
+  const copied=await copyRich(postToRichHtml(p.postText||""),p.postText||"");
   S.copied=pid;S.modal=null;S.preflight=null;S.updateBypass=false;
-  S.flairToast=copied?`${icon('clipboard',13)} Post text copied. On Reddit: switch to Markdown editor (bottom-right of the text box), then paste.`:`${icon('alert-triangle',13,'var(--oranget)')} Couldn't auto-copy. On Reddit: switch to Markdown editor first, then paste your post text.`;
+  S.flairToast=copied?`${icon('clipboard',13)} Post copied. Paste straight into Reddit's editor — links & formatting carry over. (Or switch to the Markdown editor for raw text.)`:`${icon('alert-triangle',13,'var(--oranget)')} Couldn't auto-copy. Select the post text manually and copy it.`;
   clearTimeout(S._flairTid);S._flairTid=setTimeout(()=>{S.flairToast=null;render();},9000);
   render();setTimeout(()=>{if(S.copied===pid){S.copied=null;render();}},2000);
 }
@@ -6625,6 +6624,80 @@ function inlineMd(t){
     .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
     .replace(/\*(.+?)\*/g,"<em>$1</em>");
 }
+// Inline markdown → clean semantic HTML for the clipboard (no app-specific styles;
+// Reddit's rich text editor applies its own). Links keep their href, so a long
+// gallery URL stays hidden behind the knife name exactly like markdown does.
+function _inlineRich(t){
+  return t
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,(_,txt,url)=>/^https?:\/\//i.test(url)?`<a href="${url}">${txt}</a>`:txt)
+    .replace(/~~(.+?)~~/g,"<del>$1</del>")
+    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g,"<em>$1</em>");
+}
+// Convert a generated post (markdown) into rich HTML so it can be pasted into
+// Reddit's rich-text editor with links and formatting intact. Reddit is phasing
+// out the markdown editor; the plain-text markdown is still copied as a fallback.
+function postToRichHtml(md){
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const lines=(md||"").split("\n");
+  const out=[];let i=0;let para=[];
+  const flush=()=>{if(para.length){out.push("<p>"+para.join("<br>")+"</p>");para=[];}};
+  while(i<lines.length){
+    const raw=lines[i];const trimmed=raw.trim();
+    // Table
+    if(trimmed.startsWith("|")&&trimmed.endsWith("|")){
+      flush();
+      out.push("<table><thead><tr>");
+      esc(trimmed).slice(1,-1).split("|").forEach(c=>out.push("<th>"+_inlineRich(c.trim())+"</th>"));
+      out.push("</tr></thead><tbody>");
+      i++;
+      if(i<lines.length&&/^\|[\s\-:|]+\|$/.test(lines[i].trim()))i++;
+      while(i<lines.length&&lines[i].trim().startsWith("|")&&lines[i].trim().endsWith("|")){
+        out.push("<tr>");
+        esc(lines[i].trim()).slice(1,-1).split("|").forEach(c=>out.push("<td>"+_inlineRich(c.trim())+"</td>"));
+        out.push("</tr>");i++;
+      }
+      out.push("</tbody></table>");continue;
+    }
+    // Horizontal rule
+    if(/^-{3,}$/.test(trimmed)){flush();out.push("<hr>");i++;continue;}
+    // Blockquote (skip the "> &nbsp;" markdown spacer)
+    if(trimmed.startsWith(">")){
+      flush();
+      const inner=trimmed.replace(/^>\s?/,"");
+      if(inner&&inner!=="&nbsp;")out.push("<blockquote>"+_inlineRich(esc(inner))+"</blockquote>");
+      i++;continue;
+    }
+    // List (collect consecutive items)
+    if(trimmed.startsWith("- ")){
+      flush();out.push("<ul>");
+      while(i<lines.length&&lines[i].trim().startsWith("- ")){out.push("<li>"+_inlineRich(esc(lines[i].trim().slice(2)))+"</li>");i++;}
+      out.push("</ul>");continue;
+    }
+    // Blank line ends the current paragraph
+    if(trimmed===""){flush();i++;continue;}
+    // Normal line — accumulate into the current paragraph
+    para.push(_inlineRich(esc(raw)));i++;
+  }
+  flush();
+  return out.join("");
+}
+// Copy both a rich-HTML flavor and a plain-text fallback in one clipboard write.
+// Rich editors take the HTML; plain-text-only targets fall back to markdown.
+async function copyRich(html,plain){
+  try{
+    if(navigator.clipboard&&typeof ClipboardItem!=="undefined"){
+      await navigator.clipboard.write([new ClipboardItem({
+        "text/html":new Blob([html],{type:"text/html"}),
+        "text/plain":new Blob([plain],{type:"text/plain"})
+      })]);
+      _bumpCopyStats();return true;
+    }
+  }catch(e){/* fall through to plain text */}
+  try{await navigator.clipboard.writeText(plain);_bumpCopyStats();return true;}catch(e){}
+  return false;
+}
+function _bumpCopyStats(){S._copyCount=(S._copyCount||0)+1;try{const _bfs=JSON.parse(localStorage.getItem('bf_stats')||'{}');_bfs.totalCopies=(_bfs.totalCopies||0)+1;localStorage.setItem('bf_stats',JSON.stringify(_bfs));}catch(e){}}
 function renderMd(md){
   const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   const lines=md.split("\n");
