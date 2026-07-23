@@ -1145,8 +1145,41 @@ async function load(){
 let _syncInFlight=false;
 let _syncPending=false;
 
+// Collapse duplicate-id entries in an array, keeping the last occurrence's data at
+// the first occurrence's position. Items without an id are left untouched. Returns
+// {out, dropped}.
+function _dedupeArr(arr){
+  const pos=new Map();const out=[];let dropped=0;
+  arr.forEach(x=>{
+    if(x&&x.id){
+      if(pos.has(x.id)){out[pos.get(x.id)]=x;dropped++;}
+      else{pos.set(x.id,out.length);out.push(x);}
+    }else{out.push(x);}
+  });
+  return{out,dropped};
+}
+// Remove duplicate-id entries from S.posts and S.inventory. Returns true if anything
+// was collapsed.
+function dedupeStateById(){
+  let changed=false;
+  const inv=_dedupeArr(S.inventory);
+  if(inv.dropped>0){console.warn('[sync] collapsed',inv.dropped,'duplicate inventory id(s)');S.inventory=inv.out;changed=true;}
+  const posts=_dedupeArr(S.posts);
+  if(posts.dropped>0){console.warn('[sync] collapsed',posts.dropped,'duplicate post id(s)');S.posts=posts.out;changed=true;}
+  return changed;
+}
+function saveStateAfterDedupe(){
+  try{window.storage.set("ks_v4",JSON.stringify(S.posts.filter(p=>!p._tourDemo)));}catch(e){}
+  try{window.storage.set("ks_inv_v1",JSON.stringify(S.inventory.filter(k=>!k._tourDemo)));}catch(e){}
+}
 async function _doSbSync(){
   const now=new Date().toISOString();
+  // Collapse any accidental duplicate ids before upserting. Postgres rejects an
+  // upsert whose payload references the same primary key twice ("ON CONFLICT DO
+  // UPDATE command cannot affect row a second time"), which would block ALL syncs.
+  // Keep the last occurrence (most recently written) and heal local state so the
+  // duplicate is genuinely gone, not just masked for this one request.
+  if(dedupeStateById())saveStateAfterDedupe();
   const posts=S.posts.filter(p=>!p._tourDemo);
   // Defensive: skip any inventory item that has no id (can't upsert without PK)
   const inv=S.inventory.filter(k=>!k._tourDemo&&k.id);
@@ -1446,6 +1479,7 @@ async function _sbLoad(){
       }
     }
     S.loaded=true;
+    dedupeStateById();
     reconcileInventory();
     _syncStatus='synced';_syncLastAt=Date.now();_syncErrMsg='';
     // Mirror to localStorage and mark this device as synced for this user
@@ -1562,9 +1596,10 @@ async function migrateToSupabase(){
   const _tid=setInterval(()=>{S.syncMsg++;render();},1900);
   try{
     const now=new Date().toISOString();
+    dedupeStateById();
     const posts=S.posts.filter(p=>!p._tourDemo);
     if(posts.length)await _sb.from("posts").upsert(posts.map(p=>{const{postText:_,...rest}=p;return{id:p.id,user_id:currentUser.id,data:rest,updated_at:now};}));
-    const inv=S.inventory.filter(k=>!k._tourDemo);
+    const inv=S.inventory.filter(k=>!k._tourDemo&&k.id);
     if(inv.length)await _sb.from("inventory").upsert(inv.map(k=>({id:k.id,user_id:currentUser.id,data:k,updated_at:now})));
     await _sbSaveSettings();
     try{localStorage.setItem("ks_v4",JSON.stringify(posts));localStorage.setItem("ks_inv_v1",JSON.stringify(inv));localStorage.setItem("ks_synced_uid",currentUser.id);}catch(e){}
