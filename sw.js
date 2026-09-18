@@ -1,6 +1,6 @@
 // BladeFlow Service Worker
-// v4: force cache bust after Supabase SRI fix
-const CACHE = 'bf-app-v5';
+// v6: force cache bust so all clients pull the latest app (gear editing, top-level Edit)
+const CACHE = 'bf-app-v6';
 const CORE = ['/', '/index.html'];
 
 self.addEventListener('install', e => {
