@@ -2439,6 +2439,9 @@ function buildTimestampLine(post){
 function buildPost(post,v){
   v=v!==undefined?v:(post.variant||0);
   if(v===2)v=3; // Minimal removed; variant 2 now maps to Table
+  // Heal any knives with missing/null fields (older or partially-synced records)
+  // so the post builder never crashes on e.g. an absent issues/accessories array.
+  (post.knives||[]).forEach(normKnife);
   const ts=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
   const payList=post.payment.map(p=>p==="Other"&&post.paymentOther?post.paymentOther:p);
   const pay=payList.join(" | ");
@@ -2827,6 +2830,21 @@ function cancelCompose(){
   });
   S.view="list";S.draft=ED();S.kfOpen=false;S.err="";S.uploadFiles=[];saveInv();render();
 }
+// Backfill any missing/null fields on a knife from the EK() template so older or
+// partially-synced records don't crash the editor or post builder. A knife with
+// no issues/accessories array, for example, would throw on .includes() and break
+// the whole edit form / generated post.
+function normKnife(k){
+  if(!k||typeof k!=="object")return k;
+  const d=EK();
+  for(const key in d){if(k[key]===undefined||k[key]===null)k[key]=Array.isArray(d[key])?d[key].slice():d[key];}
+  if(!Array.isArray(k.issues))k.issues=["None"];
+  if(!Array.isArray(k.accessories))k.accessories=["None"];
+  if(!Array.isArray(k.photos))k.photos=[];
+  if(!Array.isArray(k.priceHistory))k.priceHistory=[];
+  if(!Array.isArray(k.comps))k.comps=[];
+  return k;
+}
 function openKF(idx,mode,postId){
   S.kfMode=mode||"draft";S.kfOpen=true;S.adv=false;S.err="";S.kfPostId=postId||null;
   if(mode==="locker"){
@@ -2838,6 +2856,7 @@ function openKF(idx,mode,postId){
   }else{
     S.kfIdx=idx;S.kf=idx>=0?JSON.parse(JSON.stringify(S.draft.knives[idx])):EK();
   }
+  normKnife(S.kf);
   // Pre-populate kfUploads from existing photos — assign slot tags by position
   S.kfUploads=(S.kf.photos||[]).map((url,i)=>({uid:gid(),name:url.split("/").pop()||"photo",url,uploading:false,error:null,tag:PHOTO_SLOT_ORDER[i]||"other"}));
   // Restore extra slot count from existing photos (how many extra_N tags are used)
