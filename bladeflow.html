@@ -66,6 +66,7 @@ body,html{background:var(--bg)}
 .sync-chip.error{color:var(--redt);border-color:rgba(255,59,48,.3);background:var(--redbg)}
 .sync-chip .sc-lbl{font-size:11px}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bfUpToast{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
 /* ACCOUNT AVATAR BUTTON + RING */
 .acct-wrap{position:relative;display:inline-flex;align-items:center;flex-shrink:0}
@@ -6827,12 +6828,43 @@ function checkPostRules(pid){
 }
 window.checkPostRules=checkPostRules;
 
-// ─── SERVICE WORKER ───────────────────────────────────────
+// ─── SERVICE WORKER + UPDATE BANNER ───────────────────────
+// When a new build is deployed, the new service worker installs and waits.
+// We surface a "new version available" banner so users can update on the spot
+// instead of being stranded on a stale cached build.
+let _bfUpdating=false;
+function showUpdateBanner(worker){
+  if(!worker||document.getElementById("bf-update-banner"))return;
+  const b=document.createElement("div");
+  b.id="bf-update-banner";
+  b.style.cssText="position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:100000;display:flex;align-items:center;gap:12px;background:#1C1C1E;color:#F2F2F7;border:.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px 11px 16px;box-shadow:0 8px 32px rgba(0,0,0,.45);font-family:var(--font);font-size:13px;max-width:calc(100% - 32px);animation:bfUpToast .3s ease";
+  const txt=document.createElement("span");txt.textContent="A new version of BladeFlow is available.";txt.style.cssText="line-height:1.4";
+  const btn=document.createElement("button");btn.textContent="Update";
+  btn.style.cssText="flex-shrink:0;background:#4CAF50;color:#fff;border:none;border-radius:9px;padding:7px 15px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)";
+  const dismiss=document.createElement("button");dismiss.setAttribute("aria-label","Dismiss");dismiss.innerHTML="&times;";
+  dismiss.style.cssText="flex-shrink:0;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;line-height:1;cursor:pointer;padding:0 4px";
+  btn.addEventListener("click",()=>{btn.textContent="Updating…";btn.disabled=true;_bfUpdating=true;try{worker.postMessage("SKIP_WAITING");}catch(e){location.reload();}});
+  dismiss.addEventListener("click",()=>b.remove());
+  b.appendChild(txt);b.appendChild(btn);b.appendChild(dismiss);
+  document.body.appendChild(b);
+}
 if("serviceWorker" in navigator){
+  let _bfReg=null;
+  const _watch=w=>{if(!w)return;w.addEventListener("statechange",()=>{if(w.state==="installed"&&navigator.serviceWorker.controller)showUpdateBanner(w);});};
   window.addEventListener("load",()=>{
-    navigator.serviceWorker.register("/sw.js")
-      .catch(e=>console.log("SW registration failed:",e));
+    navigator.serviceWorker.register("/sw.js").then(reg=>{
+      _bfReg=reg;
+      // An update may already be downloaded and waiting from a previous visit.
+      if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBanner(reg.waiting);
+      reg.addEventListener("updatefound",()=>_watch(reg.installing));
+    }).catch(e=>console.log("SW registration failed:",e));
+    // When the new worker takes control after the user opted in, reload once to
+    // run the fresh code. Guarded so a first-ever visit (initial claim) never reloads.
+    let _reloaded=false;
+    navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!_bfUpdating||_reloaded)return;_reloaded=true;location.reload();});
   });
+  // Check for a new build when the tab regains focus, so long-open tabs notice deploys.
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&_bfReg){try{_bfReg.update();}catch(e){}}});
 }
 
 // Save time-on-site to lifetime stats on tab close

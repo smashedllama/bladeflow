@@ -1,14 +1,18 @@
 // BladeFlow Service Worker
-// v6: force cache bust so all clients pull the latest app (gear editing, top-level Edit)
-const CACHE = 'bf-app-v6';
+// v7: wait for user opt-in (in-app "Update" banner) instead of auto-skipping,
+// so a new build never silently swaps mid-session.
+const CACHE = 'bf-app-v7';
 const CORE = ['/', '/index.html'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE)
-      .then(c => c.addAll(CORE))
-      .then(() => self.skipWaiting())
-  );
+  // Pre-cache the shell, then stay in "waiting" until the page tells us to
+  // activate (via the SKIP_WAITING message from the update banner).
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)));
+});
+
+// The page posts this when the user taps "Update" in the new-version banner.
+self.addEventListener('message', e => {
+  if (e.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
