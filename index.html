@@ -232,7 +232,7 @@ textarea{resize:vertical;line-height:1.55}
 .tour-demo-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;background:var(--bluebg);color:var(--bluet);border-radius:20px;padding:3px 10px;margin-bottom:10px}
 @keyframes tourRing{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 /* Demo banner - shown after tour ends while demo data is still present */
-.demo-banner{display:flex;align-items:center;justify-content:center;gap:10px;padding:7px 16px;background:rgba(255,149,0,.11);border-bottom:1px solid rgba(255,149,0,.25);font-size:12px;color:var(--oranget);font-weight:500}
+.demo-bar{display:flex;align-items:center;justify-content:center;gap:10px;padding:7px 16px;background:rgba(255,149,0,.11);border-bottom:1px solid rgba(255,149,0,.25);font-size:12px;color:var(--oranget);font-weight:500}
 .demo-rm-btn{font-size:11.5px;font-weight:700;padding:4px 12px;border-radius:20px;border:1.5px solid var(--oranget);background:transparent;color:var(--oranget);cursor:pointer;font-family:var(--font);animation:demoPulse 2s ease-in-out infinite}
 @keyframes demoPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,149,0,.5)}60%{box-shadow:0 0 0 6px rgba(255,149,0,0)}}
 /* ─── Setup Guide Card (real-data walkthrough) ─── */
@@ -429,7 +429,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .kf-badge.lk{background:var(--purplebg);color:var(--purplet)}
 .adv-btn{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:var(--blue);background:none;border:none;cursor:pointer;font-family:var(--font);padding:0;margin-top:12px;transition:opacity var(--tr)}
 .adv-btn:hover{opacity:.7}
-.adv-box{background:var(--bg);border:.5px solid var(--b1);border-radius:var(--rs);padding:14px;margin-top:8px}
+.kf-details{background:var(--bg);border:.5px solid var(--b1);border-radius:var(--rs);padding:14px;margin-top:8px}
 
 /* DETAILS CARD */
 .det{background:var(--card);border:.5px solid var(--b1);border-radius:var(--r);padding:18px;margin-top:14px;box-shadow:var(--sh)}
@@ -560,8 +560,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .auth-signed-info{flex:1;overflow:hidden}
 .auth-signed-email{font-size:14px;font-weight:600;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .auth-signed-status{font-size:12px;color:var(--greent);margin-top:2px}
-.auth-sync-banner{background:var(--bluebg);border:.5px solid var(--blue);border-radius:var(--rxs);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--bluet);line-height:1.5}
-.auth-sync-banner strong{display:block;margin-bottom:4px;font-size:14px}
+.auth-sync-bar{background:var(--bluebg);border:.5px solid var(--blue);border-radius:var(--rxs);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--bluet);line-height:1.5}
+.auth-sync-bar strong{display:block;margin-bottom:4px;font-size:14px}
 .auth-sync-btns{display:flex;gap:8px;margin-top:10px}
 .supa-indicator{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .supa-indicator.on{background:var(--green)}
@@ -747,7 +747,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
   .up-row{background:#3A3A3C;border-color:rgba(255,255,255,.07)}
   /* Knife form */
   .kf{background:var(--card);border-color:rgba(10,132,255,.3);box-shadow:0 0 0 3px rgba(10,132,255,.1),var(--shm)}
-  .adv-box{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08)}
+  .kf-details{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08)}
   .kf-type-btn{background:#3A3A3C;border-color:rgba(255,255,255,.1);color:var(--t3)}
   /* Locker picker */
   .lk-picker{background:#2C2C2E;border-color:rgba(255,255,255,.08)}
@@ -797,7 +797,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
   /* Auth modal specific */
   .auth-field input{background:#3A3A3C;border-color:rgba(255,255,255,.1)}
   .auth-field input:focus{background:#3A3A3C}
-  .auth-sync-banner{background:rgba(10,132,255,.15);border-color:rgba(10,132,255,.35)}
+  .auth-sync-bar{background:rgba(10,132,255,.15);border-color:rgba(10,132,255,.35)}
   /* Base btn: override browser default white background */
   .btn{background:rgba(255,255,255,.1);color:var(--t1)}
   .btn:hover{background:rgba(255,255,255,.16)}
@@ -3897,7 +3897,7 @@ function renderAuthModal(){
   let inner="";
   if(S.showMigrate){
     inner=`${brand}<div style="padding:0 24px 28px">
-      <div class="auth-sync-banner"><strong>You have local data</strong>: ${S.posts.length} listing${S.posts.length!==1?"s":""} and ${S.inventory.length} knife${S.inventory.length!==1?"s":""} in The Roll. Sync them to your account so they're available on any device.
+      <div class="auth-sync-bar"><strong>You have local data</strong>: ${S.posts.length} listing${S.posts.length!==1?"s":""} and ${S.inventory.length} knife${S.inventory.length!==1?"s":""} in The Roll. Sync them to your account so they're available on any device.
         <div class="auth-sync-btns"><button class="btn btn-pri btn-sm" onclick="migrateToSupabase()">Sync to Account</button><button class="btn btn-sec btn-sm" onclick="skipMigrate()">Skip - Load from Cloud</button></div>
       </div>
     </div>`;
@@ -4143,7 +4143,7 @@ async function submitFeedbackForm(){
           language:navigator.language,
           pageUrl:location.href,
           timestamp:new Date().toISOString(),
-          appVersion:"3.3"
+          appVersion:"3.4"
         }
       })
     });
@@ -4782,7 +4782,7 @@ function mainHdr(){
     }
   </div>`:'';
   const hasDemoData=S.tour==null&&(S.inventory.some(k=>k._tourDemo)||S.posts.some(p=>p._tourDemo));
-  const demoBanner=hasDemoData?`<div class="demo-banner">${icon('film',14)} Demo data is active <button class="demo-rm-btn" onclick="endTour(false)">Remove Demo Data</button></div>`:"";
+  const demoBanner=hasDemoData?`<div class="demo-bar">${icon('film',14)} Demo data is active <button class="demo-rm-btn" onclick="endTour(false)">Remove Demo Data</button></div>`:"";
   return`<div class="hdr">
     <div class="hdr-logo" onclick="S.view='list';render()"><img src="/icon.svg" width="44" height="44" style="flex-shrink:0" alt="BladeFlow"/><div><div class="hdr-title">BladeFlow</div><div class="hdr-sub">For r/Knife_Swap</div></div></div>
     <div class="hdr-tabs"><div class="tab-seg">
@@ -4805,7 +4805,7 @@ function mainHdr(){
 }
 function kfFormHtml(){
   const s=S;const f=s.kf;const isLock=s.kfMode==="locker";
-  const advHtml=`<div class="adv-box"><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Owners</label><select id="kf-owners">${["1","2","3","4+"].map(v=>`<option${f.owners===v?" selected":""}>${v}</option>`).join("")}</select></div><div class="field"><label>Centering</label><select id="kf-centering">${["Perfect","Favoring show side","Favoring clip side","Off-center"].map(v=>`<option${f.centering===v?" selected":""}>${v}</option>`).join("")}</select></div></div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Lockup</label><select id="kf-lockup">${["Solid","Early","Mid","Late","Slight play","Lock stick","Other (describe)"].map(v=>`<option${f.lockup===v?" selected":""}>${v}</option>`).join("")}</select></div>${f.lockup==="Other (describe)"?`<div class="field"><label>Describe</label><input type="text" id="kf-lockupNotes" value="${esc(f.lockupNotes)}" placeholder="Describe..."/></div>`:`<div></div>`}</div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Issues</label><div class="chips" style="margin-top:4px">${ISSUES.map(v=>`<button class="chip sm mul${f.issues.includes(v)?" on":""}" onclick="syncKF();S.kf.issues=tmx(S.kf.issues,'${v}','None');render()">${v}</button>`).join("")}</div>${f.issues.includes("Other")?`<input type="text" id="kf-issuesOther" value="${esc(f.issuesOther)}" placeholder="Describe issue(s)…" style="margin-top:6px;width:100%" oninput="S.kf.issuesOther=this.value"/>`:`<input type="hidden" id="kf-issuesOther" value=""/>`}</div><div class="field"><label>Accessories</label><div class="chips" style="margin-top:4px">${ACC.map(v=>`<button class="chip sm mul${f.accessories.includes(v)?" on":""}" onclick="syncKF();S.kf.accessories=tmx(S.kf.accessories,'${v}','None');render()">${v}</button>`).join("")}</div>${f.accessories.includes("Other")?`<input type="text" id="kf-accessoriesOther" value="${esc(f.accessoriesOther)}" placeholder="Describe accessory(s)…" style="margin-top:6px;width:100%" oninput="S.kf.accessoriesOther=this.value"/>`:`<input type="hidden" id="kf-accessoriesOther" value=""/>`}</div></div><div class="field"><label>Notes <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><textarea id="kf-notes" rows="3" placeholder="Upgraded hardware, extra scales..." style="resize:vertical;min-height:60px;font-family:var(--font);font-size:13px;padding:8px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);width:100%;box-sizing:border-box" oninput="S.kf.notes=this.value">${esc(f.notes)}</textarea></div><div class="field" style="margin-top:10px"><label>Born / Manufactured <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><input type="text" id="kf-dob" value="${esc(f.dob||"")}" placeholder="e.g. 2021, March 2022, Q1 2023" oninput="S.kf.dob=this.value"/><div class="field-hint">Year or date the knife was manufactured — included in your listing if set.</div></div></div>`;
+  const advHtml=`<div class="kf-details"><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Owners</label><select id="kf-owners">${["1","2","3","4+"].map(v=>`<option${f.owners===v?" selected":""}>${v}</option>`).join("")}</select></div><div class="field"><label>Centering</label><select id="kf-centering">${["Perfect","Favoring show side","Favoring clip side","Off-center"].map(v=>`<option${f.centering===v?" selected":""}>${v}</option>`).join("")}</select></div></div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Lockup</label><select id="kf-lockup">${["Solid","Early","Mid","Late","Slight play","Lock stick","Other (describe)"].map(v=>`<option${f.lockup===v?" selected":""}>${v}</option>`).join("")}</select></div>${f.lockup==="Other (describe)"?`<div class="field"><label>Describe</label><input type="text" id="kf-lockupNotes" value="${esc(f.lockupNotes)}" placeholder="Describe..."/></div>`:`<div></div>`}</div><div class="fr2" style="margin-bottom:11px"><div class="field"><label>Issues</label><div class="chips" style="margin-top:4px">${ISSUES.map(v=>`<button class="chip sm mul${f.issues.includes(v)?" on":""}" onclick="syncKF();S.kf.issues=tmx(S.kf.issues,'${v}','None');render()">${v}</button>`).join("")}</div>${f.issues.includes("Other")?`<input type="text" id="kf-issuesOther" value="${esc(f.issuesOther)}" placeholder="Describe issue(s)…" style="margin-top:6px;width:100%" oninput="S.kf.issuesOther=this.value"/>`:`<input type="hidden" id="kf-issuesOther" value=""/>`}</div><div class="field"><label>Accessories</label><div class="chips" style="margin-top:4px">${ACC.map(v=>`<button class="chip sm mul${f.accessories.includes(v)?" on":""}" onclick="syncKF();S.kf.accessories=tmx(S.kf.accessories,'${v}','None');render()">${v}</button>`).join("")}</div>${f.accessories.includes("Other")?`<input type="text" id="kf-accessoriesOther" value="${esc(f.accessoriesOther)}" placeholder="Describe accessory(s)…" style="margin-top:6px;width:100%" oninput="S.kf.accessoriesOther=this.value"/>`:`<input type="hidden" id="kf-accessoriesOther" value=""/>`}</div></div><div class="field"><label>Notes <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><textarea id="kf-notes" rows="3" placeholder="Upgraded hardware, extra scales..." style="resize:vertical;min-height:60px;font-family:var(--font);font-size:13px;padding:8px 10px;border:.5px solid var(--b2);border-radius:8px;background:var(--surf);color:var(--t1);width:100%;box-sizing:border-box" oninput="S.kf.notes=this.value">${esc(f.notes)}</textarea></div><div class="field" style="margin-top:10px"><label>Born / Manufactured <span style="font-weight:400;color:var(--t4);font-size:11px">(optional)</span></label><input type="text" id="kf-dob" value="${esc(f.dob||"")}" placeholder="e.g. 2021, March 2022, Q1 2023" oninput="S.kf.dob=this.value"/><div class="field-hint">Year or date the knife was manufactured — included in your listing if set.</div></div></div>`;
   const kt=f.knifeType||"WTS";
   const badge=isLock?`<span class="kf-badge lk">The Roll</span>`:`<span class="kf-badge dr">${s.kfIdx>=0?"Knife #"+(s.kfIdx+1):"New"}</span>`;
   // Price research panel
@@ -6463,7 +6463,7 @@ function renderSettings(){
   </div>
   <div class="settings-section-lbl">About</div>
   <div class="sgroup">
-    <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.3 &middot; ${BRANDS.length} brands &middot; ${STEELS.length} steels</div></div>
+    <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.4 &middot; ${BRANDS.length} brands &middot; ${STEELS.length} steels</div></div>
     <div class="srow"><div><div class="srow-lbl">Built by</div><div class="srow-sub">u/smashedllama2, a free tool for the r/Knife_Swap community</div></div><div class="srow-ctrl"><a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#FFDD00;color:#000;font-size:12px;font-weight:700;padding:7px 13px;border-radius:8px;text-decoration:none;white-space:nowrap">☕ Buy me a coffee</a></div></div>
   </div>
   ${S.authStatus==="signed_in"?`
@@ -6853,9 +6853,9 @@ window.checkPostRules=checkPostRules;
 // instead of being stranded on a stale cached build.
 let _bfUpdating=false;
 function showUpdateBanner(worker){
-  if(!worker||document.getElementById("bf-update-banner"))return;
+  if(!worker||document.getElementById("bf-update-bar"))return;
   const b=document.createElement("div");
-  b.id="bf-update-banner";
+  b.id="bf-update-bar";
   b.style.cssText="position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:100000;display:flex;align-items:center;gap:12px;background:#1C1C1E;color:#F2F2F7;border:.5px solid rgba(255,255,255,.15);border-radius:14px;padding:11px 12px 11px 16px;box-shadow:0 8px 32px rgba(0,0,0,.45);font-family:var(--font);font-size:13px;max-width:calc(100% - 32px);animation:bfUpToast .3s ease";
   const txt=document.createElement("span");txt.textContent="A new version of BladeFlow is available.";txt.style.cssText="line-height:1.4";
   const btn=document.createElement("button");btn.textContent="Update";
