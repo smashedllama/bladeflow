@@ -4437,7 +4437,7 @@ function renderTutorialModal(){
        <button class="btn btn-sec btn-sm" onclick="${go('roll')}">${icon('clipboard',13)} Go to The Roll</button>
        <button class="btn btn-pri btn-sm" onclick="tutDone();startCompose()">${icon('pencil',13)} Start a Listing</button>
      </div>
-     <div style="margin-top:14px;text-align:center"><a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" style="font-size:12px;color:var(--oranget);font-weight:600;text-decoration:none">☕ buymeacoffee.com/erunyan</a></div>`}
+     <div style="margin-top:14px;text-align:center"><a href="https://buymeacoffee.com/altflow" target="_blank" rel="noopener" style="font-size:12px;color:var(--oranget);font-weight:600;text-decoration:none">☕ buymeacoffee.com/altflow</a></div>`}
   ];
   const TOTAL=steps.length;
   const st=Math.max(0,Math.min(TOTAL-1,S.tutStep||0));
@@ -4702,7 +4702,7 @@ function renderAboutModal(){
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:10px">Links</div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <a href="https://www.reddit.com/r/Knife_Swap/" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--t1);font-size:13px;font-weight:500">${icon("scissors",18)}r/Knife_Swap subreddit</a>
-          <a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--t1);font-size:13px;font-weight:500"><span style="font-size:18px">☕</span>Buy me a coffee</a>
+          <a href="https://buymeacoffee.com/altflow" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--t1);font-size:13px;font-weight:500"><span style="font-size:18px">☕</span>Buy me a coffee</a>
         </div>
       </div>
       <div style="font-size:11.5px;color:var(--t4);line-height:1.6">Not affiliated with or endorsed by r/Knife_Swap moderators. Always check the official subreddit rules before posting.</div>`;
@@ -4791,7 +4791,7 @@ function mainHdr(){
       <button class="tab-item${(S.view==='sold'||S.view==='shipping')?' on':''}" onclick="if(S.view!=='sold'&&S.view!=='shipping')S.view='shipping';render()" style="position:relative">${icon('truck',13)} Sales${(()=>{const n=S.posts.reduce((a,p)=>a+p.knives.filter(k=>{const s=kShipStatus(k);return s==='ready'||s==='shipped'||s==='delivered';}).length,0);return n?`<span style="position:absolute;top:3px;right:3px;background:var(--oranget);color:#fff;font-size:9px;font-weight:700;border-radius:10px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1">${n}</span>`:"";})()} </button>
     </div></div>
     <div class="hdr-r">
-      <a class="hdr-ico-btn" href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" title="Support the developer"><span class="ico">☕</span><span class="btn-lbl">Support</span></a>
+      <a class="hdr-ico-btn" href="https://buymeacoffee.com/altflow" target="_blank" rel="noopener" title="Support the developer"><span class="ico">☕</span><span class="btn-lbl">Support</span></a>
       <button class="hdr-ico-btn" onclick="S.view='settings';S.acctPopover=false;render()" title="Settings"><span class="ico">${icon('settings',16)}</span></button>
       <div class="acct-wrap">
         <button class="acct-btn" onclick="S.acctPopover=!S.acctPopover;render()" title="${S.authStatus==='signed_in'?esc(S.authEmail):'Account'}">
@@ -6464,7 +6464,7 @@ function renderSettings(){
   <div class="settings-section-lbl">About</div>
   <div class="sgroup">
     <div class="srow"><div class="srow-lbl">Version</div><div style="font-size:13px;color:var(--t3);margin-left:auto">3.4 &middot; ${BRANDS.length} brands &middot; ${STEELS.length} steels</div></div>
-    <div class="srow"><div><div class="srow-lbl">Built by</div><div class="srow-sub">u/smashedllama2, a free tool for the r/Knife_Swap community</div></div><div class="srow-ctrl"><a href="https://buymeacoffee.com/erunyan" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#FFDD00;color:#000;font-size:12px;font-weight:700;padding:7px 13px;border-radius:8px;text-decoration:none;white-space:nowrap">☕ Buy me a coffee</a></div></div>
+    <div class="srow"><div><div class="srow-lbl">Built by</div><div class="srow-sub">u/smashedllama2, a free tool for the r/Knife_Swap community</div></div><div class="srow-ctrl"><a href="https://buymeacoffee.com/altflow" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:#FFDD00;color:#000;font-size:12px;font-weight:700;padding:7px 13px;border-radius:8px;text-decoration:none;white-space:nowrap">☕ Buy me a coffee</a></div></div>
   </div>
   ${S.authStatus==="signed_in"?`
   <div class="settings-section-lbl" style="color:var(--redt);margin-top:8px">Danger Zone</div>
